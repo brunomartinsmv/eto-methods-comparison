@@ -35,15 +35,15 @@ Este repositório contém o trabalho final da disciplina de **Teoria em Física 
 Os métodos avaliados são classificados em empíricos (baseados apenas em temperatura) e semi-empíricos (incorporam outros parâmetros meteorológicos). Abaixo, uma breve descrição de cada método com suas equações principais:
 
 - **Penman-Monteith (Referência)**: Método físico combinando balanço de energia e massa, considerado padrão internacional para ETo. Requer dados completos de radiação, temperatura, umidade e vento.
-  $$
-  ETo = \frac{0.408 \Delta (R_n - G) + \gamma \frac{900}{T+273} u_2 (e_s - e_a)}{\Delta + \gamma (1 + 0.34 u_2)}
-  $$
+
+  $$ETo = \frac{0.408 \Delta (R_n - G) + \gamma \frac{900}{T+273} u_2 (e_s - e_a)}{\Delta + \gamma (1 + 0.34 u_2)}$$
+  
   Onde: $\Delta$ = inclinação da curva de pressão de vapor (kPa/°C), $R_n$ = radiação líquida (MJ/m²/dia), $G$ = fluxo de calor no solo (MJ/m²/dia), $\gamma$ = constante psicrométrica (kPa/°C), $T$ = temperatura média (°C), $u_2$ = velocidade do vento a 2m (m/s), $e_s - e_a$ = déficit de pressão de vapor (kPa).
 
 - **Thornthwaite**: Método empírico baseado exclusivamente na temperatura média mensal. Adequado para regiões com dados limitados, mas pode subestimar em climas úmidos.
-  $$
-  ETo = 16 \left( \frac{10T}{I} \right)^a \cdot \frac{N}{12} \cdot \frac{N_d}{30}
-  $$
+  
+  $$ETo = 16 \left( \frac{10T}{I} \right)^a \cdot \frac{N}{12} \cdot \frac{N_d}{30}$$
+  
   Onde: $T$ = temperatura média mensal (°C), $I$ = índice de calor anual, $a$ = coeficiente empírico, $N$ = horas de luz do dia, $N_d$ = número de dias no mês.
 
 - **Camargo**: Adaptação do método de Thornthwaite para regiões tropicais, ajustando coeficientes para melhor representar climas equatoriais com alta umidade.
@@ -51,17 +51,17 @@ Os métodos avaliados são classificados em empíricos (baseados apenas em tempe
 - **Thornthwaite-Camargo**: Combinação dos métodos Thornthwaite e Camargo, visando equilibrar as limitações de ambos em diferentes condições climáticas.
 
 - **Hargreaves & Samani**: Método semi-empírico que utiliza amplitude térmica diária como proxy para radiação solar. Simples e eficaz em regiões com dados de temperatura disponíveis.
-  $$
-  ETo = 0.0023 R_a (T_{max} - T_{min})^{0.5} (T_{mean} + 17.8)
-  $$
+  
+  $$ETo = 0.0023 R_a (T_{max} - T_{min})^{0.5} (T_{mean} + 17.8) $$
+  
   Onde: $R_a$ = radiação extraterrestre (MJ/m²/dia), $T_{max}$, $T_{min}$, $T_{mean}$ = temperaturas máxima, mínima e média (°C).
 
 - **Hargreaves & Samani (corrigido)**: Versão modificada do método original, com ajustes para melhorar a acurácia em condições específicas.
 
 - **Priestley-Taylor**: Método semi-empírico baseado no balanço de energia, assumindo que a transpiração é proporcional à radiação. Adequado para superfícies bem irrigadas.
-  $$
-  ETo = \alpha \frac{\Delta}{\Delta + \gamma} \frac{R_n}{\lambda}
-  $$
+- 
+  $$ETo = \alpha \frac{\Delta}{\Delta + \gamma} \frac{R_n}{\lambda}$$
+  
   Onde: $\alpha \approx 1.26$ (coeficiente empírico), $\lambda$ = calor latente de vaporização (MJ/kg).
 
 ## Estrutura do Projeto
