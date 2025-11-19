@@ -1,0 +1,30 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{hyperref}
+\geometry{margin=2.5cm}
+\title{Estimativa da Evapotranspira\c{c}\~ao de Refer\^encia (ET$_0$) para Piracicaba em 2024: Compara\c{c}\~ao de M\'etodos e Calibra\c{c}\~ao Emp\'irica}
+\author{Bruno et al.}
+\date{2024}
+\begin{document}
+\maketitle
+\begin{abstract}
+Este estudo compara seis m\'etodos para estimativa da evapotranspira\c{c}\~ao de refer\^encia (ET$_0$) em Piracicaba (2024): Penman--Monteith (refer\^encia), Priestley--Taylor, Hargreaves--Samani, Thornthwaite, Thornthwaite--Camargo e Camargo. Os dados foram pr\'e-processados com reconstru\c{c}\~ao de datas e interpola\c{c}\~ao de faltantes. Avaliamos o desempenho di\'ario e mensal com m\'etricas (vi\'es, MAE, RMSE, $r$, $R^2$, NSE e \emph{d} de Willmott). Apresenta-se calibra\c{c}\~ao multiplicativa simples para reduzir vi\'es dos m\'etodos emp\'iricos. Os resultados indicam que Priestley--Taylor acompanha bem Penman--Monteith; Hargreaves e Camargo requerem calibra\c{c}\~ao local, ap\'os a qual atingem erros compar\'aveis aos m\'etodos f\'isicos em escala di\'aria.
+\end{abstract}
+\section{Metodologia}
+Dados di\'arios de 2024 (arquivo Evapo\_2.xlsx, aba Piracicaba; altitude 546 m) foram padronizados. O balan\c{c}o de radia\c{c}\~ao l\'iquida $R_n$ foi usado diretamente quando dispon\'ivel e plaus\'ivel, ou estimado de Rs, Rso e Rnl (FAO-56). As f\'ormulas implementadas foram: PM (FAO-56 eq. 6), PT com $\alpha=1.26$, HS, TH (mensal com ajuste de dias), THC (TH ajustado por fotoper\'iodo) e Camargo ($ET=K\,Rs\,(T+20)$, $K=0.01$). O solo di\'ario considerou $G\approx0$.
+\section{Resultados}
+As Figuras referenciadas est\~ao na pasta do projeto: s\'eries 7d, dispers\~oes e res\'iduos (todas em 600 dpi). As Tabelas~\ref{tab:metricas_diarias} e \ref{tab:metricas_mensais} sumarizam o desempenho. Ap\'os calibra\c{c}\~ao, HS e Camargo alinharam o total anual ao PM e reduziram substancialmente RMSE/MAE.
+\input{tabelas_metricas_diarias.tex}
+\input{tabelas_metricas_mensais.tex}
+\section{Discuss\~ao}
+PT apresentou bom ajuste pela domin\^ancia de $R_n$ no controle da ET$_0$ em 2024. TH/THC reproduzem sazonalidade, mas n\~ao a variabilidade di\'aria, sendo adequados para climatologia. HS e Camargo superestimam com coeficientes gen\'ericos; a calibra\c{c}\~ao multiplicativa removeu o vi\'es e melhorou substancialmente as m\'etricas sem comprometer correla\c{c}\~ao. Recomenda-se valida\c{c}\~ao cruzada em anos distintos e uso operacional de PM (ou PT) quando poss\'ivel.
+\section{Conclus\~oes}
+- PM permanece como refer\^encia; PT \`e alternativa parcimoniosa.
+- HS e Camargo exigem calibra\c{c}\~ao local para uso pr\'atico.
+- TH/THC s\~ao \'uteis para estudos mensais de clima, menos para manejo di\'ario.
+\paragraph{Dados e c\'odigo} Arquivos gerados incluem CSV consolidado e figuras (600 dpi).\newline
+\textbf{Reprodutibilidade:} notebook calculo2.ipynb.
+\end{document}
