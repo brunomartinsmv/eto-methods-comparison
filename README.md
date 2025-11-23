@@ -167,20 +167,11 @@ Estes achados auxiliam na escolha de abordagens adequadas para regiões com dado
 
 ## Autor
 
-[Seu Nome Completo]  
+Bruno Martins M. Vieira 
 Mestrando em Física  
-Universidade [Nome da Universidade]  
-Email: [seu.email@universidade.edu.br]
+Universidade Federal do Mato Grosso
+Email: brunomendes@fisica.ufmt.br
 
-## Orientador
-
-[Nome do Orientador]  
-Doutor em Física Ambiental  
-Universidade [Nome da Universidade]
-
-## Data de Apresentação
-
-23 de novembro de 2025
 
 ## Licença
 
