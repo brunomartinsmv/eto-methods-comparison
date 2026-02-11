@@ -1,6 +1,6 @@
 # Fisica Ambiental — Evapotranspiracao de Referencia (ETo)
 
-[![DOI](https://zenodo.org/badge/1099438434.svg)](https://doi.org/10.5281/zenodo.18615050)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18615164.svg)](https://doi.org/10.5281/zenodo.18615164)
 
 **PT (Resumo)**
 Este repositorio organiza um estudo academico sobre a estimativa de ETo para Piracicaba (SP) e Manaus (AM), comparando metodos empiricos e semi-empiricos com Penman-Monteith como referencia. O foco e reprodutibilidade: dados brutos, dados corrigidos, resultados intermediarios e produtos finais estao claramente separados.
