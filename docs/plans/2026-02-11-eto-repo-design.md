@@ -6,7 +6,7 @@ Reestruturar o repositorio para uso didatico, com separacao clara de dados bruto
 ## Decisoes-chave
 - Estrutura padrao cientifica: `data/raw`, `data/cleaned`, `outputs/results`, `outputs/figures`, `outputs/tables`, `scripts`, `notebooks`, `docs`.
 - Pipeline modular + CLI.
-- Documentacao bilingüe (PT/EN), com metodologia extensa em `docs/methodology.md`.
+- Documentacao bilingue (PT/EN), com metodologia extensa em `docs/methodology.md`.
 - Notebooks mantidos como guia principal.
 
 ## Entregas
