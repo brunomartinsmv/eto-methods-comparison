@@ -42,6 +42,15 @@ export MPLCONFIGDIR=/tmp/mpl-cache
 python -m scripts.cli all --year 2024
 ```
 
+Para reproduzir apenas uma localidade configurada:
+```bash
+python -m scripts.cli all --year 2024 --site manaus
+python -m scripts.cli all --year 2024 --site piracicaba
+python -m scripts.cli all --year 2024 --all-sites
+```
+
+As localidades ficam em `configs/sites.yml`; os metodos e nomes de colunas ficam em `configs/methods.yml`.
+
 ## Checagens de desenvolvimento / Development checks
 ```bash
 python -m pytest

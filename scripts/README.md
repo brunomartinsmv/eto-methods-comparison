@@ -13,10 +13,15 @@ python -m scripts.cli aggregate --input data/cleaned --output outputs/results
 python -m scripts.cli metrics --input data/cleaned --output outputs/tables
 python -m scripts.cli plots --input data/cleaned --output outputs/figures
 python -m scripts.cli all --year 2024
+python -m scripts.cli all --year 2024 --site manaus
+python -m scripts.cli all --year 2024 --site piracicaba
+python -m scripts.cli all --year 2024 --all-sites
 ```
 
+Sites are configured in `configs/sites.yml`. Method column mappings and short labels are configured in `configs/methods.yml`.
+
 ## Modulos / Modules
-- `config.py`: caminhos e parametros
+- `config.py`: caminhos, parametros e carregamento de `configs/*.yml`
 - `io.py`: leitura e padronizacao
 - `cleaning.py`: tratamento de falhas
 - `aggregate.py`: agregacoes

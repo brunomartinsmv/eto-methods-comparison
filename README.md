@@ -246,20 +246,30 @@ To compute all 7 methods, you need daily data for:
 - Columns must include: date, temperature variables, radiation, wind, humidity
 - See `data/raw/Evapo.xlsx` as reference
 
-**2. Edit configuration** (`scripts/config.py`)
+**2. Edit configuration** (`configs/sites.yml`)
 
-Add your site to the `SITES` dictionary:
-```python
-SITES = {
-    "piracicaba": {"sheet": "Piracicaba", "lat": -22.7, "elev": 546},
-    "manaus": {"sheet": "Manaus", "lat": -3.1, "elev": 92},
-    "cuiaba": {"sheet": "Cuiaba", "lat": -15.6, "elev": 165},  # Your new site
-}
+Add your site to the `sites` mapping:
+```yaml
+sites:
+  cuiaba:
+    sheet: Cuiaba
+    lat: -15.6
+    lon: -56.1
+    alt_m: 165.0
 ```
+
+Method column mappings and short labels live in `configs/methods.yml`.
 
 **3. Run the pipeline**
 ```bash
 python -m scripts.cli all --year 2024
+```
+
+To run one configured site:
+
+```bash
+python -m scripts.cli all --year 2024 --site manaus
+python -m scripts.cli all --year 2024 --site piracicaba
 ```
 
 The pipeline will automatically:
