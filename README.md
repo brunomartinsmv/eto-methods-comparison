@@ -130,6 +130,10 @@ python -m scripts.cli clean      # Clean raw data → data/cleaned/
 python -m scripts.cli aggregate  # Create aggregations → outputs/results/
 python -m scripts.cli metrics    # Compute RMSE, R², etc. → outputs/tables/
 python -m scripts.cli plots      # Generate all figures → outputs/figures/
+python -m scripts.cli validate-data  # Audit dates, missing values, interpolation traces
+python -m scripts.cli summarize      # Summarize best methods by site and temporal scale
+python -m scripts.cli reproduce-paper --year 2024  # Regenerate paper-facing outputs
+python -m scripts.cli export-supplement             # Collect supplemental CSV outputs
 ```
 
 **Expected runtime:** ~30 seconds for full pipeline on both sites (2024 data).
@@ -246,20 +250,30 @@ To compute all 7 methods, you need daily data for:
 - Columns must include: date, temperature variables, radiation, wind, humidity
 - See `data/raw/Evapo.xlsx` as reference
 
-**2. Edit configuration** (`scripts/config.py`)
+**2. Edit configuration** (`configs/sites.yml`)
 
-Add your site to the `SITES` dictionary:
-```python
-SITES = {
-    "piracicaba": {"sheet": "Piracicaba", "lat": -22.7, "elev": 546},
-    "manaus": {"sheet": "Manaus", "lat": -3.1, "elev": 92},
-    "cuiaba": {"sheet": "Cuiaba", "lat": -15.6, "elev": 165},  # Your new site
-}
+Add your site to the `sites` mapping:
+```yaml
+sites:
+  cuiaba:
+    sheet: Cuiaba
+    lat: -15.6
+    lon: -56.1
+    alt_m: 165.0
 ```
+
+Method column mappings and short labels live in `configs/methods.yml`.
 
 **3. Run the pipeline**
 ```bash
 python -m scripts.cli all --year 2024
+```
+
+To run one configured site:
+
+```bash
+python -m scripts.cli all --year 2024 --site manaus
+python -m scripts.cli all --year 2024 --site piracicaba
 ```
 
 The pipeline will automatically:
@@ -292,12 +306,16 @@ date       | temp_mean | temp_min | temp_max | radiation | wind_2m | rh_mean
 ├── outputs/
 │   ├── results/        # Intermediate aggregations (7-day rolling, monthly totals)
 │   ├── figures/        # All generated plots (Taylor diagrams, scatter plots, time series)
+│   ├── reports/        # Data quality reports
 │   └── tables/         # **Metrics tables (RMSE, R², MAE, bias) ← Start here**
 ├── scripts/            # Analysis pipeline (CLI, cleaning, metrics, plotting)
 ├── notebooks/          # Educational Jupyter notebooks with step-by-step explanations
 ├── docs/               # Detailed methodology, equations, and interpretation guides
 └── requirements.txt    # Python dependencies
 ```
+
+Files under `outputs/**/legacy/` are historical notebook-era outputs, not the
+official preprint result set. See [`docs/legacy.md`](docs/legacy.md).
 
 ---
 

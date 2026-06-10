@@ -18,3 +18,12 @@ Each site report (`*_data_quality.csv`) contains one row per variable and record
 - `physical_limit_violations`: values outside conservative physical plausibility limits.
 
 `data_quality_summary.csv` concatenates the site-level reports for quick review.
+
+`summary.csv` and `summary.md` are generated with:
+
+```bash
+python -m scripts.cli summarize
+```
+
+They report the best-performing method by lowest RMSE for each site and temporal
+scale, using the current metrics tables in `outputs/tables/`.
