@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+
 import pandas as pd
 
 from .config import DEFAULT_YEAR, METHOD_COLUMNS, WEATHER_COLUMNS
