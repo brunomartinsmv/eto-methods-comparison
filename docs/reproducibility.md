@@ -42,6 +42,32 @@ export MPLCONFIGDIR=/tmp/mpl-cache
 python -m scripts.cli all --year 2024
 ```
 
+Para reproduzir a colecao completa esperada para revisao do preprint:
+```bash
+python -m scripts.cli reproduce-paper --year 2024
+```
+
+Para reproduzir apenas uma localidade configurada:
+```bash
+python -m scripts.cli all --year 2024 --site manaus
+python -m scripts.cli all --year 2024 --site piracicaba
+python -m scripts.cli all --year 2024 --all-sites
+```
+
+As localidades ficam em `configs/sites.yml`; os metodos e nomes de colunas ficam em `configs/methods.yml`.
+
+## Comandos cientificos
+```bash
+python -m scripts.cli validate-data --year 2024
+python -m scripts.cli summarize
+python -m scripts.cli export-supplement
+```
+
+- `validate-data` escreve relatorios CSV em `outputs/reports/`.
+- `summarize` escreve `outputs/reports/summary.csv` e `outputs/reports/summary.md` com o melhor metodo por RMSE para cada localidade e escala temporal.
+- `export-supplement` cria `outputs/supplement/` com CSVs atuais de `outputs/tables/`, `outputs/results/` e `outputs/reports/`, deixando outputs legados fora do pacote suplementar.
+- `all` continua disponivel para compatibilidade historica.
+
 ## Checagens de desenvolvimento / Development checks
 ```bash
 python -m pytest
@@ -57,5 +83,8 @@ Se ainda nao houver testes versionados no checkout, `pytest` pode encerrar sem c
 - `outputs/tables/*_metrics_*.csv`
 - `outputs/figures/<site>/*.png`
 - `outputs/reports/*_data_quality.csv`
+- `outputs/reports/summary.csv`
+- `outputs/reports/summary.md`
+- `outputs/supplement/MANIFEST.md`
 
 Arquivos sob `outputs/**/legacy/` sao mantidos apenas para auditoria historica e nao devem ser tratados como resultados principais do preprint. Veja `docs/legacy.md`.

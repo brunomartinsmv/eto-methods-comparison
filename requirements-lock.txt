@@ -42,6 +42,7 @@ pyparsing==3.3.2
 pytest==8.4.2
 python-dateutil==2.9.0.post0
 pyzmq==27.1.0
+PyYAML==6.0.3
 referencing==0.37.0
 rpds-py==2026.5.1
 ruff==0.13.3

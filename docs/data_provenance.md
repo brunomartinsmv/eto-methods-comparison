@@ -30,7 +30,7 @@ python -m scripts.cli all --year 2024 --input data/raw/Evapo.xlsx
 ## Localidades analisadas
 
 As coordenadas e altitudes abaixo sao as usadas pela configuracao do pipeline
-em `scripts/config.py`.
+em `configs/sites.yml`.
 
 | Localidade | Aba em `Evapo.xlsx` | Latitude | Longitude | Altitude | Periodo usado |
 | --- | --- | ---: | ---: | ---: | --- |
@@ -71,7 +71,7 @@ referencia para as metricas comparativas.
 1. `scripts.io.read_evapo_sheet` le a aba da localidade com `skiprows=4`.
 2. Colunas `Unnamed:*` sao descartadas.
 3. Nomes de colunas meteorologicas e de metodos sao padronizados conforme
-   `scripts/config.py`.
+   `scripts/config.py` e `configs/methods.yml`.
 4. A coluna `date` e interpretada como dia do ano quando numerica entre 1 e
    366; caso contrario, e lida como data.
 5. `scripts.cleaning.clean_daily` ordena por data, interpola colunas numericas
