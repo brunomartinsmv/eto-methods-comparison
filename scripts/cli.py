@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import argparse
+import shutil
 from pathlib import Path
 
 import pandas as pd
 
-from . import aggregate, cleaning, io, metrics, plots, quality
+from . import aggregate, cleaning, io, metrics, plots, quality, summary
 from .config import (
     DATA_CLEANED,
     DATA_RAW,
@@ -15,9 +16,24 @@ from .config import (
     OUTPUTS_FIGURES,
     OUTPUTS_REPORTS,
     OUTPUTS_RESULTS,
+    OUTPUTS_SUPPLEMENT,
     OUTPUTS_TABLES,
+    REFERENCE_COLUMN,
     SITES,
+    select_sites,
 )
+
+
+class SiteAction(argparse.Action):
+    def __call__(
+        self,
+        parser: argparse.ArgumentParser,
+        namespace: argparse.Namespace,
+        values: str,
+        option_string: str | None = None,
+    ) -> None:
+        setattr(namespace, self.dest, values)
+        namespace.all_sites = False
 
 
 def _ensure_dir(path: Path) -> None:
@@ -28,12 +44,16 @@ def _method_cols_present(df: pd.DataFrame) -> list[str]:
     return [col for col in METHOD_COLUMNS.values() if col in df.columns]
 
 
+def _selected_sites(args: argparse.Namespace) -> dict[str, dict]:
+    return select_sites(SITES, site=getattr(args, "site", None), all_sites=getattr(args, "all_sites", True))
+
+
 def cmd_clean(args: argparse.Namespace) -> None:
     input_path = Path(args.input)
     output_dir = Path(args.output)
     _ensure_dir(output_dir)
 
-    for site, meta in SITES.items():
+    for site, meta in _selected_sites(args).items():
         df = io.read_evapo_sheet(input_path, meta["sheet"], year=args.year)
         df = cleaning.clean_daily(df)
         io.write_cleaned(df, output_dir / f"{site}_daily.csv")
@@ -45,7 +65,7 @@ def cmd_validate_data(args: argparse.Namespace) -> None:
     _ensure_dir(output_dir)
 
     reports = []
-    for site, meta in SITES.items():
+    for site, meta in _selected_sites(args).items():
         raw_df = io.read_evapo_sheet(input_path, meta["sheet"], year=args.year)
         cleaned_df, audit = cleaning.clean_daily_with_audit(raw_df)
         report = quality.build_quality_report(
@@ -68,7 +88,7 @@ def cmd_aggregate(args: argparse.Namespace) -> None:
     output_dir = Path(args.output)
     _ensure_dir(output_dir)
 
-    for site in SITES.keys():
+    for site in _selected_sites(args).keys():
         df = pd.read_csv(input_dir / f"{site}_daily.csv", parse_dates=["date"])
         method_cols = _method_cols_present(df)
 
@@ -84,10 +104,10 @@ def cmd_metrics(args: argparse.Namespace) -> None:
     output_dir = Path(args.output)
     _ensure_dir(output_dir)
 
-    for site in SITES.keys():
+    for site in _selected_sites(args).keys():
         df = pd.read_csv(input_dir / f"{site}_daily.csv", parse_dates=["date"])
         method_cols = _method_cols_present(df)
-        ref_col = "et_penman_monteith"
+        ref_col = REFERENCE_COLUMN
 
         if ref_col not in df.columns:
             raise ValueError(f"Reference column '{ref_col}' not found for {site}")
@@ -105,10 +125,10 @@ def cmd_plots(args: argparse.Namespace) -> None:
     figures_dir = Path(args.output)
     _ensure_dir(figures_dir)
 
-    for site in SITES.keys():
+    for site in _selected_sites(args).keys():
         df = pd.read_csv(input_dir / f"{site}_daily.csv", parse_dates=["date"])
         method_cols = _method_cols_present(df)
-        ref_col = "et_penman_monteith"
+        ref_col = REFERENCE_COLUMN
 
         site_dir = figures_dir / site
         _ensure_dir(site_dir)
@@ -140,17 +160,117 @@ def cmd_plots(args: argparse.Namespace) -> None:
 
 
 def cmd_all(args: argparse.Namespace) -> None:
-    clean_args = argparse.Namespace(input=args.input, output=args.output, year=args.year)
+    clean_args = argparse.Namespace(
+        input=args.input,
+        output=args.output,
+        year=args.year,
+        site=args.site,
+        all_sites=args.all_sites,
+    )
     cmd_clean(clean_args)
 
-    aggregate_args = argparse.Namespace(input=str(DATA_CLEANED), output=str(OUTPUTS_RESULTS), year=args.year)
+    aggregate_args = argparse.Namespace(
+        input=str(DATA_CLEANED),
+        output=str(OUTPUTS_RESULTS),
+        year=args.year,
+        site=args.site,
+        all_sites=args.all_sites,
+    )
     cmd_aggregate(aggregate_args)
 
-    metrics_args = argparse.Namespace(input=str(DATA_CLEANED), output=str(OUTPUTS_TABLES), year=args.year)
+    metrics_args = argparse.Namespace(
+        input=str(DATA_CLEANED),
+        output=str(OUTPUTS_TABLES),
+        year=args.year,
+        site=args.site,
+        all_sites=args.all_sites,
+    )
     cmd_metrics(metrics_args)
 
-    plots_args = argparse.Namespace(input=str(DATA_CLEANED), output=str(OUTPUTS_FIGURES), year=args.year)
+    plots_args = argparse.Namespace(
+        input=str(DATA_CLEANED),
+        output=str(OUTPUTS_FIGURES),
+        year=args.year,
+        site=args.site,
+        all_sites=args.all_sites,
+    )
     cmd_plots(plots_args)
+
+
+def cmd_summarize(args: argparse.Namespace) -> None:
+    sites = list(_selected_sites(args).keys())
+    summary_df = summary.build_summary(Path(args.input), sites=sites)
+    summary.write_summary(summary_df, Path(args.output))
+
+
+def cmd_reproduce_paper(args: argparse.Namespace) -> None:
+    cmd_all(args)
+    validate_args = argparse.Namespace(
+        input=args.input,
+        output=str(OUTPUTS_REPORTS),
+        year=args.year,
+        site=args.site,
+        all_sites=args.all_sites,
+    )
+    cmd_validate_data(validate_args)
+    summarize_args = argparse.Namespace(
+        input=str(OUTPUTS_TABLES),
+        output=str(OUTPUTS_REPORTS),
+        site=args.site,
+        all_sites=args.all_sites,
+    )
+    cmd_summarize(summarize_args)
+
+
+def cmd_export_supplement(args: argparse.Namespace) -> None:
+    output_dir = Path(args.output)
+    _ensure_dir(output_dir)
+
+    sources = [
+        OUTPUTS_TABLES,
+        OUTPUTS_RESULTS,
+        OUTPUTS_REPORTS,
+    ]
+    copied: list[str] = []
+    for source_dir in sources:
+        if not source_dir.exists():
+            continue
+        destination_dir = output_dir / source_dir.name
+        _ensure_dir(destination_dir)
+        for source_path in sorted(source_dir.glob("*.csv")):
+            destination_path = destination_dir / source_path.name
+            shutil.copy2(source_path, destination_path)
+            copied.append(str(destination_path.relative_to(output_dir)))
+
+    manifest = output_dir / "MANIFEST.md"
+    lines = [
+        "# Supplement export",
+        "",
+        "This directory contains CSV tables, intermediate results, and data-quality reports",
+        "generated by the current CLI pipeline. Legacy outputs are intentionally excluded.",
+        "",
+        "## Files",
+        "",
+    ]
+    lines.extend(f"- `{path}`" for path in copied)
+    manifest.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _add_site_selection(parser: argparse.ArgumentParser) -> None:
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--site",
+        choices=sorted(SITES),
+        action=SiteAction,
+        help="Run only one configured site",
+    )
+    group.add_argument(
+        "--all-sites",
+        action="store_true",
+        default=True,
+        help="Run all configured sites (default)",
+    )
+    parser.set_defaults(all_sites=True)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -163,12 +283,14 @@ def build_parser() -> argparse.ArgumentParser:
     clean_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
     clean_parser.add_argument("--input", default=str(DATA_RAW / "Evapo.xlsx"))
     clean_parser.add_argument("--output", default=str(DATA_CLEANED))
+    _add_site_selection(clean_parser)
     clean_parser.set_defaults(func=cmd_clean)
 
     aggregate_parser = subparsers.add_parser("aggregate", help="Create rolling and monthly aggregates")
     aggregate_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
     aggregate_parser.add_argument("--input", default=str(DATA_CLEANED))
     aggregate_parser.add_argument("--output", default=str(OUTPUTS_RESULTS))
+    _add_site_selection(aggregate_parser)
     aggregate_parser.set_defaults(func=cmd_aggregate)
 
     validate_parser = subparsers.add_parser(
@@ -178,25 +300,55 @@ def build_parser() -> argparse.ArgumentParser:
     validate_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
     validate_parser.add_argument("--input", default=str(DATA_RAW / "Evapo.xlsx"))
     validate_parser.add_argument("--output", default=str(OUTPUTS_REPORTS))
+    _add_site_selection(validate_parser)
     validate_parser.set_defaults(func=cmd_validate_data)
 
     metrics_parser = subparsers.add_parser("metrics", help="Compute metrics vs Penman-Monteith")
     metrics_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
     metrics_parser.add_argument("--input", default=str(DATA_CLEANED))
     metrics_parser.add_argument("--output", default=str(OUTPUTS_TABLES))
+    _add_site_selection(metrics_parser)
     metrics_parser.set_defaults(func=cmd_metrics)
 
     plots_parser = subparsers.add_parser("plots", help="Generate figures")
     plots_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
     plots_parser.add_argument("--input", default=str(DATA_CLEANED))
     plots_parser.add_argument("--output", default=str(OUTPUTS_FIGURES))
+    _add_site_selection(plots_parser)
     plots_parser.set_defaults(func=cmd_plots)
+
+    summarize_parser = subparsers.add_parser(
+        "summarize",
+        help="Summarize best-performing methods from generated metrics tables",
+    )
+    summarize_parser.add_argument("--input", default=str(OUTPUTS_TABLES))
+    summarize_parser.add_argument("--output", default=str(OUTPUTS_REPORTS))
+    _add_site_selection(summarize_parser)
+    summarize_parser.set_defaults(func=cmd_summarize)
 
     all_parser = subparsers.add_parser("all", help="Run full pipeline")
     all_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
     all_parser.add_argument("--input", default=str(DATA_RAW / "Evapo.xlsx"))
     all_parser.add_argument("--output", default=str(DATA_CLEANED))
+    _add_site_selection(all_parser)
     all_parser.set_defaults(func=cmd_all)
+
+    reproduce_parser = subparsers.add_parser(
+        "reproduce-paper",
+        help="Regenerate paper tables, figures, data-quality reports, and summary",
+    )
+    reproduce_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
+    reproduce_parser.add_argument("--input", default=str(DATA_RAW / "Evapo.xlsx"))
+    reproduce_parser.add_argument("--output", default=str(DATA_CLEANED))
+    _add_site_selection(reproduce_parser)
+    reproduce_parser.set_defaults(func=cmd_reproduce_paper)
+
+    supplement_parser = subparsers.add_parser(
+        "export-supplement",
+        help="Copy current CSV outputs into a supplemental export directory",
+    )
+    supplement_parser.add_argument("--output", default=str(OUTPUTS_SUPPLEMENT))
+    supplement_parser.set_defaults(func=cmd_export_supplement)
 
     return parser
 
