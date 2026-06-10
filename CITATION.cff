@@ -1,0 +1,45 @@
+cff-version: 1.2.0
+message: "If you use this repository or its outputs, please cite it using the metadata below."
+title: "Reference Evapotranspiration (ETo) Methods Comparison"
+type: software
+authors:
+  - family-names: Vieira
+    given-names: Bruno Martins M.
+    affiliation: Universidade Federal do Mato Grosso
+repository-code: "https://github.com/brunomartinsmv/eto-methods-comparison"
+url: "https://github.com/brunomartinsmv/eto-methods-comparison"
+doi: 10.5281/zenodo.18615164
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.18615164
+    description: Version DOI archived on Zenodo.
+  - type: doi
+    value: 10.5281/zenodo.18615049
+    description: Zenodo concept DOI for all versions.
+version: "1.0.2"
+date-released: "2026-02-11"
+license: MIT
+abstract: >
+  Reproducible Python pipeline comparing empirical and semi-empirical reference
+  evapotranspiration estimation methods against Penman-Monteith FAO-56 for
+  Manaus and Piracicaba using 2024 meteorological data.
+keywords:
+  - evapotranspiration
+  - reference evapotranspiration
+  - Penman-Monteith
+  - FAO-56
+  - reproducible research
+  - scientific computing
+preferred-citation:
+  type: software
+  title: "Reference Evapotranspiration (ETo) Methods Comparison"
+  authors:
+    - family-names: Vieira
+      given-names: Bruno Martins M.
+      affiliation: Universidade Federal do Mato Grosso
+  doi: 10.5281/zenodo.18615164
+  repository-code: "https://github.com/brunomartinsmv/eto-methods-comparison"
+  url: "https://github.com/brunomartinsmv/eto-methods-comparison"
+  date-released: "2026-02-11"
+  year: 2026
+  notes: "Add the arXiv DOI here after the preprint is available."

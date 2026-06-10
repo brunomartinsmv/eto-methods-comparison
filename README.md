@@ -61,7 +61,7 @@ The pipeline works for **any location** where you have meteorological data:
 
 **1. Clone the repository**
 ```bash
-git clone https://github.com/yourusername/eto-methods-comparison.git
+git clone https://github.com/brunomartinsmv/eto-methods-comparison.git
 cd eto-methods-comparison
 ```
 
@@ -305,21 +305,26 @@ date       | temp_mean | temp_min | temp_max | radiation | wind_2m | rh_mean
 
 If you use this repository or its outputs in academic work, please cite:
 
-> Vieira, B. M. M. (2026). *Fisica Ambiental — Evapotranspiracao de Referencia (ETo)*. Dataset and analysis code. Universidade Federal do Mato Grosso. https://doi.org/10.5281/zenodo.18615049
+> Vieira, B. M. M. (2026). *Reference Evapotranspiration (ETo) Methods Comparison* (Version 1.0.2) [Software]. Universidade Federal do Mato Grosso. https://doi.org/10.5281/zenodo.18615164
 
-**Concept DOI (all versions):** https://doi.org/10.5281/zenodo.18615050
+**Version DOI:** https://doi.org/10.5281/zenodo.18615164
+
+**Concept DOI (all versions):** https://doi.org/10.5281/zenodo.18615049
+
+The repository also includes [`CITATION.cff`](CITATION.cff), which GitHub can use to generate citation formats automatically. Add the arXiv DOI to `CITATION.cff` and this section after the preprint is available.
 
 **BibTeX:**
 ```bibtex
 @misc{vieira2026eto,
   author = {Vieira, Bruno Martins M.},
-  title = {Fisica Ambiental --- Evapotranspiracao de Referencia (ETo)},
+  title = {Reference Evapotranspiration (ETo) Methods Comparison},
   year = {2026},
-  howpublished = {Dataset and analysis code},
+  version = {1.0.2},
+  howpublished = {Software and analysis outputs},
   institution = {Universidade Federal do Mato Grosso},
-  doi = {10.5281/zenodo.18615049},
-  doi_concept = {10.5281/zenodo.18615050},
-  url = {https://doi.org/10.5281/zenodo.18615049}
+  doi = {10.5281/zenodo.18615164},
+  doi_concept = {10.5281/zenodo.18615049},
+  url = {https://github.com/brunomartinsmv/eto-methods-comparison}
 }
 ```
 
@@ -384,11 +389,11 @@ For complete references and method-specific citations, see [`docs/methodology.md
 
 ## License
 
-[Add your license here if applicable]
+This project is distributed under the MIT License. See [`LICENSE`](LICENSE).
 
 ## Contact
 
 For questions, suggestions, or collaboration:
 - **Author:** Bruno Martins M. Vieira
 - **Institution:** Universidade Federal do Mato Grosso
-- **GitHub Issues:** [Report issues or ask questions](https://github.com/yourusername/eto-methods-comparison/issues)
+- **GitHub Issues:** [Report issues or ask questions](https://github.com/brunomartinsmv/eto-methods-comparison/issues)
