@@ -80,11 +80,23 @@ Se ainda nao houver testes versionados no checkout, `pytest` pode encerrar sem c
 - `data/cleaned/*_daily.csv`
 - `outputs/results/*_rolling_7d.csv`
 - `outputs/results/*_monthly_totals.csv`
-- `outputs/tables/*_metrics_*.csv`
+- `outputs/tables/*_daily_metrics.csv`
+- `outputs/tables/*_monthly_metrics.csv`
 - `outputs/figures/<site>/*.png`
 - `outputs/reports/*_data_quality.csv`
 - `outputs/reports/summary.csv`
 - `outputs/reports/summary.md`
 - `outputs/supplement/MANIFEST.md`
+
+## Padrao de nomes / Naming standard
+- Resultados diarios: `data/cleaned/{site}_daily.csv`
+- Resultados de 7 dias: `outputs/results/{site}_rolling_7d.csv`
+- Resultados mensais: `outputs/results/{site}_monthly_totals.csv`
+- Metricas: `outputs/tables/{site}_daily_metrics.csv` e `{site}_monthly_metrics.csv`
+- Figuras: `outputs/figures/{site}/{site}_daily_scatter_{method}_vs_pm.png`, `{site}_daily_series_{method}_vs_pm.png`, `{site}_monthly_totals.png`, `{site}_daily_taylor.png`, `{site}_monthly_taylor.png`
+- Relatorios: `outputs/reports/{site}_data_quality.csv`, `outputs/reports/data_quality_summary.csv`, `outputs/reports/summary.csv`, `outputs/reports/summary.md`
+
+`rolling7d` e uma convencao antiga. Os resultados atuais gerados pela CLI usam
+`rolling_7d`.
 
 Arquivos sob `outputs/**/legacy/` sao mantidos apenas para auditoria historica e nao devem ser tratados como resultados principais do preprint. Veja `docs/legacy.md`.

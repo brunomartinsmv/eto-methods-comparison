@@ -44,6 +44,26 @@ def _method_cols_present(df: pd.DataFrame) -> list[str]:
     return [col for col in METHOD_COLUMNS.values() if col in df.columns]
 
 
+def cleaned_daily_filename(site: str) -> str:
+    return f"{site}_daily.csv"
+
+
+def rolling_7d_filename(site: str) -> str:
+    return f"{site}_rolling_7d.csv"
+
+
+def monthly_totals_filename(site: str) -> str:
+    return f"{site}_monthly_totals.csv"
+
+
+def metrics_filename(site: str, scale: str) -> str:
+    return f"{site}_{scale}_metrics.csv"
+
+
+def figure_filename(site: str, product: str) -> str:
+    return f"{site}_{product}.png"
+
+
 def _selected_sites(args: argparse.Namespace) -> dict[str, dict]:
     return select_sites(SITES, site=getattr(args, "site", None), all_sites=getattr(args, "all_sites", True))
 
@@ -56,7 +76,7 @@ def cmd_clean(args: argparse.Namespace) -> None:
     for site, meta in _selected_sites(args).items():
         df = io.read_evapo_sheet(input_path, meta["sheet"], year=args.year)
         df = cleaning.clean_daily(df)
-        io.write_cleaned(df, output_dir / f"{site}_daily.csv")
+        io.write_cleaned(df, output_dir / cleaned_daily_filename(site))
 
 
 def cmd_validate_data(args: argparse.Namespace) -> None:
@@ -89,14 +109,14 @@ def cmd_aggregate(args: argparse.Namespace) -> None:
     _ensure_dir(output_dir)
 
     for site in _selected_sites(args).keys():
-        df = pd.read_csv(input_dir / f"{site}_daily.csv", parse_dates=["date"])
+        df = pd.read_csv(input_dir / cleaned_daily_filename(site), parse_dates=["date"])
         method_cols = _method_cols_present(df)
 
         rolling = aggregate.rolling_mean(df, window=7)
-        rolling.to_csv(output_dir / f"{site}_rolling7d.csv", index=False)
+        rolling.to_csv(output_dir / rolling_7d_filename(site), index=False)
 
         monthly = aggregate.monthly_sum(df, method_cols)
-        monthly.to_csv(output_dir / f"{site}_monthly_totals.csv", index=False)
+        monthly.to_csv(output_dir / monthly_totals_filename(site), index=False)
 
 
 def cmd_metrics(args: argparse.Namespace) -> None:
@@ -105,7 +125,7 @@ def cmd_metrics(args: argparse.Namespace) -> None:
     _ensure_dir(output_dir)
 
     for site in _selected_sites(args).keys():
-        df = pd.read_csv(input_dir / f"{site}_daily.csv", parse_dates=["date"])
+        df = pd.read_csv(input_dir / cleaned_daily_filename(site), parse_dates=["date"])
         method_cols = _method_cols_present(df)
         ref_col = REFERENCE_COLUMN
 
@@ -113,11 +133,11 @@ def cmd_metrics(args: argparse.Namespace) -> None:
             raise ValueError(f"Reference column '{ref_col}' not found for {site}")
 
         daily_metrics = metrics.compute_metrics(df, ref_col, [c for c in method_cols if c != ref_col])
-        daily_metrics.to_csv(output_dir / f"{site}_daily_metrics.csv", index=False)
+        daily_metrics.to_csv(output_dir / metrics_filename(site, "daily"), index=False)
 
         monthly_df = aggregate.monthly_sum(df, method_cols)
         monthly_metrics = metrics.compute_metrics(monthly_df, ref_col, [c for c in method_cols if c != ref_col])
-        monthly_metrics.to_csv(output_dir / f"{site}_monthly_metrics.csv", index=False)
+        monthly_metrics.to_csv(output_dir / metrics_filename(site, "monthly"), index=False)
 
 
 def cmd_plots(args: argparse.Namespace) -> None:
@@ -126,7 +146,7 @@ def cmd_plots(args: argparse.Namespace) -> None:
     _ensure_dir(figures_dir)
 
     for site in _selected_sites(args).keys():
-        df = pd.read_csv(input_dir / f"{site}_daily.csv", parse_dates=["date"])
+        df = pd.read_csv(input_dir / cleaned_daily_filename(site), parse_dates=["date"])
         method_cols = _method_cols_present(df)
         ref_col = REFERENCE_COLUMN
 
@@ -138,23 +158,33 @@ def cmd_plots(args: argparse.Namespace) -> None:
                 continue
             method_id = METHOD_SHORT.get(col, col)
             ref_id = METHOD_SHORT.get(ref_col, "pm")
-            plots.plot_scatter(df, ref_col, col, site_dir / f"{site}_daily_scatter_{method_id}_vs_{ref_id}.png")
-            plots.plot_timeseries(df, ref_col, col, site_dir / f"{site}_daily_series_{method_id}_vs_{ref_id}.png")
+            plots.plot_scatter(
+                df,
+                ref_col,
+                col,
+                site_dir / figure_filename(site, f"daily_scatter_{method_id}_vs_{ref_id}"),
+            )
+            plots.plot_timeseries(
+                df,
+                ref_col,
+                col,
+                site_dir / figure_filename(site, f"daily_series_{method_id}_vs_{ref_id}"),
+            )
 
         monthly_df = aggregate.monthly_sum(df, method_cols)
-        plots.plot_monthly_totals(monthly_df, method_cols, site_dir / f"{site}_monthly_totals.png")
+        plots.plot_monthly_totals(monthly_df, method_cols, site_dir / figure_filename(site, "monthly_totals"))
         plots.plot_taylor(
             df,
             ref_col,
             method_cols,
-            site_dir / f"{site}_daily_taylor.png",
+            site_dir / figure_filename(site, "daily_taylor"),
             title=f"Taylor diagram (daily) - {site}",
         )
         plots.plot_taylor(
             monthly_df,
             ref_col,
             method_cols,
-            site_dir / f"{site}_monthly_taylor.png",
+            site_dir / figure_filename(site, "monthly_taylor"),
             title=f"Taylor diagram (monthly) - {site}",
         )
 

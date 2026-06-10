@@ -27,3 +27,9 @@ python -m scripts.cli summarize
 
 They report the best-performing method by lowest RMSE for each site and temporal
 scale, using the current metrics tables in `outputs/tables/`.
+
+Current report naming patterns:
+
+- Site data-quality reports: `<site>_data_quality.csv`
+- Combined data-quality report: `data_quality_summary.csv`
+- Summary reports: `summary.csv` and `summary.md`
