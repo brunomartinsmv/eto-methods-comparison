@@ -11,12 +11,13 @@ Official preprint figures live in `outputs/figures/manaus/` and `outputs/figures
 **Nota**: Figuras geradas nos notebooks ficam em `outputs/figures/legacy/` e sao material historico/suplementar. Veja `docs/legacy.md`.
 
 ## Captions / Legendas
-- `manaus_daily_scatter_<method>_vs_pm.png`: dispersao diaria do metodo vs Penman-Monteith.
-- `manaus_daily_series_<method>_vs_pm.png`: series temporais diarias (metodo vs referencia).
-- `manaus_monthly_totals.png`: totais mensais por metodo.
-- `manaus_daily_taylor.png`: diagrama de Taylor diario.
-- `manaus_monthly_taylor.png`: diagrama de Taylor mensal.
-- (Mesmo padrao para `piracicaba_...`)
+- `<site>_daily_scatter_<method>_vs_pm.png`: dispersao diaria do metodo vs Penman-Monteith.
+- `<site>_daily_series_<method>_vs_pm.png`: series temporais diarias (metodo vs referencia).
+- `<site>_monthly_totals.png`: totais mensais por metodo.
+- `<site>_daily_taylor.png`: diagrama de Taylor diario.
+- `<site>_monthly_taylor.png`: diagrama de Taylor mensal.
+
+Para este estudo, `<site>` e `manaus` ou `piracicaba`.
 
 ## Como reproduzir / How to reproduce
 ```bash

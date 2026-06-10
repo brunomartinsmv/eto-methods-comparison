@@ -37,9 +37,9 @@ Clone and run the pipeline in under 5 minutes to generate:
 - Monthly totals — Seasonal ETo accumulation by method
 
 **📁 Intermediate Data** (`data/cleaned/`, `outputs/results/`)
-- Cleaned daily time series for both sites
-- 7-day rolling means
-- Monthly aggregations
+- Cleaned daily time series: `data/cleaned/{site}_daily.csv`
+- 7-day rolling means: `outputs/results/{site}_rolling_7d.csv`
+- Monthly aggregations: `outputs/results/{site}_monthly_totals.csv`
 
 ### Extensible Framework
 The pipeline works for **any location** where you have meteorological data:
@@ -102,14 +102,8 @@ This installs: pandas, numpy, matplotlib, openpyxl, and scientific libraries.
 python -m scripts.cli all --year 2024
 ```
 
-**Expected output:**
-```
-Processing Piracicaba...
-Processing Manaus...
-Generating metrics...
-Creating figures...
-Done!
-```
+The command runs without interactive prompts and updates the generated files in
+`data/cleaned/`, `outputs/results/`, `outputs/tables/`, and `outputs/figures/`.
 
 **7. Check your results**
 ```bash
@@ -120,6 +114,25 @@ ls outputs/tables/
 ls outputs/figures/piracicaba/
 # Should show: multiple .png files (Taylor diagrams, scatter plots, time series)
 ```
+
+### Output Naming Standard
+
+The current CLI uses snake-case suffixes for generated files:
+
+- Daily cleaned data: `data/cleaned/{site}_daily.csv`
+- 7-day rolling results: `outputs/results/{site}_rolling_7d.csv`
+- Monthly totals: `outputs/results/{site}_monthly_totals.csv`
+- Daily metrics: `outputs/tables/{site}_daily_metrics.csv`
+- Monthly metrics: `outputs/tables/{site}_monthly_metrics.csv`
+- Daily scatter figures: `outputs/figures/{site}/{site}_daily_scatter_{method}_vs_pm.png`
+- Daily time-series figures: `outputs/figures/{site}/{site}_daily_series_{method}_vs_pm.png`
+- Monthly totals figure: `outputs/figures/{site}/{site}_monthly_totals.png`
+- Taylor figures: `outputs/figures/{site}/{site}_daily_taylor.png` and `{site}_monthly_taylor.png`
+- Data-quality reports: `outputs/reports/{site}_data_quality.csv`
+- Summary reports: `outputs/reports/summary.csv` and `outputs/reports/summary.md`
+
+Older `rolling7d` files are legacy names. Use `rolling_7d` for current pipeline
+outputs.
 
 ### Running Individual Steps
 
@@ -304,7 +317,7 @@ date       | temp_mean | temp_min | temp_max | radiation | wind_2m | rh_mean
 │   ├── raw/            # Original meteorological data (Evapo.xlsx)
 │   └── cleaned/        # Processed daily time series
 ├── outputs/
-│   ├── results/        # Intermediate aggregations (7-day rolling, monthly totals)
+│   ├── results/        # Intermediate aggregations (rolling_7d, monthly totals)
 │   ├── figures/        # All generated plots (Taylor diagrams, scatter plots, time series)
 │   ├── reports/        # Data quality reports
 │   └── tables/         # **Metrics tables (RMSE, R², MAE, bias) ← Start here**

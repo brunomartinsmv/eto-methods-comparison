@@ -11,7 +11,7 @@ directory:
 
 - `outputs/tables/{site}_daily_metrics.csv`
 - `outputs/tables/{site}_monthly_metrics.csv`
-- `outputs/results/{site}_rolling7d.csv`
+- `outputs/results/{site}_rolling_7d.csv`
 - `outputs/results/{site}_monthly_totals.csv`
 - `outputs/figures/{site}/{site}_*.png`
 - `outputs/reports/{site}_data_quality.csv`
@@ -31,6 +31,9 @@ filename conventions, or manual export workflows. They were retained because
 they can help audit the development history, but they should not be cited as
 the primary results of the preprint unless a manuscript section explicitly says
 so.
+
+The historical `rolling7d` filename is treated as a legacy convention. Current
+CLI outputs use `rolling_7d`.
 
 ## How to use legacy files
 
