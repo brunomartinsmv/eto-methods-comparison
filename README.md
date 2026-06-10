@@ -130,6 +130,10 @@ python -m scripts.cli clean      # Clean raw data → data/cleaned/
 python -m scripts.cli aggregate  # Create aggregations → outputs/results/
 python -m scripts.cli metrics    # Compute RMSE, R², etc. → outputs/tables/
 python -m scripts.cli plots      # Generate all figures → outputs/figures/
+python -m scripts.cli validate-data  # Audit dates, missing values, interpolation traces
+python -m scripts.cli summarize      # Summarize best methods by site and temporal scale
+python -m scripts.cli reproduce-paper --year 2024  # Regenerate paper-facing outputs
+python -m scripts.cli export-supplement             # Collect supplemental CSV outputs
 ```
 
 **Expected runtime:** ~30 seconds for full pipeline on both sites (2024 data).

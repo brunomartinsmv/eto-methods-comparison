@@ -14,6 +14,7 @@ OUTPUTS_RESULTS = BASE_DIR / "outputs" / "results"
 OUTPUTS_FIGURES = BASE_DIR / "outputs" / "figures"
 OUTPUTS_TABLES = BASE_DIR / "outputs" / "tables"
 OUTPUTS_REPORTS = BASE_DIR / "outputs" / "reports"
+OUTPUTS_SUPPLEMENT = BASE_DIR / "outputs" / "supplement"
 
 DEFAULT_YEAR = 2024
 
