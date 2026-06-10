@@ -25,3 +25,18 @@ def test_validate_data_command_defaults_to_raw_input_and_reports_output() -> Non
     assert args.year == DEFAULT_YEAR
     assert args.input.endswith("data/raw/Evapo.xlsx")
     assert args.output.endswith("outputs/reports")
+
+
+def test_scientific_cli_commands_are_available() -> None:
+    parser = build_parser()
+
+    summarize = parser.parse_args(["summarize"])
+    assert summarize.input.endswith("outputs/tables")
+    assert summarize.output.endswith("outputs/reports")
+
+    reproduce = parser.parse_args(["reproduce-paper"])
+    assert reproduce.year == DEFAULT_YEAR
+    assert reproduce.all_sites is True
+
+    supplement = parser.parse_args(["export-supplement"])
+    assert supplement.output.endswith("outputs/supplement")
