@@ -1,0 +1,26 @@
+methods:
+  Thornthwaite:
+    column: et_thornthwaite
+    short: thorn
+  Thornthwaite-Camargo:
+    column: et_thornthwaite_camargo
+    short: thorn_camargo
+  Camargo:
+    column: et_camargo
+    short: camargo
+  Hargreaves & Samani:
+    column: et_hargreaves_samani
+    short: hs
+  Hargreaves & Samani (corrigido):
+    column: et_hargreaves_samani_corr
+    short: hs_corr
+  Priestley-Taylor:
+    column: et_priestley_taylor
+    short: pt
+  Penman-Monteith:
+    column: et_penman_monteith
+    short: pm
+    reference: true
+  Garcia Lopez:
+    column: et_garcia_lopez
+    short: gl
