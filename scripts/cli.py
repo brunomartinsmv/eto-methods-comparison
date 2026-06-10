@@ -229,8 +229,12 @@ def cmd_all(args: argparse.Namespace) -> None:
 
 def cmd_summarize(args: argparse.Namespace) -> None:
     sites = list(_selected_sites(args).keys())
-    summary_df = summary.build_summary(Path(args.input), sites=sites)
-    summary.write_summary(summary_df, Path(args.output))
+    tables_dir = Path(args.input)
+    reports_dir = Path(args.output)
+    summary_df = summary.build_summary(tables_dir, sites=sites)
+    summary.write_summary(summary_df, reports_dir)
+    rankings_df = summary.build_rankings(tables_dir, sites=sites)
+    summary.write_rankings(rankings_df, tables_dir, reports_dir)
 
 
 def cmd_reproduce_paper(args: argparse.Namespace) -> None:
@@ -349,7 +353,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     summarize_parser = subparsers.add_parser(
         "summarize",
-        help="Summarize best-performing methods from generated metrics tables",
+        help="Summarize best-performing methods and rankings from generated metrics tables",
     )
     summarize_parser.add_argument("--input", default=str(OUTPUTS_TABLES))
     summarize_parser.add_argument("--output", default=str(OUTPUTS_REPORTS))

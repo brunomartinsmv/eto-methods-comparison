@@ -11,6 +11,7 @@ Official preprint tables live directly in `outputs/tables/`, outside `legacy/`.
 **Nota**: Tabelas geradas nos notebooks ficam em `outputs/tables/legacy/` e sao material historico/suplementar. Veja `docs/legacy.md`.
 
 ## Resultados oficiais / Official results
+- `summary_rankings.csv` — ranked comparison across sites and temporal scales
 - `manaus_daily_metrics.csv`
 - `manaus_monthly_metrics.csv`
 - `piracicaba_daily_metrics.csv`
@@ -21,4 +22,5 @@ Padrao / Pattern: `<site>_daily_metrics.csv` and `<site>_monthly_metrics.csv`.
 ## Como reproduzir / How to reproduce
 ```bash
 python -m scripts.cli metrics --input data/cleaned --output outputs/tables
+python -m scripts.cli summarize --input outputs/tables --output outputs/reports
 ```
