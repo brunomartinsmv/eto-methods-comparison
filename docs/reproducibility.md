@@ -56,3 +56,6 @@ Se ainda nao houver testes versionados no checkout, `pytest` pode encerrar sem c
 - `outputs/results/*_monthly_totals.csv`
 - `outputs/tables/*_metrics_*.csv`
 - `outputs/figures/<site>/*.png`
+- `outputs/reports/*_data_quality.csv`
+
+Arquivos sob `outputs/**/legacy/` sao mantidos apenas para auditoria historica e nao devem ser tratados como resultados principais do preprint. Veja `docs/legacy.md`.

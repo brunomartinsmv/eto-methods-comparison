@@ -292,12 +292,16 @@ date       | temp_mean | temp_min | temp_max | radiation | wind_2m | rh_mean
 ├── outputs/
 │   ├── results/        # Intermediate aggregations (7-day rolling, monthly totals)
 │   ├── figures/        # All generated plots (Taylor diagrams, scatter plots, time series)
+│   ├── reports/        # Data quality reports
 │   └── tables/         # **Metrics tables (RMSE, R², MAE, bias) ← Start here**
 ├── scripts/            # Analysis pipeline (CLI, cleaning, metrics, plotting)
 ├── notebooks/          # Educational Jupyter notebooks with step-by-step explanations
 ├── docs/               # Detailed methodology, equations, and interpretation guides
 └── requirements.txt    # Python dependencies
 ```
+
+Files under `outputs/**/legacy/` are historical notebook-era outputs, not the
+official preprint result set. See [`docs/legacy.md`](docs/legacy.md).
 
 ---
 
