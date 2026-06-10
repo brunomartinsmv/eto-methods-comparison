@@ -1,0 +1,42 @@
+name: Reproduce
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  validate:
+    name: Lint, test, and reproduce
+    runs-on: ubuntu-latest
+    env:
+      MPLCONFIGDIR: /tmp/matplotlib-cache
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install project and development dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Lint active Python source
+        run: python -m ruff check .
+
+      - name: Run tests
+        run: python -m pytest
+
+      - name: Run reproducibility pipeline when raw data is available
+        run: |
+          if [ -f data/raw/Evapo.xlsx ]; then
+            python -m scripts.cli all --year 2024
+          else
+            echo "Skipping full reproduction: data/raw/Evapo.xlsx is not available in this checkout."
+          fi
