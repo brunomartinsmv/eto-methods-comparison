@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from . import aggregate, cleaning, io, metrics, plots
+from . import aggregate, cleaning, io, metrics, plots, quality
 from .config import (
     DATA_CLEANED,
     DATA_RAW,
@@ -13,6 +13,7 @@ from .config import (
     METHOD_COLUMNS,
     METHOD_SHORT,
     OUTPUTS_FIGURES,
+    OUTPUTS_REPORTS,
     OUTPUTS_RESULTS,
     OUTPUTS_TABLES,
     SITES,
@@ -36,6 +37,30 @@ def cmd_clean(args: argparse.Namespace) -> None:
         df = io.read_evapo_sheet(input_path, meta["sheet"], year=args.year)
         df = cleaning.clean_daily(df)
         io.write_cleaned(df, output_dir / f"{site}_daily.csv")
+
+
+def cmd_validate_data(args: argparse.Namespace) -> None:
+    input_path = Path(args.input)
+    output_dir = Path(args.output)
+    _ensure_dir(output_dir)
+
+    reports = []
+    for site, meta in SITES.items():
+        raw_df = io.read_evapo_sheet(input_path, meta["sheet"], year=args.year)
+        cleaned_df, audit = cleaning.clean_daily_with_audit(raw_df)
+        report = quality.build_quality_report(
+            site=site,
+            raw_df=raw_df,
+            cleaned_df=cleaned_df,
+            year=args.year,
+            interpolated_by_variable=audit.interpolated_by_variable,
+        )
+        quality.write_quality_report(report, output_dir, site)
+        reports.append(report)
+
+    if reports:
+        combined = pd.concat(reports, ignore_index=True)
+        combined.to_csv(output_dir / "data_quality_summary.csv", index=False)
 
 
 def cmd_aggregate(args: argparse.Namespace) -> None:
@@ -145,6 +170,15 @@ def build_parser() -> argparse.ArgumentParser:
     aggregate_parser.add_argument("--input", default=str(DATA_CLEANED))
     aggregate_parser.add_argument("--output", default=str(OUTPUTS_RESULTS))
     aggregate_parser.set_defaults(func=cmd_aggregate)
+
+    validate_parser = subparsers.add_parser(
+        "validate-data",
+        help="Generate auditable data quality reports",
+    )
+    validate_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
+    validate_parser.add_argument("--input", default=str(DATA_RAW / "Evapo.xlsx"))
+    validate_parser.add_argument("--output", default=str(OUTPUTS_REPORTS))
+    validate_parser.set_defaults(func=cmd_validate_data)
 
     metrics_parser = subparsers.add_parser("metrics", help="Compute metrics vs Penman-Monteith")
     metrics_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
