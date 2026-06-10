@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+
 import pandas as pd
 
 from . import aggregate, cleaning, io, metrics, plots
