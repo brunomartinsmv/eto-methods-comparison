@@ -1,0 +1,11 @@
+sites:
+  manaus:
+    sheet: Manaus
+    lat: -3.1019
+    lon: -60.0164
+    alt_m: 61.25
+  piracicaba:
+    sheet: Piracicaba
+    lat: -22.7083
+    lon: -47.6333
+    alt_m: 546.0
