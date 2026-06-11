@@ -34,6 +34,14 @@ def test_validate_data_command_defaults_to_raw_input_and_reports_output() -> Non
 def test_scientific_cli_commands_are_available() -> None:
     parser = build_parser()
 
+    analyze = parser.parse_args(["analyze-uncertainty"])
+    analyze_with_year = parser.parse_args(["analyze-uncertainty", "--year", "2024"])
+    assert analyze.input.endswith("data/cleaned")
+    assert analyze.tables_output.endswith("outputs/tables")
+    assert analyze.reports_output.endswith("outputs/reports")
+    assert analyze.figures_output.endswith("outputs/figures")
+    assert analyze_with_year.year == 2024
+
     summarize = parser.parse_args(["summarize"])
     assert summarize.input.endswith("outputs/tables")
     assert summarize.output.endswith("outputs/reports")

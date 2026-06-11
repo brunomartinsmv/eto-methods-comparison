@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from . import aggregate, cleaning, io, metrics, plots, quality, summary
+from . import aggregate, cleaning, io, metrics, plots, quality, summary, uncertainty
 from .config import (
     DATA_CLEANED,
     DATA_RAW,
@@ -58,6 +58,18 @@ def monthly_totals_filename(site: str) -> str:
 
 def metrics_filename(site: str, scale: str) -> str:
     return f"{site}_{scale}_metrics.csv"
+
+
+def bootstrap_filename(site: str) -> str:
+    return f"{site}_bootstrap_metric_intervals.csv"
+
+
+def seasonal_filename(site: str) -> str:
+    return f"{site}_seasonal_error_metrics.csv"
+
+
+def bias_bins_filename(site: str) -> str:
+    return f"{site}_bias_by_eto_bin.csv"
 
 
 def figure_filename(site: str, product: str) -> str:
@@ -189,6 +201,55 @@ def cmd_plots(args: argparse.Namespace) -> None:
         )
 
 
+def cmd_analyze_uncertainty(args: argparse.Namespace) -> None:
+    input_dir = Path(args.input)
+    tables_dir = Path(args.tables_output)
+    reports_dir = Path(args.reports_output)
+    figures_dir = Path(args.figures_output)
+    _ensure_dir(tables_dir)
+    _ensure_dir(reports_dir)
+    _ensure_dir(figures_dir)
+
+    for site in _selected_sites(args).keys():
+        df = pd.read_csv(input_dir / cleaned_daily_filename(site), parse_dates=["date"])
+        method_cols = [col for col in _method_cols_present(df) if col != REFERENCE_COLUMN]
+        if REFERENCE_COLUMN not in df.columns:
+            raise ValueError(f"Reference column '{REFERENCE_COLUMN}' not found for {site}")
+
+        bootstrap = uncertainty.bootstrap_metric_intervals(
+            df,
+            REFERENCE_COLUMN,
+            method_cols,
+            n_boot=args.bootstrap_samples,
+            confidence=args.confidence,
+            random_state=args.random_state,
+        )
+        seasonal = uncertainty.seasonal_error_metrics(
+            df,
+            REFERENCE_COLUMN,
+            method_cols,
+            rainfall_col=args.rainfall_column,
+        )
+        bias_bins = uncertainty.bias_by_eto_bin(
+            df,
+            REFERENCE_COLUMN,
+            method_cols,
+            n_bins=args.eto_bins,
+        )
+
+        bootstrap.to_csv(tables_dir / bootstrap_filename(site), index=False)
+        seasonal.to_csv(tables_dir / seasonal_filename(site), index=False)
+        bias_bins.to_csv(tables_dir / bias_bins_filename(site), index=False)
+        uncertainty.write_uncertainty_report(site, bootstrap, seasonal, bias_bins, reports_dir)
+
+        site_dir = figures_dir / site
+        plots.plot_bias_by_eto_bin(
+            bias_bins,
+            site_dir / figure_filename(site, "bias_by_eto_bin"),
+            title=f"Bias by Penman-Monteith ETo range - {site}",
+        )
+
+
 def cmd_all(args: argparse.Namespace) -> None:
     clean_args = argparse.Namespace(
         input=args.input,
@@ -225,6 +286,21 @@ def cmd_all(args: argparse.Namespace) -> None:
         all_sites=args.all_sites,
     )
     cmd_plots(plots_args)
+
+    uncertainty_args = argparse.Namespace(
+        input=str(DATA_CLEANED),
+        tables_output=str(OUTPUTS_TABLES),
+        reports_output=str(OUTPUTS_REPORTS),
+        figures_output=str(OUTPUTS_FIGURES),
+        site=args.site,
+        all_sites=args.all_sites,
+        bootstrap_samples=1000,
+        confidence=0.95,
+        random_state=args.year,
+        rainfall_column="rain_mm",
+        eto_bins=4,
+    )
+    cmd_analyze_uncertainty(uncertainty_args)
 
 
 def cmd_summarize(args: argparse.Namespace) -> None:
@@ -350,6 +426,23 @@ def build_parser() -> argparse.ArgumentParser:
     plots_parser.add_argument("--output", default=str(OUTPUTS_FIGURES))
     _add_site_selection(plots_parser)
     plots_parser.set_defaults(func=cmd_plots)
+
+    uncertainty_parser = subparsers.add_parser(
+        "analyze-uncertainty",
+        help="Generate bootstrap intervals, seasonal errors, and ETo-range bias analyses",
+    )
+    uncertainty_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
+    uncertainty_parser.add_argument("--input", default=str(DATA_CLEANED))
+    uncertainty_parser.add_argument("--tables-output", default=str(OUTPUTS_TABLES))
+    uncertainty_parser.add_argument("--reports-output", default=str(OUTPUTS_REPORTS))
+    uncertainty_parser.add_argument("--figures-output", default=str(OUTPUTS_FIGURES))
+    uncertainty_parser.add_argument("--bootstrap-samples", type=int, default=1000)
+    uncertainty_parser.add_argument("--confidence", type=float, default=0.95)
+    uncertainty_parser.add_argument("--random-state", type=int, default=DEFAULT_YEAR)
+    uncertainty_parser.add_argument("--rainfall-column", default="rain_mm")
+    uncertainty_parser.add_argument("--eto-bins", type=int, default=4)
+    _add_site_selection(uncertainty_parser)
+    uncertainty_parser.set_defaults(func=cmd_analyze_uncertainty)
 
     summarize_parser = subparsers.add_parser(
         "summarize",

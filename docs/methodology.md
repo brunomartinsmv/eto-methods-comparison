@@ -1,5 +1,7 @@
 # Metodologia e Metodos de ETo (PT/EN)
 
+Para uma auditoria das decisoes implementacionais sensiveis, veja tambem [`methodological_assumptions.md`](methodological_assumptions.md). Esse documento explicita como a referencia Penman-Monteith, radiacao liquida, vento, umidade, dias faltantes, interpolacao, calibracao do Hargreaves-Samani corrigido e limitacoes por metodo/localidade sao tratados no pipeline reprodutivel.
+
 Este capitulo apresenta, de forma detalhada, os metodos usados para estimar a evapotranspiracao de referencia (ETo), incluindo equacoes, hipoteses, requisitos de dados, limitacoes e recomendacao de clima/regiao. As referencias bibliograficas aparecem ao final.
 
 ## 1. Penman-Monteith (FAO-56)
