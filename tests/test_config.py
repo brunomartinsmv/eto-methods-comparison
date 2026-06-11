@@ -1,8 +1,9 @@
 from pathlib import Path
 
 import pytest
+import yaml
 
-from scripts.config import load_methods_config, load_sites_config, select_sites
+from scripts.config import METHODS_CONFIG, load_methods_config, load_sites_config, select_sites
 
 
 def test_load_sites_config_reads_site_metadata_from_yaml(tmp_path: Path) -> None:
@@ -70,3 +71,62 @@ methods:
         "et_camargo": "camargo",
     }
     assert methods.reference_column == "et_penman_monteith"
+
+
+def test_repository_methods_config_lists_15_et0_methods_and_reference() -> None:
+    methods = load_methods_config()
+
+    expected_alternatives = {
+        "Camargo",
+        "Hargreaves-Samani",
+        "Makkink",
+        "McCloud",
+        "Priestley-Taylor",
+        "Turc",
+        "Global Radiation",
+        "Ivanov",
+        "Jensen-Heise",
+        "Garcia-Lopez",
+        "Net Radiation",
+        "Radiation-Temperature",
+        "Lungeon",
+        "Stephens-Stewart",
+        "Hicks-Hess",
+    }
+
+    configured_methods = set(methods.columns)
+    assert expected_alternatives <= configured_methods
+    assert "Penman-Monteith FAO-56" in configured_methods
+    assert methods.reference_column == "et_penman_monteith"
+    assert len(expected_alternatives) == 15
+    assert len(set(methods.columns.values())) == len(methods.columns)
+    assert len(set(methods.short_names.values())) == len(methods.short_names)
+
+
+def test_repository_methods_config_declares_full_name_and_computation_status() -> None:
+    data = yaml.safe_load(METHODS_CONFIG.read_text(encoding="utf-8"))
+
+    for metadata in data["methods"].values():
+        assert metadata["full_name"]
+        assert metadata["column"].startswith("et_")
+        assert metadata["short"]
+        assert metadata["status"] in {"computed", "configured_not_computed", "reference"}
+
+    configured_not_computed = {
+        method_name
+        for method_name, metadata in data["methods"].items()
+        if metadata["status"] == "configured_not_computed"
+    }
+    assert {
+        "Makkink",
+        "McCloud",
+        "Turc",
+        "Global Radiation",
+        "Ivanov",
+        "Jensen-Heise",
+        "Net Radiation",
+        "Radiation-Temperature",
+        "Lungeon",
+        "Stephens-Stewart",
+        "Hicks-Hess",
+    } <= configured_not_computed

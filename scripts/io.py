@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from .config import DEFAULT_YEAR, METHOD_COLUMNS, WEATHER_COLUMNS
+from .config import DEFAULT_YEAR, LEGACY_METHOD_COLUMN_ALIASES, METHOD_COLUMNS, WEATHER_COLUMNS
 
 
 def _parse_date_series(series: pd.Series, year: int) -> pd.Series:
@@ -42,6 +42,7 @@ def read_evapo_sheet(path: Path, sheet: str, year: int = DEFAULT_YEAR) -> pd.Dat
 
     rename_map = {}
     rename_map.update(WEATHER_COLUMNS)
+    rename_map.update(LEGACY_METHOD_COLUMN_ALIASES)
     rename_map.update(METHOD_COLUMNS)
 
     df = df.rename(columns=rename_map)

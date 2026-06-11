@@ -1,8 +1,9 @@
 import argparse
 
 import pandas as pd
+import pytest
 
-from scripts.cli import build_parser, cmd_aggregate
+from scripts.cli import build_parser, cmd_aggregate, require_precomputed_eto_mode
 from scripts.config import DEFAULT_YEAR
 
 
@@ -12,6 +13,7 @@ def test_all_command_keeps_2024_default_year_and_default_input() -> None:
     assert args.year == DEFAULT_YEAR
     assert args.input.endswith("data/raw/Evapo.xlsx")
     assert args.output.endswith("data/cleaned")
+    assert args.eto_source == "precomputed"
     assert args.site is None
     assert args.all_sites is True
 
@@ -29,6 +31,14 @@ def test_validate_data_command_defaults_to_raw_input_and_reports_output() -> Non
     assert args.year == DEFAULT_YEAR
     assert args.input.endswith("data/raw/Evapo.xlsx")
     assert args.output.endswith("outputs/reports")
+    assert args.eto_source == "precomputed"
+
+
+def test_compute_eto_mode_is_explicitly_not_implemented_yet() -> None:
+    args = build_parser().parse_args(["clean", "--compute-eto"])
+
+    with pytest.raises(NotImplementedError, match="Raw-to-ETo computation mode"):
+        require_precomputed_eto_mode(args)
 
 
 def test_scientific_cli_commands_are_available() -> None:

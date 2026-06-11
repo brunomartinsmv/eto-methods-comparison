@@ -24,8 +24,14 @@ que os arquivos em `data/raw/` forem substituidos.
 O comando padrao do estudo espera:
 
 ```bash
-python -m scripts.cli all --year 2024 --input data/raw/Evapo.xlsx
+python -m scripts.cli all --year 2024 --input data/raw/Evapo.xlsx --use-precomputed-eto
 ```
+
+`--use-precomputed-eto` e o modo padrao atual por compatibilidade. A flag
+torna explicita a dependencia transitoria de colunas de ETo ja calculadas na
+planilha. A flag preparatoria `--compute-eto` ja existe nos comandos `clean`,
+`validate-data`, `all` e `reproduce-paper`, mas interrompe a execucao com erro
+claro porque o calculo integral ainda nao foi validado e integrado.
 
 ## Localidades analisadas
 
@@ -65,6 +71,42 @@ calculo, incluindo `Thornthwaite`, `Thornthwaite-Camargo`, `Camargo`,
 `Priestley-Taylor`, `Penman-Monteith` e `Garcia Lopez`. A coluna
 `Penman-Monteith` e padronizada como `et_penman_monteith` e usada como
 referencia para as metricas comparativas.
+
+## Camadas de dados na transicao raw-to-ETo
+
+A transicao metodologica separa quatro camadas:
+
+| Camada | Conteudo | Estado atual |
+| --- | --- | --- |
+| Dados meteorologicos brutos padronizados | Data, temperatura, umidade, vento, chuva e radiacao vindas da planilha ou de fontes INMET futuras. | Lidos por `scripts.io.read_evapo_sheet` via `WEATHER_COLUMNS`. |
+| Variaveis meteorologicas derivadas | Variaveis calculadas a partir de coordenadas/data ou de outros insumos, como `ra_extraterrestre_mj_m2_d`. | Classificadas em `scripts.eto_layers`, mas ainda consumidas da planilha quando presentes. |
+| ETo calculada pelos metodos | Series `et_*` produzidas por formulas versionadas de Thornthwaite, Camargo, Hargreaves-Samani, Priestley-Taylor, Penman-Monteith e Garcia Lopez. | Ainda nao implementada no pipeline principal; `--compute-eto` e uma flag preparatoria bloqueada. |
+| Metricas comparativas | RMSE, MAE, MBE, R2, agregacoes mensais, bootstrap, sazonalidade e vies por faixa de ETo. | Calculadas por `scripts.metrics`, `scripts.aggregate`, `scripts.uncertainty`, `scripts.plots` e `scripts.summary` usando colunas `et_*` ja presentes nos dados limpos. |
+
+`scripts.eto_layers.build_data_layers` e a camada intermediaria inicial para
+auditar essa separacao no DataFrame padronizado. Ela nao muda resultados; apenas
+classifica colunas existentes.
+
+## Dependencias atuais de ETo pre-calculada
+
+Os seguintes pontos ainda dependem explicitamente de colunas `et_*` vindas de
+`Evapo.xlsx` ou de CSVs limpos derivados dela:
+
+| Arquivo | Dependencia |
+| --- | --- |
+| `configs/methods.yml` | Define os nomes padronizados das colunas de ETo dos metodos configurados. |
+| `scripts/config.py` | Carrega `METHOD_COLUMNS` e `REFERENCE_COLUMN`; `WEATHER_COLUMNS` ainda inclui somente padronizacao de insumos, nao formulas; `LEGACY_METHOD_COLUMN_ALIASES` mantem compatibilidade com cabecalhos historicos da planilha. |
+| `scripts/io.py` | Renomeia as colunas de metodos da planilha para `et_*`. |
+| `scripts/cli.py` | `clean` preserva colunas `et_*`; `aggregate`, `metrics`, `plots` e `analyze-uncertainty` selecionam colunas `et_*` presentes no CSV limpo. |
+| `scripts/aggregate.py` | Soma colunas de ETo para totais mensais. |
+| `scripts/metrics.py` | Calcula metricas comparando metodos contra `et_penman_monteith`. |
+| `scripts/uncertainty.py` | Reamostra e estratifica vies usando a serie `et_penman_monteith` como referencia. |
+| `scripts/plots.py` | Gera figuras a partir de colunas de ETo ja existentes. |
+| `scripts/quality.py` | Aplica limites de qualidade tambem as colunas `et_*`, assumindo que elas ja existem. |
+| `scripts/summary.py` | Resume tabelas de metricas ja calculadas a partir de `et_*`. |
+
+Essa dependencia e considerada legado/transitoria. Nenhum resultado versionado e
+alterado por esta documentacao ou pela flag preparatoria.
 
 ## Transformacoes realizadas pelo pipeline
 
@@ -108,3 +150,5 @@ Os relatatorios sao gravados em `outputs/reports/`.
 - A planilha `Evapo.xlsx` inclui colunas de ETo e colunas auxiliares ja
   calculadas; o procedimento historico que produziu essas colunas deve ser
   documentado ou substituido por calculo totalmente scriptado em entrega futura.
+- O modo `--compute-eto` ainda nao calcula ETo; ele existe para reservar a
+  interface e impedir uso acidental antes da validacao cientifica.

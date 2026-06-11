@@ -88,6 +88,13 @@ METHOD_COLUMNS = METHODS.columns
 METHOD_SHORT = METHODS.short_names
 REFERENCE_COLUMN = METHODS.reference_column
 
+LEGACY_METHOD_COLUMN_ALIASES = {
+    "Hargreaves & Samani": "et_hargreaves_samani",
+    "Hargreaves & Samani (corrigido)": "et_hargreaves_samani_corr",
+    "Penman-Monteith": "et_penman_monteith",
+    "Garcia Lopez": "et_garcia_lopez",
+}
+
 WEATHER_COLUMNS = {
     "DIA": "date",
     "TMED (oC)": "tmed_c",

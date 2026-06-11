@@ -6,6 +6,8 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Added configuration metadata for 15 ET0 estimation methods plus Penman-Monteith FAO-56 as the reference.
+- Marked not-yet-implemented method outputs as `configured_not_computed` in `configs/methods.yml`.
 - Added `CONTRIBUTING.md` with reproducibility, scientific-change, and pull request expectations.
 - Added `CODE_OF_CONDUCT.md` for respectful academic and open-source participation.
 - Added README badges for DOI, CI, license, citation metadata, Python version, results, and contact.
@@ -14,6 +16,7 @@ All notable changes to this project are documented in this file.
 ### Changed
 
 - Clarified that the repository is organized as an open, citable research compendium.
+- Clarified that Manaus and Piracicaba are demonstration sites and that additional sites are configurable.
 - Updated README installation guidance to match the Python 3.10+ requirement in `pyproject.toml`.
 - Expanded `docs/reproducibility.md` with scope, result-checking guidance, CI behavior, and citation instructions.
 

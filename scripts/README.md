@@ -18,11 +18,13 @@ python -m scripts.cli all --year 2024
 python -m scripts.cli all --year 2024 --site manaus
 python -m scripts.cli all --year 2024 --site piracicaba
 python -m scripts.cli all --year 2024 --all-sites
+python -m scripts.cli all --year 2024 --use-precomputed-eto
 python -m scripts.cli reproduce-paper --year 2024
 python -m scripts.cli export-supplement
 ```
 
 Sites are configured in `configs/sites.yml`. Method column mappings and short labels are configured in `configs/methods.yml`.
+`--use-precomputed-eto` is the current default and preserves the legacy-compatible pipeline. `--compute-eto` is reserved for the raw meteorological variable workflow and currently fails explicitly until the formulas are implemented and validated.
 
 ## Comandos cientificos / Scientific commands
 - `validate-data`: gera relatorios auditaveis de qualidade em `outputs/reports/`.
@@ -32,6 +34,7 @@ Sites are configured in `configs/sites.yml`. Method column mappings and short la
 
 ## Modulos / Modules
 - `config.py`: caminhos, parametros e carregamento de `configs/*.yml`
+- `eto_layers.py`: classificacao preparatoria de dados meteorologicos, variaveis derivadas e colunas de ETo
 - `io.py`: leitura e padronizacao
 - `cleaning.py`: tratamento de falhas
 - `aggregate.py`: agregacoes
