@@ -31,6 +31,21 @@ O comando `compute-eto` calcula os metodos configurados a partir de variaveis me
 
 Metodos ja presentes antes desta expansao continuam preservados na configuracao quando existem colunas calculadas, incluindo Thornthwaite, Thornthwaite-Camargo e Hargreaves-Samani corrigido.
 
+## Metricas de avaliacao
+
+As tabelas em `outputs/tables/{site}_{daily|monthly}_metrics.csv` comparam cada metodo alternativo contra `et_penman_monteith` usando apenas pares finitos metodo-referencia. As metricas reportadas sao:
+
+- `rmse`: raiz do erro quadratico medio, em mm por periodo;
+- `mae`: erro absoluto medio, em mm por periodo;
+- `mbe`: vies medio, calculado como metodo menos referencia;
+- `r`: coeficiente de correlacao de Pearson;
+- `r2`: quadrado de `r`;
+- `willmott_d`: indice de concordancia de Willmott;
+- `c`: coeficiente de confianca, calculado como `r * willmott_d`;
+- `classification`: classe de desempenho derivada de `c`.
+
+A classificacao segue estes limiares: `Excellent` para `c > 0.85`; `Very Good` para `0.75 < c <= 0.85`; `Good` para `0.65 < c <= 0.75`; `Average` para `0.60 < c <= 0.65`; `Poor` para `0.50 < c <= 0.60`; `Bad` para `0.40 < c <= 0.50`; e `Very Poor` para `c <= 0.40`. Quando `r`, `d` ou `c` nao podem ser estimados, a classe fica vazia.
+
 ## 1. Penman-Monteith (FAO-56)
 
 **PT — Descricao**

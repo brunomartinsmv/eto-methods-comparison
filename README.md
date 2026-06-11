@@ -39,7 +39,7 @@ Clone and run the pipeline in under 5 minutes to generate:
 
 **📊 Metrics Tables** (`outputs/tables/`)
 - `summary_rankings.csv` — All methods ranked by site (Manaus, Piracicaba) and scale (daily, monthly)
-- `{site}_daily_metrics.csv` — RMSE, MAE, R², bias for daily estimates
+- `{site}_daily_metrics.csv` — RMSE, MAE, MBE, Pearson r, R², Willmott d, confidence c, and performance classification for daily estimates
 - `{site}_monthly_metrics.csv` — Same metrics aggregated monthly
 - **→ Start with `summary_rankings.csv` to see which methods perform best in each climate**
 
@@ -164,7 +164,7 @@ If you only need specific outputs:
 python -m scripts.cli clean      # Clean raw data → data/cleaned/
 python -m scripts.cli compute-eto --year 2024  # Compute ET0 from cleaned weather variables → outputs/results/
 python -m scripts.cli aggregate  # Create aggregations → outputs/results/
-python -m scripts.cli metrics    # Compute RMSE, R², etc. → outputs/tables/ (prefers computed ET0 if available)
+python -m scripts.cli metrics    # Compute RMSE, r, R², Willmott d, c, etc. → outputs/tables/ (prefers computed ET0 if available)
 python -m scripts.cli plots      # Generate all figures → outputs/figures/
 python -m scripts.cli validate-data  # Audit dates, missing values, interpolation traces
 python -m scripts.cli summarize      # Rank methods and summarize best performers by site and scale
@@ -354,7 +354,7 @@ date       | temp_mean | temp_min | temp_max | radiation | wind_2m | rh_mean
 │   ├── results/        # Intermediate aggregations (rolling_7d, monthly totals)
 │   ├── figures/        # All generated plots (Taylor diagrams, scatter plots, time series)
 │   ├── reports/        # Data quality reports
-│   └── tables/         # **Metrics tables (RMSE, R², MAE, bias) ← Start here**
+│   └── tables/         # **Metrics tables (RMSE, r, R², Willmott d, c) ← Start here**
 ├── scripts/            # Analysis pipeline (CLI, cleaning, metrics, plotting)
 ├── notebooks/          # Educational Jupyter notebooks with step-by-step explanations
 ├── docs/               # Detailed methodology, equations, and interpretation guides

@@ -4,14 +4,16 @@ from pathlib import Path
 
 import pandas as pd
 
-METRIC_COLUMNS = ["rmse", "mae", "mbe", "r2", "willmott_d"]
+METRIC_COLUMNS = ["rmse", "mae", "mbe", "r", "r2", "willmott_d", "c", "classification"]
 SITE_METADATA_COLUMNS = ["biome", "climate_class", "region", "country", "state"]
 RANK_COLUMNS = [
     "rank_rmse",
     "rank_mae",
     "rank_mbe",
+    "rank_r",
     "rank_r2",
     "rank_willmott_d",
+    "rank_c",
 ]
 RANKING_COLUMNS = [
     "site",
@@ -33,8 +35,14 @@ def _rank_metrics(table: pd.DataFrame) -> pd.DataFrame:
     ranked["rank_rmse"] = _rank_series(ranked["rmse"], ascending=True)
     ranked["rank_mae"] = _rank_series(ranked["mae"], ascending=True)
     ranked["rank_mbe"] = _rank_series(ranked["mbe"].abs(), ascending=True)
-    ranked["rank_r2"] = _rank_series(ranked["r2"], ascending=False)
-    ranked["rank_willmott_d"] = _rank_series(ranked["willmott_d"], ascending=False)
+    if "r" in ranked.columns:
+        ranked["rank_r"] = _rank_series(ranked["r"], ascending=False)
+    if "r2" in ranked.columns:
+        ranked["rank_r2"] = _rank_series(ranked["r2"], ascending=False)
+    if "willmott_d" in ranked.columns:
+        ranked["rank_willmott_d"] = _rank_series(ranked["willmott_d"], ascending=False)
+    if "c" in ranked.columns:
+        ranked["rank_c"] = _rank_series(ranked["c"], ascending=False)
     ranked = ranked.sort_values("rmse", ascending=True).reset_index(drop=True)
     ranked["rank"] = pd.Series(range(1, len(ranked) + 1), dtype="Int64")
     return ranked
@@ -79,7 +87,7 @@ def build_rankings(
                         "rank": row["rank"],
                         "method": row["method"],
                         **{column: row[column] for column in METRIC_COLUMNS if column in row},
-                        **{column: row[column] for column in RANK_COLUMNS},
+                        **{column: row[column] for column in RANK_COLUMNS if column in row},
                     }
                 )
     df = pd.DataFrame(rows)
@@ -165,7 +173,7 @@ def write_rankings(
         "",
         "Methods are ranked within each site and temporal scale.",
         "Overall `rank` follows lowest RMSE; per-metric ranks use the same criterion",
-        "(MBE ranks by absolute bias; R² and Willmott d favor higher values).",
+        "(MBE ranks by absolute bias; r, R², Willmott d, and confidence c favor higher values).",
         "",
     ]
     if rankings.empty:

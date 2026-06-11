@@ -80,8 +80,8 @@ A transicao metodologica separa quatro camadas:
 | --- | --- | --- |
 | Dados meteorologicos brutos padronizados | Data, temperatura, umidade, vento, chuva e radiacao vindas da planilha ou de fontes INMET futuras. | Lidos por `scripts.io.read_evapo_sheet` via `WEATHER_COLUMNS`. |
 | Variaveis meteorologicas derivadas | Variaveis calculadas a partir de coordenadas/data ou de outros insumos, como `ra_extraterrestre_mj_m2_d`. | Classificadas em `scripts.eto_layers`, mas ainda consumidas da planilha quando presentes. |
-| ETo calculada pelos metodos | Series `et_*` produzidas por formulas versionadas de Thornthwaite, Camargo, Hargreaves-Samani, Priestley-Taylor, Penman-Monteith e Garcia Lopez. | Ainda nao implementada no pipeline principal; `--compute-eto` e uma flag preparatoria bloqueada. |
-| Metricas comparativas | RMSE, MAE, MBE, R2, agregacoes mensais, bootstrap, sazonalidade e vies por faixa de ETo. | Calculadas por `scripts.metrics`, `scripts.aggregate`, `scripts.uncertainty`, `scripts.plots` e `scripts.summary` usando colunas `et_*` ja presentes nos dados limpos. |
+| ETo calculada pelos metodos | Series `et_*` produzidas por formulas versionadas de Thornthwaite, Camargo, Hargreaves-Samani, Priestley-Taylor, Penman-Monteith e metodos radiativos configurados. | Calculada por `scripts.compute_eto` e escrita em `outputs/results/{site}_daily_eto.csv`. |
+| Metricas comparativas | RMSE, MAE, MBE, r, R2, Willmott d, c, classificacao por c, agregacoes mensais, bootstrap, sazonalidade e vies por faixa de ETo. | Calculadas por `scripts.metrics`, `scripts.aggregate`, `scripts.uncertainty`, `scripts.plots` e `scripts.summary`; `metrics` prefere ET0 calculada em `outputs/results/` e usa colunas `et_*` limpas como fallback. |
 
 `scripts.eto_layers.build_data_layers` e a camada intermediaria inicial para
 auditar essa separacao no DataFrame padronizado. Ela nao muda resultados; apenas
