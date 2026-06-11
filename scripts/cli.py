@@ -339,9 +339,10 @@ def cmd_summarize(args: argparse.Namespace) -> None:
     sites = list(_selected_sites(args).keys())
     tables_dir = Path(args.input)
     reports_dir = Path(args.output)
-    summary_df = summary.build_summary(tables_dir, sites=sites)
+    selected_sites = _selected_sites(args)
+    summary_df = summary.build_summary(tables_dir, sites=sites, site_metadata=selected_sites)
     summary.write_summary(summary_df, reports_dir)
-    rankings_df = summary.build_rankings(tables_dir, sites=sites)
+    rankings_df = summary.build_rankings(tables_dir, sites=sites, site_metadata=selected_sites)
     summary.write_rankings(rankings_df, tables_dir, reports_dir)
 
 

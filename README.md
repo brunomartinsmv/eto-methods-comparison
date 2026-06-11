@@ -300,7 +300,14 @@ sites:
     lat: -15.6
     lon: -56.1
     alt_m: 165.0
+    biome: Cerrado
+    climate_class: Aw
+    region: Centro-Oeste
+    country: Brazil
+    state: MT
 ```
+
+`biome`, `climate_class`, `region`, `country`, and `state` are optional interpretive metadata. They are useful for summaries and optional grouping, but the project does not require them and does not become a fixed regional or multicity study when they are present.
 
 Method column mappings and short labels live in `configs/methods.yml`.
 

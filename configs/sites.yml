@@ -4,8 +4,18 @@ sites:
     lat: -3.1019
     lon: -60.0164
     alt_m: 61.25
+    biome: Amazonia
+    climate_class: Af
+    region: North
+    country: Brazil
+    state: AM
   piracicaba:
     sheet: Piracicaba
     lat: -22.7083
     lon: -47.6333
     alt_m: 546.0
+    biome: Mata Atlantica
+    climate_class: Cwa
+    region: Southeast
+    country: Brazil
+    state: SP
