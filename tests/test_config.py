@@ -16,6 +16,11 @@ sites:
     lat: -10.5
     lon: -55.2
     alt_m: 120.0
+    biome: Cerrado
+    climate_class: Aw
+    region: Centro-Oeste
+    country: Brazil
+    state: MT
 """.strip()
     )
 
@@ -27,8 +32,32 @@ sites:
             "lat": -10.5,
             "lon": -55.2,
             "alt_m": 120.0,
+            "biome": "Cerrado",
+            "climate_class": "Aw",
+            "region": "Centro-Oeste",
+            "country": "Brazil",
+            "state": "MT",
         }
     }
+
+
+def test_load_sites_config_keeps_optional_metadata_optional(tmp_path: Path) -> None:
+    config_path = tmp_path / "sites.yml"
+    config_path.write_text(
+        """
+sites:
+  test_site:
+    sheet: Test Sheet
+    lat: -10.5
+    lon: -55.2
+    alt_m: 120.0
+""".strip()
+    )
+
+    sites = load_sites_config(config_path)
+
+    assert "biome" not in sites["test_site"]
+    assert sites["test_site"]["sheet"] == "Test Sheet"
 
 
 def test_select_sites_returns_requested_site_and_rejects_unknown_site() -> None:
