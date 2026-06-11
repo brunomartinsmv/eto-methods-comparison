@@ -6,6 +6,8 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Added Pearson correlation (`r`), confidence coefficient (`c = r * d`), and literature performance classes to generated metrics tables.
+- Added ranking columns for Pearson `r` and confidence `c` in summary rankings.
 - Added configuration metadata for 15 ET0 estimation methods plus Penman-Monteith FAO-56 as the reference.
 - Added optional configured-site metadata for biome, climate class, region, country, and state.
 - Marked not-yet-implemented method outputs as `configured_not_computed` in `configs/methods.yml`.
@@ -16,6 +18,7 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+- Updated metrics documentation and generated summaries to report RMSE, MAE, MBE, Pearson `r`, R², Willmott `d`, confidence `c`, and performance classification.
 - Clarified that the repository is organized as an open, citable research compendium.
 - Clarified that Manaus and Piracicaba are demonstration sites and that additional sites are configurable.
 - Updated README installation guidance to match the Python 3.10+ requirement in `pyproject.toml`.

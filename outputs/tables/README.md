@@ -18,6 +18,8 @@ Official preprint tables live directly in `outputs/tables/`, outside `legacy/`.
 - `piracicaba_monthly_metrics.csv`
 
 Padrao / Pattern: `<site>_daily_metrics.csv` and `<site>_monthly_metrics.csv`.
+Metric columns include RMSE, MAE, MBE, Pearson r, R², Willmott d, confidence c,
+and the c-based performance classification.
 
 ## Como reproduzir / How to reproduce
 ```bash
