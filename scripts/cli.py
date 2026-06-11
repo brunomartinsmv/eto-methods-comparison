@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from . import aggregate, cleaning, io, metrics, plots, quality, summary, uncertainty
+from . import aggregate, cleaning, compute_eto, io, metrics, plots, quality, summary, uncertainty
 from .config import (
     DATA_CLEANED,
     DATA_RAW,
@@ -47,8 +47,9 @@ def _method_cols_present(df: pd.DataFrame) -> list[str]:
 def require_precomputed_eto_mode(args: argparse.Namespace) -> None:
     if getattr(args, "eto_source", "precomputed") == "compute":
         raise NotImplementedError(
-            "Raw-to-ETo computation mode is not implemented yet. Use "
-            "--use-precomputed-eto for the current legacy-compatible pipeline."
+            "Use the 'compute-eto' subcommand after cleaning standardized weather data. "
+            "The clean/validate/all flags keep --use-precomputed-eto as the "
+            "legacy-compatible default."
         )
 
 
@@ -62,6 +63,10 @@ def rolling_7d_filename(site: str) -> str:
 
 def monthly_totals_filename(site: str) -> str:
     return f"{site}_monthly_totals.csv"
+
+
+def daily_eto_filename(site: str) -> str:
+    return f"{site}_daily_eto.csv"
 
 
 def metrics_filename(site: str, scale: str) -> str:
@@ -147,7 +152,9 @@ def cmd_metrics(args: argparse.Namespace) -> None:
     _ensure_dir(output_dir)
 
     for site in _selected_sites(args).keys():
-        df = pd.read_csv(input_dir / cleaned_daily_filename(site), parse_dates=["date"])
+        computed_path = OUTPUTS_RESULTS / daily_eto_filename(site)
+        input_path = computed_path if computed_path.exists() else input_dir / cleaned_daily_filename(site)
+        df = pd.read_csv(input_path, parse_dates=["date"])
         method_cols = _method_cols_present(df)
         ref_col = REFERENCE_COLUMN
 
@@ -160,6 +167,21 @@ def cmd_metrics(args: argparse.Namespace) -> None:
         monthly_df = aggregate.monthly_sum(df, method_cols)
         monthly_metrics = metrics.compute_metrics(monthly_df, ref_col, [c for c in method_cols if c != ref_col])
         monthly_metrics.to_csv(output_dir / metrics_filename(site, "monthly"), index=False)
+
+
+def cmd_compute_eto(args: argparse.Namespace) -> None:
+    input_dir = Path(args.input)
+    output_dir = Path(args.output)
+    _ensure_dir(output_dir)
+
+    for site, meta in _selected_sites(args).items():
+        df = pd.read_csv(input_dir / cleaned_daily_filename(site), parse_dates=["date"])
+        computed = compute_eto.compute_daily_eto(
+            df,
+            site_meta=meta,
+            include_precomputed=args.include_precomputed,
+        )
+        computed.to_csv(output_dir / daily_eto_filename(site), index=False)
 
 
 def cmd_plots(args: argparse.Namespace) -> None:
@@ -325,6 +347,23 @@ def cmd_summarize(args: argparse.Namespace) -> None:
 
 def cmd_reproduce_paper(args: argparse.Namespace) -> None:
     cmd_all(args)
+    compute_args = argparse.Namespace(
+        input=str(DATA_CLEANED),
+        output=str(OUTPUTS_RESULTS),
+        year=args.year,
+        site=args.site,
+        all_sites=args.all_sites,
+        include_precomputed=True,
+    )
+    cmd_compute_eto(compute_args)
+    metrics_args = argparse.Namespace(
+        input=str(DATA_CLEANED),
+        output=str(OUTPUTS_TABLES),
+        year=args.year,
+        site=args.site,
+        all_sites=args.all_sites,
+    )
+    cmd_metrics(metrics_args)
     validate_args = argparse.Namespace(
         input=args.input,
         output=str(OUTPUTS_REPORTS),
@@ -408,7 +447,7 @@ def _add_eto_source_selection(parser: argparse.ArgumentParser) -> None:
         dest="eto_source",
         action="store_const",
         const="compute",
-        help="Prepare to compute ETo from meteorological variables; not implemented yet",
+        help="Reserved for direct raw-to-ETo cleaning; use the compute-eto subcommand after clean",
     )
 
 
@@ -450,6 +489,21 @@ def build_parser() -> argparse.ArgumentParser:
     metrics_parser.add_argument("--output", default=str(OUTPUTS_TABLES))
     _add_site_selection(metrics_parser)
     metrics_parser.set_defaults(func=cmd_metrics)
+
+    compute_parser = subparsers.add_parser(
+        "compute-eto",
+        help="Compute ET0 methods from standardized cleaned meteorological variables",
+    )
+    compute_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
+    compute_parser.add_argument("--input", default=str(DATA_CLEANED))
+    compute_parser.add_argument("--output", default=str(OUTPUTS_RESULTS))
+    compute_parser.add_argument(
+        "--include-precomputed",
+        action="store_true",
+        help="Keep precomputed et_* columns as precomputed_<column> for validation",
+    )
+    _add_site_selection(compute_parser)
+    compute_parser.set_defaults(func=cmd_compute_eto)
 
     plots_parser = subparsers.add_parser("plots", help="Generate figures")
     plots_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)

@@ -28,7 +28,7 @@ Manaus and Piracicaba are demonstration sites, not a fixed multicity study desig
 
 **→ See [`outputs/tables/summary_rankings.csv`](outputs/tables/summary_rankings.csv) for a ranked comparison across sites and scales (also available as [`outputs/reports/summary_rankings.md`](outputs/reports/summary_rankings.md)).**
 
-Per-method metrics remain in `outputs/tables/{site}_{daily|monthly}_metrics.csv`. Methods marked `configured_not_computed` in `configs/methods.yml` are declared for the expanded comparison scope but are not yet calculated by the current pipeline.
+Per-method metrics remain in `outputs/tables/{site}_{daily|monthly}_metrics.csv`. After running `compute-eto`, metrics use the pipeline-calculated ET0 series in `outputs/results/{site}_daily_eto.csv`; if those files are absent, the legacy precomputed columns in `data/cleaned/` remain the fallback.
 
 ---
 
@@ -142,6 +142,7 @@ The current CLI uses snake-case suffixes for generated files:
 - Daily cleaned data: `data/cleaned/{site}_daily.csv`
 - 7-day rolling results: `outputs/results/{site}_rolling_7d.csv`
 - Monthly totals: `outputs/results/{site}_monthly_totals.csv`
+- Computed daily ET0 methods: `outputs/results/{site}_daily_eto.csv`
 - Daily metrics: `outputs/tables/{site}_daily_metrics.csv`
 - Monthly metrics: `outputs/tables/{site}_monthly_metrics.csv`
 - Daily scatter figures: `outputs/figures/{site}/{site}_daily_scatter_{method}_vs_pm.png`
@@ -161,14 +162,19 @@ If you only need specific outputs:
 
 ```bash
 python -m scripts.cli clean      # Clean raw data → data/cleaned/
+python -m scripts.cli compute-eto --year 2024  # Compute ET0 from cleaned weather variables → outputs/results/
 python -m scripts.cli aggregate  # Create aggregations → outputs/results/
-python -m scripts.cli metrics    # Compute RMSE, R², etc. → outputs/tables/
+python -m scripts.cli metrics    # Compute RMSE, R², etc. → outputs/tables/ (prefers computed ET0 if available)
 python -m scripts.cli plots      # Generate all figures → outputs/figures/
 python -m scripts.cli validate-data  # Audit dates, missing values, interpolation traces
 python -m scripts.cli summarize      # Rank methods and summarize best performers by site and scale
 python -m scripts.cli reproduce-paper --year 2024  # Regenerate paper-facing outputs
 python -m scripts.cli export-supplement             # Collect supplemental CSV outputs
 ```
+
+`metrics` remains backward compatible: if `outputs/results/{site}_daily_eto.csv`
+does not exist, it falls back to `data/cleaned/{site}_daily.csv` and uses the
+precomputed `et_*` columns from the cleaned data.
 
 **Expected runtime:** ~30 seconds for full pipeline on both sites (2024 data).
 
@@ -386,14 +392,12 @@ The repository also includes [`CITATION.cff`](CITATION.cff), which GitHub can us
 
 ## Methods Overview
 
-The repository configuration targets **15 alternative ET0 estimation methods** plus **Penman-Monteith FAO-56** as the reference. Not every configured method is computed yet; the current pipeline only uses columns present in the cleaned demonstration data, so adding method metadata does not silently change existing results.
+The repository configuration targets **15 alternative ET0 estimation methods** plus **Penman-Monteith FAO-56** as the reference. The `compute-eto` command calculates those methods from standardized meteorological variables and writes daily calculated series to `outputs/results/{site}_daily_eto.csv`.
 
 **Reference standard:**
 - **Penman-Monteith (FAO-56)** — Energy balance + aerodynamic approach, requires full met data
 
-**Configured 15-method comparison scope:**
-- **Computed in the current demonstration data:** Camargo, Hargreaves-Samani, Priestley-Taylor, Garcia-Lopez.
-- **Configured but not yet computed:** Makkink, McCloud, Turc, Global Radiation, Ivanov, Jensen-Heise, Net Radiation, Radiation-Temperature, Lungeon, Stephens-Stewart, Hicks-Hess.
+**Computed 15-method comparison scope:** Camargo, Hargreaves-Samani, Makkink, McCloud, Priestley-Taylor, Turc, Global Radiation, Ivanov, Jensen-Heise, Garcia-Lopez, Net Radiation, Radiation-Temperature, Lungeon, Stephens-Stewart, and Hicks-Hess.
 
 The configuration also preserves existing computed legacy/auxiliary method columns: Thornthwaite, Thornthwaite-Camargo, and locally corrected Hargreaves-Samani.
 
