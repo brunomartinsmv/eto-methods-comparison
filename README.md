@@ -1,8 +1,16 @@
 # Reference Evapotranspiration (ETo) Methods Comparison
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18615164.svg)](https://doi.org/10.5281/zenodo.18615164)
+[![CI](https://github.com/brunomartinsmv/eto-methods-comparison/actions/workflows/reproduce.yml/badge.svg)](https://github.com/brunomartinsmv/eto-methods-comparison/actions/workflows/reproduce.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Cite this repository](https://img.shields.io/badge/citation-CITATION.cff-blue.svg)](CITATION.cff)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
+[![Results](https://img.shields.io/badge/results-summary_rankings.csv-informational.svg)](outputs/tables/summary_rankings.csv)
+[![Contact](https://img.shields.io/badge/contact-GitHub%20Issues-lightgrey.svg)](https://github.com/brunomartinsmv/eto-methods-comparison/issues)
 
 **A reproducible analysis comparing empirical and semi-empirical ETo estimation methods against Penman-Monteith (FAO-56) for Brazilian climates.**
+
+This repository is organized as an open, citable research compendium: it includes source data notes, executable scripts, generated outputs, tests, citation metadata, licensing, contribution guidance, and documentation for reproducing the analysis.
 
 ## Key Findings
 
@@ -55,7 +63,7 @@ The pipeline works for **any location** where you have meteorological data:
 ## Quick Start
 
 ### Prerequisites
-- **Python 3.8 or higher** (tested on 3.9, 3.10, 3.11)
+- **Python 3.10 or higher** (CI uses Python 3.12)
   - Check your version: `python3 --version`
 - **pip** for package management
 - **Git** for cloning the repository
@@ -99,6 +107,12 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 This installs: pandas, numpy, matplotlib, openpyxl, and scientific libraries.
+
+For development and test workflows, install the package with development dependencies:
+
+```bash
+pip install -e ".[dev]"
+```
 
 **6. Run the complete pipeline**
 ```bash
@@ -334,6 +348,8 @@ date       | temp_mean | temp_min | temp_max | radiation | wind_2m | rh_mean
 Files under `outputs/**/legacy/` are historical notebook-era outputs, not the
 official preprint result set. See [`docs/legacy.md`](docs/legacy.md).
 
+For a documentation map, start with [`docs/README.md`](docs/README.md). For exact reproduction commands, see [`docs/reproducibility.md`](docs/reproducibility.md). For contribution expectations, see [`CONTRIBUTING.md`](CONTRIBUTING.md). Participants are also covered by the project [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
+
 ---
 
 ## How to Cite
@@ -432,3 +448,7 @@ For questions, suggestions, or collaboration:
 - **Author:** Bruno Martins M. Vieira
 - **Institution:** Universidade Federal do Mato Grosso
 - **GitHub Issues:** [Report issues or ask questions](https://github.com/brunomartinsmv/eto-methods-comparison/issues)
+
+## Contributing
+
+Contributions that improve reproducibility, documentation, tests, method auditability, or support for additional well-documented sites are welcome. Please read [`CONTRIBUTING.md`](CONTRIBUTING.md) before opening a pull request.
