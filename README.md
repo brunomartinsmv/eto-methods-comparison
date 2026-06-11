@@ -8,15 +8,17 @@
 [![Results](https://img.shields.io/badge/results-summary_rankings.csv-informational.svg)](outputs/tables/summary_rankings.csv)
 [![Contact](https://img.shields.io/badge/contact-GitHub%20Issues-lightgrey.svg)](https://github.com/brunomartinsmv/eto-methods-comparison/issues)
 
-**A reproducible analysis comparing empirical and semi-empirical ETo estimation methods against Penman-Monteith (FAO-56) for Brazilian climates.**
+**A reproducible analysis framework for comparing up to 15 empirical and semi-empirical ET0 estimation methods against Penman-Monteith (FAO-56).**
 
 This repository is organized as an open, citable research compendium: it includes source data notes, executable scripts, generated outputs, tests, citation metadata, licensing, contribution guidance, and documentation for reproducing the analysis.
 
 ## Key Findings
 
-This study evaluates 7 ETo methods across two contrasting Brazilian climates:
+This repository now configures **15 alternative ET0 methods plus Penman-Monteith FAO-56 as reference**. The current computed demonstration results use the method columns already available for two contrasting Brazilian climates:
 - **Piracicaba, SP** (Cwa — humid subtropical with dry winter)
 - **Manaus, AM** (Af — tropical rainforest)
+
+Manaus and Piracicaba are demonstration sites, not a fixed multicity study design. Additional sites can be added through `configs/sites.yml` without changing the code structure.
 
 **Main results:**
 - Temperature-based methods (Thornthwaite, Camargo) systematically underestimate ETo in both climates, with errors exceeding 30% RMSE
@@ -26,13 +28,13 @@ This study evaluates 7 ETo methods across two contrasting Brazilian climates:
 
 **→ See [`outputs/tables/summary_rankings.csv`](outputs/tables/summary_rankings.csv) for a ranked comparison across sites and scales (also available as [`outputs/reports/summary_rankings.md`](outputs/reports/summary_rankings.md)).**
 
-Per-method metrics remain in `outputs/tables/{site}_{daily|monthly}_metrics.csv`.
+Per-method metrics remain in `outputs/tables/{site}_{daily|monthly}_metrics.csv`. Methods marked `configured_not_computed` in `configs/methods.yml` are declared for the expanded comparison scope but are not yet calculated by the current pipeline.
 
 ---
 
 ## What This Repository Provides
 
-### Ready-to-Use Results (for Piracicaba and Manaus)
+### Ready-to-Use Results (for Demonstration Sites)
 Clone and run the pipeline in under 5 minutes to generate:
 
 **📊 Metrics Tables** (`outputs/tables/`)
@@ -54,9 +56,10 @@ Clone and run the pipeline in under 5 minutes to generate:
 
 ### Extensible Framework
 The pipeline works for **any location** where you have meteorological data:
-- Add your data to `data/raw/` (see Data Sources below)
-- Run the same pipeline
-- Get the same outputs for your site
+- Add site metadata to `configs/sites.yml`
+- Add compatible data to `data/raw/` or adapt the reader for your source format
+- Keep method metadata in `configs/methods.yml`
+- Run the same pipeline and get the same output structure for any number of configured sites
 
 ---
 
@@ -242,7 +245,7 @@ The pipeline is designed for **any location** with meteorological data. Here's h
 
 ### Required Meteorological Variables
 
-To compute all 7 methods, you need daily data for:
+To compute the full configured set of 15 ET0 methods, you generally need daily data for:
 
 **Minimum requirements (for basic methods):**
 - Date
@@ -383,22 +386,16 @@ The repository also includes [`CITATION.cff`](CITATION.cff), which GitHub can us
 
 ## Methods Overview
 
-This study evaluates **7 ETo estimation methods:**
+The repository configuration targets **15 alternative ET0 estimation methods** plus **Penman-Monteith FAO-56** as the reference. Not every configured method is computed yet; the current pipeline only uses columns present in the cleaned demonstration data, so adding method metadata does not silently change existing results.
 
 **Reference standard:**
 - **Penman-Monteith (FAO-56)** — Energy balance + aerodynamic approach, requires full met data
 
-**Temperature-based (empirical):**
-- **Thornthwaite** — Monthly temperature + photoperiod
-- **Camargo** — Brazilian adaptation of Thornthwaite for tropical climates
-- **Thornthwaite-Camargo** — Hybrid approach
+**Configured 15-method comparison scope:**
+- **Computed in the current demonstration data:** Camargo, Hargreaves-Samani, Priestley-Taylor, Garcia-Lopez.
+- **Configured but not yet computed:** Makkink, McCloud, Turc, Global Radiation, Ivanov, Jensen-Heise, Net Radiation, Radiation-Temperature, Lungeon, Stephens-Stewart, Hicks-Hess.
 
-**Temperature-range based (semi-empirical):**
-- **Hargreaves-Samani (original)** — Uses daily temperature range as radiation proxy
-- **Hargreaves-Samani (calibrated)** — Locally adjusted coefficients
-
-**Energy-balance based (semi-empirical):**
-- **Priestley-Taylor** — Simplified energy balance with empirical coefficient
+The configuration also preserves existing computed legacy/auxiliary method columns: Thornthwaite, Thornthwaite-Camargo, and locally corrected Hargreaves-Samani.
 
 **For detailed equations, assumptions, limitations, and climate suitability of each method, see [`docs/methodology.md`](docs/methodology.md).**
 

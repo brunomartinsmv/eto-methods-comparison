@@ -44,6 +44,14 @@ def _method_cols_present(df: pd.DataFrame) -> list[str]:
     return [col for col in METHOD_COLUMNS.values() if col in df.columns]
 
 
+def require_precomputed_eto_mode(args: argparse.Namespace) -> None:
+    if getattr(args, "eto_source", "precomputed") == "compute":
+        raise NotImplementedError(
+            "Raw-to-ETo computation mode is not implemented yet. Use "
+            "--use-precomputed-eto for the current legacy-compatible pipeline."
+        )
+
+
 def cleaned_daily_filename(site: str) -> str:
     return f"{site}_daily.csv"
 
@@ -81,6 +89,7 @@ def _selected_sites(args: argparse.Namespace) -> dict[str, dict]:
 
 
 def cmd_clean(args: argparse.Namespace) -> None:
+    require_precomputed_eto_mode(args)
     input_path = Path(args.input)
     output_dir = Path(args.output)
     _ensure_dir(output_dir)
@@ -92,6 +101,7 @@ def cmd_clean(args: argparse.Namespace) -> None:
 
 
 def cmd_validate_data(args: argparse.Namespace) -> None:
+    require_precomputed_eto_mode(args)
     input_path = Path(args.input)
     output_dir = Path(args.output)
     _ensure_dir(output_dir)
@@ -383,6 +393,25 @@ def _add_site_selection(parser: argparse.ArgumentParser) -> None:
     parser.set_defaults(all_sites=True)
 
 
+def _add_eto_source_selection(parser: argparse.ArgumentParser) -> None:
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--use-precomputed-eto",
+        dest="eto_source",
+        action="store_const",
+        const="precomputed",
+        default="precomputed",
+        help="Use ETo columns already present in the input spreadsheet (default, legacy-compatible)",
+    )
+    group.add_argument(
+        "--compute-eto",
+        dest="eto_source",
+        action="store_const",
+        const="compute",
+        help="Prepare to compute ETo from meteorological variables; not implemented yet",
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="ETo pipeline CLI")
     parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
@@ -393,6 +422,7 @@ def build_parser() -> argparse.ArgumentParser:
     clean_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
     clean_parser.add_argument("--input", default=str(DATA_RAW / "Evapo.xlsx"))
     clean_parser.add_argument("--output", default=str(DATA_CLEANED))
+    _add_eto_source_selection(clean_parser)
     _add_site_selection(clean_parser)
     clean_parser.set_defaults(func=cmd_clean)
 
@@ -410,6 +440,7 @@ def build_parser() -> argparse.ArgumentParser:
     validate_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
     validate_parser.add_argument("--input", default=str(DATA_RAW / "Evapo.xlsx"))
     validate_parser.add_argument("--output", default=str(OUTPUTS_REPORTS))
+    _add_eto_source_selection(validate_parser)
     _add_site_selection(validate_parser)
     validate_parser.set_defaults(func=cmd_validate_data)
 
@@ -457,6 +488,7 @@ def build_parser() -> argparse.ArgumentParser:
     all_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
     all_parser.add_argument("--input", default=str(DATA_RAW / "Evapo.xlsx"))
     all_parser.add_argument("--output", default=str(DATA_CLEANED))
+    _add_eto_source_selection(all_parser)
     _add_site_selection(all_parser)
     all_parser.set_defaults(func=cmd_all)
 
@@ -467,6 +499,7 @@ def build_parser() -> argparse.ArgumentParser:
     reproduce_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
     reproduce_parser.add_argument("--input", default=str(DATA_RAW / "Evapo.xlsx"))
     reproduce_parser.add_argument("--output", default=str(DATA_CLEANED))
+    _add_eto_source_selection(reproduce_parser)
     _add_site_selection(reproduce_parser)
     reproduce_parser.set_defaults(func=cmd_reproduce_paper)
 
