@@ -78,15 +78,18 @@ As localidades ficam em `configs/sites.yml`; os metodos e nomes de colunas ficam
 
 ## Comandos cientificos
 ```bash
+python -m scripts.cli compute-eto --year 2024
 python -m scripts.cli validate-data --year 2024
 python -m scripts.cli summarize
 python -m scripts.cli export-supplement
 ```
 
+- `compute-eto` le `data/cleaned/{site}_daily.csv` e escreve `outputs/results/{site}_daily_eto.csv` com ET0 calculada a partir de variaveis meteorologicas padronizadas.
 - `validate-data` escreve relatorios CSV em `outputs/reports/`.
 - `summarize` escreve `outputs/reports/summary.csv` e `outputs/reports/summary.md` com o melhor metodo por RMSE para cada localidade e escala temporal.
 - `export-supplement` cria `outputs/supplement/` com CSVs atuais de `outputs/tables/`, `outputs/results/` e `outputs/reports/`, deixando outputs legados fora do pacote suplementar.
 - `all` continua disponivel para compatibilidade historica.
+- `metrics` prefere `outputs/results/{site}_daily_eto.csv` quando esse arquivo existe; se nao existir, usa as colunas `et_*` pre-calculadas em `data/cleaned/{site}_daily.csv`.
 
 ## Como verificar os resultados / How to check results
 
@@ -120,6 +123,7 @@ O CI executa lint, testes e o pipeline principal quando `data/raw/Evapo.xlsx` es
 - `data/cleaned/*_daily.csv`
 - `outputs/results/*_rolling_7d.csv`
 - `outputs/results/*_monthly_totals.csv`
+- `outputs/results/*_daily_eto.csv`
 - `outputs/tables/*_daily_metrics.csv`
 - `outputs/tables/*_monthly_metrics.csv`
 - `outputs/figures/<site>/*.png`
@@ -140,6 +144,7 @@ Use `CITATION.cff` or the "How to Cite" section in `README.md` to cite the repos
 - Resultados diarios: `data/cleaned/{site}_daily.csv`
 - Resultados de 7 dias: `outputs/results/{site}_rolling_7d.csv`
 - Resultados mensais: `outputs/results/{site}_monthly_totals.csv`
+- ET0 diaria calculada: `outputs/results/{site}_daily_eto.csv`
 - Metricas: `outputs/tables/{site}_daily_metrics.csv` e `{site}_monthly_metrics.csv`
 - Figuras: `outputs/figures/{site}/{site}_daily_scatter_{method}_vs_pm.png`, `{site}_daily_series_{method}_vs_pm.png`, `{site}_monthly_totals.png`, `{site}_daily_taylor.png`, `{site}_monthly_taylor.png`
 - Relatorios: `outputs/reports/{site}_data_quality.csv`, `outputs/reports/data_quality_summary.csv`, `outputs/reports/summary.csv`, `outputs/reports/summary.md`

@@ -37,12 +37,19 @@ def test_validate_data_command_defaults_to_raw_input_and_reports_output() -> Non
 def test_compute_eto_mode_is_explicitly_not_implemented_yet() -> None:
     args = build_parser().parse_args(["clean", "--compute-eto"])
 
-    with pytest.raises(NotImplementedError, match="Raw-to-ETo computation mode"):
+    with pytest.raises(NotImplementedError, match="compute-eto"):
         require_precomputed_eto_mode(args)
 
 
 def test_scientific_cli_commands_are_available() -> None:
     parser = build_parser()
+
+    compute = parser.parse_args(["compute-eto", "--site", "manaus", "--include-precomputed"])
+    assert compute.input.endswith("data/cleaned")
+    assert compute.output.endswith("outputs/results")
+    assert compute.site == "manaus"
+    assert compute.all_sites is False
+    assert compute.include_precomputed is True
 
     analyze = parser.parse_args(["analyze-uncertainty"])
     analyze_with_year = parser.parse_args(["analyze-uncertainty", "--year", "2024"])

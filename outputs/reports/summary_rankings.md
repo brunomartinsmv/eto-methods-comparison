@@ -6,7 +6,7 @@ Overall `rank` follows lowest RMSE; per-metric ranks use the same criterion
 
 ## Manaus — daily
 
-Best overall: **et_hargreaves_samani_corr** (RMSE = 0.3588).
+Best overall: **et_lungeon** (RMSE = 0.7705).
 
 | site | biome | climate_class | region | country | state | scale | rank | method | rmse | mae | mbe | r2 | willmott_d | rank_rmse | rank_mae | rank_mbe | rank_r2 | rank_willmott_d |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -20,7 +20,7 @@ Best overall: **et_hargreaves_samani_corr** (RMSE = 0.3588).
 
 ## Manaus — monthly
 
-Best overall: **et_hargreaves_samani_corr** (RMSE = 6.0912).
+Best overall: **et_lungeon** (RMSE = 20.5217).
 
 | site | biome | climate_class | region | country | state | scale | rank | method | rmse | mae | mbe | r2 | willmott_d | rank_rmse | rank_mae | rank_mbe | rank_r2 | rank_willmott_d |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -34,7 +34,7 @@ Best overall: **et_hargreaves_samani_corr** (RMSE = 6.0912).
 
 ## Piracicaba — daily
 
-Best overall: **et_hargreaves_samani_corr** (RMSE = 0.7523).
+Best overall: **et_stephens_stewart** (RMSE = 0.4975).
 
 | site | biome | climate_class | region | country | state | scale | rank | method | rmse | mae | mbe | r2 | willmott_d | rank_rmse | rank_mae | rank_mbe | rank_r2 | rank_willmott_d |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -48,7 +48,7 @@ Best overall: **et_hargreaves_samani_corr** (RMSE = 0.7523).
 
 ## Piracicaba — monthly
 
-Best overall: **et_hargreaves_samani_corr** (RMSE = 15.4302).
+Best overall: **et_makkink** (RMSE = 8.5015).
 
 | site | biome | climate_class | region | country | state | scale | rank | method | rmse | mae | mbe | r2 | willmott_d | rank_rmse | rank_mae | rank_mbe | rank_r2 | rank_willmott_d |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |

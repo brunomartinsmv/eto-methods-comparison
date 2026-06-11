@@ -8,25 +8,25 @@ Este capitulo apresenta, de forma detalhada, os metodos usados para estimar a ev
 
 O repositorio agora configura 15 metodos alternativos de ET0 e usa Penman-Monteith FAO-56 como referencia. Manaus e Piracicaba sao localidades demonstrativas configuradas em `configs/sites.yml`; o projeto nao esta limitado a essas cidades. Novas localidades podem ser adicionadas por configuracao e por dados de entrada compatíveis.
 
-Nem todo metodo configurado ja e calculado pelo pipeline atual. Para evitar alterar resultados cientificos silenciosamente, os metodos sem coluna calculada nos dados limpos ficam marcados como `configured_not_computed` em `configs/methods.yml`.
+O comando `compute-eto` calcula os metodos configurados a partir de variaveis meteorologicas padronizadas em `data/cleaned/` e escreve `outputs/results/{site}_daily_eto.csv`. As metricas preferem essas series calculadas quando o arquivo existe; caso contrario, usam as colunas `et_*` pre-calculadas dos dados limpos como fallback historico.
 
 | Metodo | Coluna esperada | Status atual |
 | --- | --- | --- |
 | Camargo | `et_camargo` | computed |
 | Hargreaves-Samani | `et_hargreaves_samani` | computed |
-| Makkink | `et_makkink` | configured_not_computed |
-| McCloud | `et_mccloud` | configured_not_computed |
+| Makkink | `et_makkink` | computed |
+| McCloud | `et_mccloud` | computed |
 | Priestley-Taylor | `et_priestley_taylor` | computed |
-| Turc | `et_turc` | configured_not_computed |
-| Global Radiation | `et_global_radiation` | configured_not_computed |
-| Ivanov | `et_ivanov` | configured_not_computed |
-| Jensen-Heise | `et_jensen_heise` | configured_not_computed |
+| Turc | `et_turc` | computed |
+| Global Radiation | `et_global_radiation` | computed |
+| Ivanov | `et_ivanov` | computed |
+| Jensen-Heise | `et_jensen_heise` | computed |
 | Garcia-Lopez | `et_garcia_lopez` | computed |
-| Net Radiation | `et_net_radiation` | configured_not_computed |
-| Radiation-Temperature | `et_radiation_temperature` | configured_not_computed |
-| Lungeon | `et_lungeon` | configured_not_computed |
-| Stephens-Stewart | `et_stephens_stewart` | configured_not_computed |
-| Hicks-Hess | `et_hicks_hess` | configured_not_computed |
+| Net Radiation | `et_net_radiation` | computed |
+| Radiation-Temperature | `et_radiation_temperature` | computed |
+| Lungeon | `et_lungeon` | computed |
+| Stephens-Stewart | `et_stephens_stewart` | computed |
+| Hicks-Hess | `et_hicks_hess` | computed |
 | Penman-Monteith FAO-56 | `et_penman_monteith` | reference |
 
 Metodos ja presentes antes desta expansao continuam preservados na configuracao quando existem colunas calculadas, incluindo Thornthwaite, Thornthwaite-Camargo e Hargreaves-Samani corrigido.
