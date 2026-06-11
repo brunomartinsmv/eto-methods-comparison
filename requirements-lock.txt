@@ -43,6 +43,7 @@ pytest==8.4.2
 python-dateutil==2.9.0.post0
 pyzmq==27.1.0
 PyYAML==6.0.3
+scikit-learn==1.7.1
 referencing==0.37.0
 rpds-py==2026.5.1
 ruff==0.13.3
