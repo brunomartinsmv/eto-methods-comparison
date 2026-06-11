@@ -53,6 +53,26 @@ def plot_monthly_totals(df: pd.DataFrame, method_cols: list[str], output_path: P
     plt.close()
 
 
+def plot_bias_by_eto_bin(df: pd.DataFrame, output_path: Path, title: str) -> None:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    if df.empty:
+        return
+
+    plt.figure(figsize=(10, 5))
+    for method, group in df.groupby("method", sort=False):
+        group = group.sort_values("eto_bin")
+        plt.plot(group["eto_bin"], group["mean_bias"], marker="o", label=method)
+    plt.axhline(0, color="black", linewidth=1, alpha=0.7)
+    plt.xlabel("Reference ETo quantile bin")
+    plt.ylabel("Mean bias (method - Penman-Monteith, mm/d)")
+    plt.title(title)
+    plt.legend(ncol=2, fontsize=8)
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=200)
+    plt.close()
+
+
 def _taylor_stats(ref: np.ndarray, series: np.ndarray) -> tuple[float, float, float]:
     mask = np.isfinite(ref) & np.isfinite(series)
     ref = ref[mask]
