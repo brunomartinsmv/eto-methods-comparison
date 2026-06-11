@@ -7,7 +7,7 @@ All notable changes to this project are documented in this file.
 ### Added
 
 - Added configuration metadata for 15 ET0 estimation methods plus Penman-Monteith FAO-56 as the reference.
-- Marked not-yet-implemented method outputs as `configured_not_computed` in `configs/methods.yml`.
+- Added `compute-eto` pipeline integration for calculating configured ET0 methods from cleaned meteorological variables.
 - Added `CONTRIBUTING.md` with reproducibility, scientific-change, and pull request expectations.
 - Added `CODE_OF_CONDUCT.md` for respectful academic and open-source participation.
 - Added README badges for DOI, CI, license, citation metadata, Python version, results, and contact.

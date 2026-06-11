@@ -52,64 +52,64 @@ methods:
     full_name: Makkink radiation-temperature method
     column: et_makkink
     short: makkink
-    status: configured_not_computed
+    status: computed
 
   McCloud:
     full_name: McCloud temperature-based method
     column: et_mccloud
     short: mccloud
-    status: configured_not_computed
+    status: computed
 
   Turc:
     full_name: Turc radiation-temperature method
     column: et_turc
     short: turc
-    status: configured_not_computed
+    status: computed
 
   Global Radiation:
     full_name: Global Radiation evapotranspiration method
     column: et_global_radiation
     short: global_rad
-    status: configured_not_computed
+    status: computed
 
   Ivanov:
     full_name: Ivanov temperature-humidity method
     column: et_ivanov
     short: ivanov
-    status: configured_not_computed
+    status: computed
 
   Jensen-Heise:
     full_name: Jensen-Heise radiation-temperature method
     column: et_jensen_heise
     short: jh
-    status: configured_not_computed
+    status: computed
 
   Net Radiation:
     full_name: Net Radiation evapotranspiration method
     column: et_net_radiation
     short: net_rad
-    status: configured_not_computed
+    status: computed
 
   Radiation-Temperature:
     full_name: Radiation-Temperature evapotranspiration method
     column: et_radiation_temperature
     short: rad_temp
-    status: configured_not_computed
+    status: computed
 
   Lungeon:
     full_name: Lungeon evapotranspiration method
     column: et_lungeon
     short: lungeon
-    status: configured_not_computed
+    status: computed
 
   Stephens-Stewart:
     full_name: Stephens-Stewart radiation-temperature method
     column: et_stephens_stewart
     short: ss
-    status: configured_not_computed
+    status: computed
 
   Hicks-Hess:
     full_name: Hicks-Hess evapotranspiration method
     column: et_hicks_hess
     short: hh
-    status: configured_not_computed
+    status: computed

@@ -16,9 +16,10 @@ gerar metricas, tabelas e figuras.
   colunas de ETo ja calculadas.
 - `scripts.eto_layers.build_data_layers` separa colunas padronizadas em dados
   meteorologicos brutos, variaveis derivadas, ETo pre-calculada e ETo calculada.
-- `--compute-eto` existe como flag preparatoria em `clean`, `validate-data`,
-  `all` e `reproduce-paper`, mas interrompe a execucao ate que as formulas sejam
-  implementadas e validadas.
+- `compute-eto` calcula ET0 a partir de `data/cleaned/{site}_daily.csv` e escreve
+  `outputs/results/{site}_daily_eto.csv`.
+- `metrics` prefere a ET0 calculada quando `outputs/results/{site}_daily_eto.csv`
+  existe, e usa colunas pre-calculadas de `data/cleaned/` como fallback.
 
 ## Arquivos ainda dependentes de ETo pre-calculada
 
@@ -67,11 +68,10 @@ configurados e colunas historicas presentes em planilhas legadas.
    - Erros claros para insumos insuficientes.
    - Relatorio de quais metodos puderam ser calculados por localidade.
 
-5. Integrar `--compute-eto`.
-   - `clean --compute-eto` deve produzir CSV limpo com variaveis meteorologicas,
-     derivadas e colunas `et_*` calculadas.
+5. Expandir a integracao de `compute-eto`.
+   - `compute-eto` ja produz `outputs/results/{site}_daily_eto.csv`.
    - `--use-precomputed-eto` deve continuar disponivel para reproduzir o
-     baseline historico.
+     baseline historico durante a limpeza dos dados brutos.
    - Enquanto os dois modos coexistirem, outputs devem registrar o modo usado.
 
 6. Validar contra o baseline legado.
@@ -83,7 +83,8 @@ configurados e colunas historicas presentes em planilhas legadas.
    - Expandir `docs/data_provenance.md` com fontes e formulas.
    - Atualizar `docs/methodological_assumptions.md`.
    - Adicionar testes unitarios por formula com exemplos publicados.
-   - Adicionar teste de integracao para `--compute-eto`.
+   - Ampliar testes de integracao para comparacao entre ET0 calculada e colunas
+     pre-computadas.
 
 ## Criterios de conclusao da migracao
 

@@ -110,12 +110,12 @@ def test_repository_methods_config_declares_full_name_and_computation_status() -
         assert metadata["full_name"]
         assert metadata["column"].startswith("et_")
         assert metadata["short"]
-        assert metadata["status"] in {"computed", "configured_not_computed", "reference"}
+        assert metadata["status"] in {"computed", "reference"}
 
-    configured_not_computed = {
+    computed_methods = {
         method_name
         for method_name, metadata in data["methods"].items()
-        if metadata["status"] == "configured_not_computed"
+        if metadata["status"] == "computed"
     }
     assert {
         "Makkink",
@@ -129,4 +129,4 @@ def test_repository_methods_config_declares_full_name_and_computation_status() -
         "Lungeon",
         "Stephens-Stewart",
         "Hicks-Hess",
-    } <= configured_not_computed
+    } <= computed_methods
