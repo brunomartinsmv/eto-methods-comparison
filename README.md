@@ -16,7 +16,9 @@ This study evaluates 7 ETo methods across two contrasting Brazilian climates:
 - Hargreaves-Samani (calibrated) achieves best balance across both sites when radiation data is unavailable
 - All simplified methods degrade more in Manaus than Piracicaba, highlighting the challenge of tropical humid climates
 
-**→ See `outputs/tables/*_daily_metrics.csv` and `outputs/tables/*_monthly_metrics.csv` for complete numerical results.**
+**→ See [`outputs/tables/summary_rankings.csv`](outputs/tables/summary_rankings.csv) for a ranked comparison across sites and scales (also available as [`outputs/reports/summary_rankings.md`](outputs/reports/summary_rankings.md)).**
+
+Per-method metrics remain in `outputs/tables/{site}_{daily|monthly}_metrics.csv`.
 
 ---
 
@@ -26,9 +28,10 @@ This study evaluates 7 ETo methods across two contrasting Brazilian climates:
 Clone and run the pipeline in under 5 minutes to generate:
 
 **📊 Metrics Tables** (`outputs/tables/`)
+- `summary_rankings.csv` — All methods ranked by site (Manaus, Piracicaba) and scale (daily, monthly)
 - `{site}_daily_metrics.csv` — RMSE, MAE, R², bias for daily estimates
 - `{site}_monthly_metrics.csv` — Same metrics aggregated monthly
-- **→ These tables are your primary evidence for method performance**
+- **→ Start with `summary_rankings.csv` to see which methods perform best in each climate**
 
 **📈 Figures** (`outputs/figures/{site}/`)
 - Taylor diagrams (daily and monthly) — Visual summary of method agreement
@@ -129,6 +132,7 @@ The current CLI uses snake-case suffixes for generated files:
 - Monthly totals figure: `outputs/figures/{site}/{site}_monthly_totals.png`
 - Taylor figures: `outputs/figures/{site}/{site}_daily_taylor.png` and `{site}_monthly_taylor.png`
 - Data-quality reports: `outputs/reports/{site}_data_quality.csv`
+- Method rankings: `outputs/tables/summary_rankings.csv` and `outputs/reports/summary_rankings.md`
 - Summary reports: `outputs/reports/summary.csv` and `outputs/reports/summary.md`
 
 Older `rolling7d` files are legacy names. Use `rolling_7d` for current pipeline
@@ -143,8 +147,9 @@ python -m scripts.cli clean      # Clean raw data → data/cleaned/
 python -m scripts.cli aggregate  # Create aggregations → outputs/results/
 python -m scripts.cli metrics    # Compute RMSE, R², etc. → outputs/tables/
 python -m scripts.cli plots      # Generate all figures → outputs/figures/
+python -m scripts.cli pca        # Optional PCA on meteorological drivers
 python -m scripts.cli validate-data  # Audit dates, missing values, interpolation traces
-python -m scripts.cli summarize      # Summarize best methods by site and temporal scale
+python -m scripts.cli summarize      # Rank methods and summarize best performers by site and scale
 python -m scripts.cli reproduce-paper --year 2024  # Regenerate paper-facing outputs
 python -m scripts.cli export-supplement             # Collect supplemental CSV outputs
 ```

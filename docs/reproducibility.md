@@ -59,11 +59,13 @@ As localidades ficam em `configs/sites.yml`; os metodos e nomes de colunas ficam
 ## Comandos cientificos
 ```bash
 python -m scripts.cli validate-data --year 2024
+python -m scripts.cli pca --site manaus
 python -m scripts.cli summarize
 python -m scripts.cli export-supplement
 ```
 
 - `validate-data` escreve relatorios CSV em `outputs/reports/`.
+- `pca` escreve `outputs/tables/{site}_pca_loadings.csv`, `outputs/tables/{site}_pca_explained_variance.csv` e `outputs/figures/{site}/{site}_pca_biplot.png` quando ha variaveis e linhas suficientes.
 - `summarize` escreve `outputs/reports/summary.csv` e `outputs/reports/summary.md` com o melhor metodo por RMSE para cada localidade e escala temporal.
 - `export-supplement` cria `outputs/supplement/` com CSVs atuais de `outputs/tables/`, `outputs/results/` e `outputs/reports/`, deixando outputs legados fora do pacote suplementar.
 - `all` continua disponivel para compatibilidade historica.
@@ -82,7 +84,10 @@ Se ainda nao houver testes versionados no checkout, `pytest` pode encerrar sem c
 - `outputs/results/*_monthly_totals.csv`
 - `outputs/tables/*_daily_metrics.csv`
 - `outputs/tables/*_monthly_metrics.csv`
+- `outputs/tables/*_pca_loadings.csv`
+- `outputs/tables/*_pca_explained_variance.csv`
 - `outputs/figures/<site>/*.png`
+- `outputs/figures/<site>/*_pca_biplot.png`
 - `outputs/reports/*_data_quality.csv`
 - `outputs/reports/summary.csv`
 - `outputs/reports/summary.md`

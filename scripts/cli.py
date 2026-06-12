@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import argparse
 import shutil
+import warnings
 from pathlib import Path
 
 import pandas as pd
 
-from . import aggregate, cleaning, io, metrics, plots, quality, summary
+from . import aggregate, cleaning, io, metrics, pca_analysis, plots, quality, summary
 from .config import (
     DATA_CLEANED,
     DATA_RAW,
@@ -189,6 +190,75 @@ def cmd_plots(args: argparse.Namespace) -> None:
         )
 
 
+def _site_group_label(meta: dict) -> str | None:
+    for key in ("group", "biome", "bioma"):
+        value = meta.get(key)
+        if value:
+            return str(value)
+    return None
+
+
+def _run_pca_for_frame(
+    df: pd.DataFrame,
+    label: str,
+    tables_dir: Path,
+    figures_dir: Path,
+) -> None:
+    result = pca_analysis.run_pca(df, label)
+    pca_analysis.write_pca_outputs(result, tables_dir, figures_dir)
+
+
+def cmd_pca(args: argparse.Namespace) -> None:
+    input_dir = Path(args.input)
+    tables_dir = Path(args.tables)
+    figures_dir = Path(args.figures)
+    _ensure_dir(tables_dir)
+    _ensure_dir(figures_dir)
+
+    selected_sites = _selected_sites(args)
+    successful_labels: list[str] = []
+    skipped: list[str] = []
+    grouped_frames: dict[str, list[pd.DataFrame]] = {}
+
+    for site, meta in selected_sites.items():
+        site_path = input_dir / cleaned_daily_filename(site)
+        df = pd.read_csv(site_path, parse_dates=["date"])
+        group_label = _site_group_label(meta)
+        if group_label:
+            group_df = df.copy()
+            group_df["site"] = site
+            grouped_frames.setdefault(group_label, []).append(group_df)
+        try:
+            _run_pca_for_frame(df, site, tables_dir, figures_dir)
+            successful_labels.append(site)
+        except ValueError as exc:
+            message = f"Skipping PCA for {site}: {exc}"
+            if getattr(args, "all_sites", True):
+                warnings.warn(message, stacklevel=2)
+                skipped.append(site)
+                continue
+            raise ValueError(message) from exc
+
+    for group_label, frames in grouped_frames.items():
+        if len(frames) < 2:
+            continue
+        combined = pd.concat(frames, ignore_index=True)
+        try:
+            _run_pca_for_frame(combined, group_label, tables_dir, figures_dir)
+            successful_labels.append(group_label)
+        except ValueError as exc:
+            warnings.warn(f"Skipping PCA for {group_label}: {exc}", stacklevel=2)
+            skipped.append(group_label)
+
+    if not successful_labels:
+        if skipped:
+            raise ValueError(
+                "PCA could not be completed for any selected site. "
+                "Check that at least two candidate meteorological variables are available."
+            )
+        raise ValueError("PCA could not be completed for the selected input.")
+
+
 def cmd_all(args: argparse.Namespace) -> None:
     clean_args = argparse.Namespace(
         input=args.input,
@@ -229,8 +299,12 @@ def cmd_all(args: argparse.Namespace) -> None:
 
 def cmd_summarize(args: argparse.Namespace) -> None:
     sites = list(_selected_sites(args).keys())
-    summary_df = summary.build_summary(Path(args.input), sites=sites)
-    summary.write_summary(summary_df, Path(args.output))
+    tables_dir = Path(args.input)
+    reports_dir = Path(args.output)
+    summary_df = summary.build_summary(tables_dir, sites=sites)
+    summary.write_summary(summary_df, reports_dir)
+    rankings_df = summary.build_rankings(tables_dir, sites=sites)
+    summary.write_rankings(rankings_df, tables_dir, reports_dir)
 
 
 def cmd_reproduce_paper(args: argparse.Namespace) -> None:
@@ -347,9 +421,19 @@ def build_parser() -> argparse.ArgumentParser:
     _add_site_selection(plots_parser)
     plots_parser.set_defaults(func=cmd_plots)
 
+    pca_parser = subparsers.add_parser(
+        "pca",
+        help="Run an optional PCA on meteorological drivers",
+    )
+    pca_parser.add_argument("--input", default=str(DATA_CLEANED))
+    pca_parser.add_argument("--tables", default=str(OUTPUTS_TABLES))
+    pca_parser.add_argument("--figures", default=str(OUTPUTS_FIGURES))
+    _add_site_selection(pca_parser)
+    pca_parser.set_defaults(func=cmd_pca)
+
     summarize_parser = subparsers.add_parser(
         "summarize",
-        help="Summarize best-performing methods from generated metrics tables",
+        help="Summarize best-performing methods and rankings from generated metrics tables",
     )
     summarize_parser.add_argument("--input", default=str(OUTPUTS_TABLES))
     summarize_parser.add_argument("--output", default=str(OUTPUTS_REPORTS))
