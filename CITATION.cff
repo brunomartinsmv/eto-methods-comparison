@@ -3,8 +3,8 @@ message: "If you use this repository or its outputs, please cite it using the me
 title: "Reference Evapotranspiration (ETo) Methods Comparison"
 type: software
 authors:
-  - family-names: Vieira
-    given-names: Bruno Martins M.
+  - family-names: Martins Mendes Vieira
+    given-names: Bruno.
     affiliation: Universidade Federal do Mato Grosso
 repository-code: "https://github.com/brunomartinsmv/eto-methods-comparison"
 url: "https://github.com/brunomartinsmv/eto-methods-comparison"
@@ -34,8 +34,8 @@ preferred-citation:
   type: software
   title: "Reference Evapotranspiration (ETo) Methods Comparison"
   authors:
-    - family-names: Vieira
-      given-names: Bruno Martins M.
+    - family-names: Martins Mendes Vieira
+      given-names: Bruno.
       affiliation: Universidade Federal do Mato Grosso
   doi: 10.5281/zenodo.18615164
   repository-code: "https://github.com/brunomartinsmv/eto-methods-comparison"
