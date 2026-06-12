@@ -76,6 +76,14 @@ def test_scientific_cli_commands_are_available() -> None:
     assert pca.tables.endswith("outputs/tables")
     assert pca.figures.endswith("outputs/figures")
 
+    sensitivity = parser.parse_args(["sensitivity", "--site", "manaus", "--method", "penman_monteith"])
+    assert sensitivity.input.endswith("data/cleaned")
+    assert sensitivity.tables_output.endswith("outputs/tables")
+    assert sensitivity.figures_output.endswith("outputs/figures")
+    assert sensitivity.site == "manaus"
+    assert sensitivity.all_sites is False
+    assert sensitivity.method == "penman_monteith"
+
 
 def test_aggregate_command_writes_standardized_result_filenames(tmp_path) -> None:
     input_dir = tmp_path / "cleaned"
