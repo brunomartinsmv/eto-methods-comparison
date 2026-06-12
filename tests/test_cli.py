@@ -103,7 +103,7 @@ def test_prepare_pca_data_keeps_available_candidate_columns_and_drops_incomplete
         {
             "tmed_c": [25.0, 26.0, None],
             "tmax_c": [31.0, 32.0, 33.0],
-            "tmin_c": [21.0, None, 22.0],
+            "tmin_c": [21.0, 22.0, 23.0],
             "rh_mean_pct": [80.0, 81.0, 82.0],
             "wind_mean_ms": [2.1, 2.2, 2.3],
             "rad_global_mj_m2_d": [18.0, 19.0, 20.0],
@@ -122,7 +122,24 @@ def test_prepare_pca_data_keeps_available_candidate_columns_and_drops_incomplete
         "rad_global_mj_m2_d",
         "rad_net_mj_m2_d",
     ]
-    assert prepared.shape == (1, 7)
+    assert prepared.shape == (2, 7)
+
+
+def test_prepare_pca_data_requires_two_complete_rows() -> None:
+    df = pd.DataFrame(
+        {
+            "tmed_c": [25.0, None],
+            "tmax_c": [31.0, 32.0],
+            "tmin_c": [21.0, 22.0],
+            "rh_mean_pct": [80.0, 81.0],
+            "wind_mean_ms": [2.1, 2.2],
+            "rad_global_mj_m2_d": [18.0, 19.0],
+            "rad_net_mj_m2_d": [10.0, 11.0],
+        }
+    )
+
+    with pytest.raises(ValueError, match="at least two complete rows"):
+        prepare_pca_data(df)
 
 
 def test_slugify_label_normalizes_pca_output_names() -> None:
