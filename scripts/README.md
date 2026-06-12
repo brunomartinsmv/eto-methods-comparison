@@ -14,6 +14,8 @@ python -m scripts.cli compute-eto --year 2024 --site manaus
 python -m scripts.cli aggregate --input data/cleaned --output outputs/results
 python -m scripts.cli metrics --input data/cleaned --output outputs/tables
 python -m scripts.cli plots --input data/cleaned --output outputs/figures
+python -m scripts.cli pca --site manaus
+python -m scripts.cli pca --all-sites
 python -m scripts.cli validate-data --year 2024
 python -m scripts.cli summarize
 python -m scripts.cli all --year 2024
@@ -45,5 +47,6 @@ Sites are configured in `configs/sites.yml`. Method column mappings and short la
 - `aggregate.py`: agregacoes
 - `metrics.py`: metricas estatisticas
 - `plots.py`: figuras
+- `pca_analysis.py`: analise PCA opcional
 - `summary.py`: sintese dos principais resultados
 - `cli.py`: interface de linha de comando

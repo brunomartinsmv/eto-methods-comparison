@@ -5,6 +5,7 @@ import pytest
 
 from scripts.cli import build_parser, cmd_aggregate, require_precomputed_eto_mode
 from scripts.config import DEFAULT_YEAR
+from scripts.pca_analysis import prepare_pca_data, slugify_label
 
 
 def test_all_command_keeps_2024_default_year_and_default_input() -> None:
@@ -70,6 +71,11 @@ def test_scientific_cli_commands_are_available() -> None:
     supplement = parser.parse_args(["export-supplement"])
     assert supplement.output.endswith("outputs/supplement")
 
+    pca = parser.parse_args(["pca"])
+    assert pca.input.endswith("data/cleaned")
+    assert pca.tables.endswith("outputs/tables")
+    assert pca.figures.endswith("outputs/figures")
+
 
 def test_aggregate_command_writes_standardized_result_filenames(tmp_path) -> None:
     input_dir = tmp_path / "cleaned"
@@ -90,3 +96,34 @@ def test_aggregate_command_writes_standardized_result_filenames(tmp_path) -> Non
     assert (output_dir / "manaus_rolling_7d.csv").exists()
     assert (output_dir / "manaus_monthly_totals.csv").exists()
     assert not (output_dir / "manaus_rolling7d.csv").exists()
+
+
+def test_prepare_pca_data_keeps_available_candidate_columns_and_drops_incomplete_rows() -> None:
+    df = pd.DataFrame(
+        {
+            "tmed_c": [25.0, 26.0, None],
+            "tmax_c": [31.0, 32.0, 33.0],
+            "tmin_c": [21.0, None, 22.0],
+            "rh_mean_pct": [80.0, 81.0, 82.0],
+            "wind_mean_ms": [2.1, 2.2, 2.3],
+            "rad_global_mj_m2_d": [18.0, 19.0, 20.0],
+            "rad_net_mj_m2_d": [10.0, 11.0, 12.0],
+        }
+    )
+
+    prepared, columns = prepare_pca_data(df)
+
+    assert columns == [
+        "tmed_c",
+        "tmax_c",
+        "tmin_c",
+        "rh_mean_pct",
+        "wind_mean_ms",
+        "rad_global_mj_m2_d",
+        "rad_net_mj_m2_d",
+    ]
+    assert prepared.shape == (1, 7)
+
+
+def test_slugify_label_normalizes_pca_output_names() -> None:
+    assert slugify_label("Mata Atlântica") == "mata_atlantica"

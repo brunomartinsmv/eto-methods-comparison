@@ -166,6 +166,7 @@ python -m scripts.cli compute-eto --year 2024  # Compute ET0 from cleaned weathe
 python -m scripts.cli aggregate  # Create aggregations → outputs/results/
 python -m scripts.cli metrics    # Compute RMSE, r, R², Willmott d, c, etc. → outputs/tables/ (prefers computed ET0 if available)
 python -m scripts.cli plots      # Generate all figures → outputs/figures/
+python -m scripts.cli pca        # Optional PCA on meteorological drivers
 python -m scripts.cli validate-data  # Audit dates, missing values, interpolation traces
 python -m scripts.cli summarize      # Rank methods and summarize best performers by site and scale
 python -m scripts.cli reproduce-paper --year 2024  # Regenerate paper-facing outputs

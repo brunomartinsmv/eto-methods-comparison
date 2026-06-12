@@ -80,12 +80,14 @@ As localidades ficam em `configs/sites.yml`; os metodos e nomes de colunas ficam
 ```bash
 python -m scripts.cli compute-eto --year 2024
 python -m scripts.cli validate-data --year 2024
+python -m scripts.cli pca --site manaus
 python -m scripts.cli summarize
 python -m scripts.cli export-supplement
 ```
 
 - `compute-eto` le `data/cleaned/{site}_daily.csv` e escreve `outputs/results/{site}_daily_eto.csv` com ET0 calculada a partir de variaveis meteorologicas padronizadas.
 - `validate-data` escreve relatorios CSV em `outputs/reports/`.
+- `pca` escreve `outputs/tables/{site}_pca_loadings.csv`, `outputs/tables/{site}_pca_explained_variance.csv` e `outputs/figures/{site}/{site}_pca_biplot.png` quando ha variaveis e linhas suficientes.
 - `summarize` escreve `outputs/reports/summary.csv` e `outputs/reports/summary.md` com o melhor metodo por RMSE para cada localidade e escala temporal.
 - `export-supplement` cria `outputs/supplement/` com CSVs atuais de `outputs/tables/`, `outputs/results/` e `outputs/reports/`, deixando outputs legados fora do pacote suplementar.
 - `all` continua disponivel para compatibilidade historica.
@@ -126,7 +128,10 @@ O CI executa lint, testes e o pipeline principal quando `data/raw/Evapo.xlsx` es
 - `outputs/results/*_daily_eto.csv`
 - `outputs/tables/*_daily_metrics.csv`
 - `outputs/tables/*_monthly_metrics.csv`
+- `outputs/tables/*_pca_loadings.csv`
+- `outputs/tables/*_pca_explained_variance.csv`
 - `outputs/figures/<site>/*.png`
+- `outputs/figures/<site>/*_pca_biplot.png`
 - `outputs/reports/*_data_quality.csv`
 - `outputs/reports/summary.csv`
 - `outputs/reports/summary.md`
