@@ -10,11 +10,11 @@
 
 **A reproducible analysis framework for comparing up to 15 empirical and semi-empirical ET0 estimation methods against Penman-Monteith (FAO-56).**
 
-This repository is organized as an open, citable research compendium: it includes source data notes, executable scripts, generated outputs, tests, citation metadata, licensing, contribution guidance, and documentation for reproducing the analysis.
+This repository is organized as an open, citable research compendium. The current stage includes the executable ETo pipeline, method rankings, uncertainty/sensitivity diagnostics, data-quality reports, optional PCA of meteorological drivers, tests, citation metadata, licensing, contribution guidance, and documentation for reproducing the analysis.
 
 ## Key Findings
 
-This repository now configures **15 alternative ET0 methods plus Penman-Monteith FAO-56 as reference**. The current computed demonstration results use the method columns already available for two contrasting Brazilian climates:
+This repository now configures **15 alternative ET0 methods plus Penman-Monteith FAO-56 as reference**. The current demonstration workflow runs end to end for two contrasting Brazilian climates:
 - **Piracicaba, SP** (Cwa — humid subtropical with dry winter)
 - **Manaus, AM** (Af — tropical rainforest)
 
@@ -28,7 +28,7 @@ Manaus and Piracicaba are demonstration sites, not a fixed multicity study desig
 
 **→ See [`outputs/tables/summary_rankings.csv`](outputs/tables/summary_rankings.csv) for a ranked comparison across sites and scales (also available as [`outputs/reports/summary_rankings.md`](outputs/reports/summary_rankings.md)).**
 
-Per-method metrics remain in `outputs/tables/{site}_{daily|monthly}_metrics.csv`. After running `compute-eto`, metrics use the pipeline-calculated ET0 series in `outputs/results/{site}_daily_eto.csv`; if those files are absent, the legacy precomputed columns in `data/cleaned/` remain the fallback.
+Per-method metrics remain in `outputs/tables/{site}_{daily|monthly}_metrics.csv`. The reproducibility workflow now also writes data-quality reports, uncertainty/sensitivity tables, bias-by-ETo-bin figures, summary rankings, and optional PCA outputs. After running `compute-eto`, metrics use the pipeline-calculated ET0 series in `outputs/results/{site}_daily_eto.csv`; if those files are absent, the legacy precomputed columns in `data/cleaned/` remain the fallback.
 
 ---
 
@@ -41,6 +41,9 @@ Clone and run the pipeline in under 5 minutes to generate:
 - `summary_rankings.csv` — All methods ranked by site (Manaus, Piracicaba) and scale (daily, monthly)
 - `{site}_daily_metrics.csv` — RMSE, MAE, MBE, Pearson r, R², Willmott d, confidence c, and performance classification for daily estimates
 - `{site}_monthly_metrics.csv` — Same metrics aggregated monthly
+- `{site}_bootstrap_metric_intervals.csv` — Bootstrap confidence intervals for method metrics
+- `{site}_seasonal_error_metrics.csv` — Seasonal error diagnostics
+- `{site}_bias_by_eto_bin.csv` — Bias summarized by Penman-Monteith ETo range
 - **→ Start with `summary_rankings.csv` to see which methods perform best in each climate**
 
 **📈 Figures** (`outputs/figures/{site}/`)
@@ -48,11 +51,20 @@ Clone and run the pipeline in under 5 minutes to generate:
 - Scatter plots — Method vs Penman-Monteith comparisons
 - Time series — Temporal patterns over the year
 - Monthly totals — Seasonal ETo accumulation by method
+- Bias-by-ETo-bin plots — Bias behavior across low-to-high reference ETo ranges
+- Optional PCA biplots — Meteorological driver structure when `pca` is run
 
 **📁 Intermediate Data** (`data/cleaned/`, `outputs/results/`)
 - Cleaned daily time series: `data/cleaned/{site}_daily.csv`
 - 7-day rolling means: `outputs/results/{site}_rolling_7d.csv`
 - Monthly aggregations: `outputs/results/{site}_monthly_totals.csv`
+- Computed daily ETo series: `outputs/results/{site}_daily_eto.csv`
+
+**📄 Reports** (`outputs/reports/`)
+- `{site}_data_quality.csv` and `data_quality_summary.csv` — Missing-value, date-range, and interpolation audits
+- `{site}_uncertainty_sensitivity.md` — Site-level uncertainty and sensitivity narrative
+- `summary.csv` and `summary.md` — Best method by site and temporal scale
+- `summary_rankings.md` — Readable version of the ranked method table
 
 ### Extensible Framework
 The pipeline works for **any location** where you have meteorological data:
@@ -117,22 +129,31 @@ For development and test workflows, install the package with development depende
 pip install -e ".[dev]"
 ```
 
-**6. Run the complete pipeline**
+**6. Run the paper-facing reproduction workflow**
 ```bash
-python -m scripts.cli all --year 2024
+python -m scripts.cli reproduce-paper --year 2024
 ```
 
-The command runs without interactive prompts and updates the generated files in
-`data/cleaned/`, `outputs/results/`, `outputs/tables/`, and `outputs/figures/`.
+The command runs without interactive prompts and updates the core generated files in
+`data/cleaned/`, `outputs/results/`, `outputs/tables/`, `outputs/figures/`, and
+`outputs/reports/`.
+
+For a faster core run without the data-quality and summary regeneration steps, use
+`python -m scripts.cli all --year 2024`.
 
 **7. Check your results**
 ```bash
 ls outputs/tables/
 # Should show: piracicaba_daily_metrics.csv, piracicaba_monthly_metrics.csv
-#              manaus_daily_metrics.csv, manaus_monthly_metrics.csv
+#              manaus_daily_metrics.csv, manaus_monthly_metrics.csv,
+#              summary_rankings.csv, and uncertainty/sensitivity tables
 
 ls outputs/figures/piracicaba/
-# Should show: multiple .png files (Taylor diagrams, scatter plots, time series)
+# Should show: multiple .png files (Taylor diagrams, scatter plots, time series,
+# monthly totals, and bias-by-ETo-bin figures)
+
+ls outputs/reports/
+# Should show: data-quality reports, summary reports, and uncertainty narratives
 ```
 
 ### Output Naming Standard
@@ -149,9 +170,15 @@ The current CLI uses snake-case suffixes for generated files:
 - Daily time-series figures: `outputs/figures/{site}/{site}_daily_series_{method}_vs_pm.png`
 - Monthly totals figure: `outputs/figures/{site}/{site}_monthly_totals.png`
 - Taylor figures: `outputs/figures/{site}/{site}_daily_taylor.png` and `{site}_monthly_taylor.png`
+- Bias-by-ETo-bin figure: `outputs/figures/{site}/{site}_bias_by_eto_bin.png`
+- Bootstrap intervals: `outputs/tables/{site}_bootstrap_metric_intervals.csv`
+- Seasonal errors: `outputs/tables/{site}_seasonal_error_metrics.csv`
+- Bias-by-ETo-bin table: `outputs/tables/{site}_bias_by_eto_bin.csv`
 - Data-quality reports: `outputs/reports/{site}_data_quality.csv`
 - Method rankings: `outputs/tables/summary_rankings.csv` and `outputs/reports/summary_rankings.md`
 - Summary reports: `outputs/reports/summary.csv` and `outputs/reports/summary.md`
+- Uncertainty/sensitivity report: `outputs/reports/{site}_uncertainty_sensitivity.md`
+- Optional PCA outputs: `outputs/tables/{site}_pca_loadings.csv`, `outputs/tables/{site}_pca_explained_variance.csv`, and `outputs/figures/{site}/{site}_pca_biplot.png`
 
 Older `rolling7d` files are legacy names. Use `rolling_7d` for current pipeline
 outputs.
@@ -167,6 +194,7 @@ python -m scripts.cli aggregate  # Create aggregations → outputs/results/
 python -m scripts.cli metrics    # Compute RMSE, r, R², Willmott d, c, etc. → outputs/tables/ (prefers computed ET0 if available)
 python -m scripts.cli plots      # Generate all figures → outputs/figures/
 python -m scripts.cli pca        # Optional PCA on meteorological drivers
+python -m scripts.cli analyze-uncertainty  # Bootstrap, seasonal, and bias-bin diagnostics
 python -m scripts.cli validate-data  # Audit dates, missing values, interpolation traces
 python -m scripts.cli summarize      # Rank methods and summarize best performers by site and scale
 python -m scripts.cli reproduce-paper --year 2024  # Regenerate paper-facing outputs
@@ -177,7 +205,7 @@ python -m scripts.cli export-supplement             # Collect supplemental CSV o
 does not exist, it falls back to `data/cleaned/{site}_daily.csv` and uses the
 precomputed `et_*` columns from the cleaned data.
 
-**Expected runtime:** ~30 seconds for full pipeline on both sites (2024 data).
+**Expected runtime:** ~30 seconds for full pipeline on both sites (2024 data) [Tested in a MacBook Air M4, so results may vary].
 
 ---
 
@@ -272,6 +300,8 @@ To compute the full configured set of 15 ET0 methods, you generally need daily d
 - Navigate to: Dados → Estações → Dados Históricos
 - Download automatic station data (CSV format)
 - Best for Brazilian locations with high-quality automated measurements
+- For Brazil it's the fastest option, but our station data sometimes has gaps due to the conditions of the station, so you'll need to fill that with (interpolation and knn are the easiest ways and works fine).
+- Btw, INMET stands for Metereological National Institute (Instituto Nacional de Meterologia in Brazilian Portuguese)
 
 **Option 2: ERA5 Reanalysis (global coverage)**
 - Portal: https://cds.climate.copernicus.eu/
@@ -282,7 +312,10 @@ To compute the full configured set of 15 ET0 methods, you generally need daily d
   git clone https://github.com/brunomartinsmv/ear5-daily-statistics-data-download.git
   ```
   Follow the instructions there to get daily statistics for any location globally.
-- Best for locations without ground stations or historical gap-filling
+- Best for locations without ground stations or historical gap-filling (but maybe takes a lot to download, due to your order being queued). 
+
+**Option 3: Your local station (equivalent of INMET)**
+- Most countries has some station to collect data, you can use that as well.
 
 ### Adding a New Site to the Pipeline
 
@@ -329,6 +362,7 @@ The pipeline will automatically:
 - Generate metrics comparing all methods
 - Create figures in `outputs/figures/cuiaba/`
 - Compute performance tables in `outputs/tables/cuiaba_*.csv`
+- Write uncertainty/sensitivity diagnostics for the site
 
 ### Data Format Example
 
@@ -417,7 +451,7 @@ The configuration also preserves existing computed legacy/auxiliary method colum
 
 **New to ETo estimation?** Start here:
 
-1. **Read the methodology first:** [`docs/methodology.md`](docs/methodology.md) explains each method's physics, equations, and when to use them.
+1. **Read the methodology first:** [`docs/methodology.md`](docs/methodology.md) explains each method's physics (will be more explained in the future), equations, and when to use them.
 
 2. **Explore the notebooks:** `notebooks/` contains step-by-step Jupyter notebooks that explain:
    - Why we estimate ETo and what it represents
