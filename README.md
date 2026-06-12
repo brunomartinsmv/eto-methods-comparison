@@ -296,8 +296,8 @@ To compute the full configured set of 15 ET0 methods, you generally need daily d
 ### Data Sources
 
 **Option 1: INMET (Brazilian stations)**
-- Portal: https://portal.inmet.gov.br/
-- Navigate to: Dados → Estações → Dados Históricos
+- Portal: [https://portal.inmet.gov.br/](https://bdmep.inmet.gov.br/)
+- Follow the instructions provided
 - Download automatic station data (CSV format)
 - Best for Brazilian locations with high-quality automated measurements
 - For Brazil it's the fastest option, but our station data sometimes has gaps due to the conditions of the station, so you'll need to fill that with (interpolation and knn are the easiest ways and works fine).
@@ -314,7 +314,7 @@ To compute the full configured set of 15 ET0 methods, you generally need daily d
   Follow the instructions there to get daily statistics for any location globally.
 - Best for locations without ground stations or historical gap-filling (but maybe takes a lot to download, due to your order being queued). 
 
-**Option 3: Your local station (equivalent of INMET)**
+**Option 3: Your local station (equivalent to INMET)**
 - Most countries has some station to collect data, you can use that as well.
 
 ### Adding a New Site to the Pipeline
