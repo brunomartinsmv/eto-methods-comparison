@@ -7,7 +7,18 @@ from pathlib import Path
 
 import pandas as pd
 
-from . import aggregate, cleaning, compute_eto, io, metrics, pca_analysis, plots, quality, summary, uncertainty
+from . import (
+    aggregate,
+    cleaning,
+    compute_eto,
+    io,
+    metrics,
+    pca_analysis,
+    plots,
+    quality,
+    summary,
+    uncertainty,
+)
 from .config import (
     DATA_CLEANED,
     DATA_RAW,
@@ -232,6 +243,7 @@ def cmd_plots(args: argparse.Namespace) -> None:
             site_dir / figure_filename(site, "monthly_taylor"),
             title=f"Taylor diagram (monthly) - {site}",
         )
+
 
 def _site_group_label(meta: dict) -> str | None:
     for key in ("group", "biome", "bioma"):
