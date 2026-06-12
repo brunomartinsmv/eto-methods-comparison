@@ -1,6 +1,50 @@
 # Metodologia e Metodos de ETo (PT/EN)
 
-Este capitulo apresenta, de forma detalhada, os metodos usados para estimar a evapotranspiracao de referencia (ETo), incluindo equacoes, hipoteses, requisitos de dados, limitacoes e recomendacao de clima/regiao. As referencias bibliograficas aparecem ao final.
+Para uma auditoria das decisoes implementacionais sensiveis, veja tambem [`methodological_assumptions.md`](methodological_assumptions.md). Esse documento explicita como a referencia Penman-Monteith, radiacao liquida, vento, umidade, dias faltantes, interpolacao, calibracao do Hargreaves-Samani corrigido e limitacoes por metodo/localidade sao tratados no pipeline reprodutivel.
+
+Este capitulo apresenta, de forma detalhada, os metodos usados para estimar a evapotranspiracao de referencia (ETo/ET0), incluindo equacoes, hipoteses, requisitos de dados, limitacoes e recomendacao de clima/regiao. As referencias bibliograficas aparecem ao final.
+
+## Escopo configurado dos metodos
+
+O repositorio agora configura 15 metodos alternativos de ET0 e usa Penman-Monteith FAO-56 como referencia. Manaus e Piracicaba sao localidades demonstrativas configuradas em `configs/sites.yml`; o projeto nao esta limitado a essas cidades. Novas localidades podem ser adicionadas por configuracao e por dados de entrada compatíveis.
+
+O comando `compute-eto` calcula os metodos configurados a partir de variaveis meteorologicas padronizadas em `data/cleaned/` e escreve `outputs/results/{site}_daily_eto.csv`. As metricas preferem essas series calculadas quando o arquivo existe; caso contrario, usam as colunas `et_*` pre-calculadas dos dados limpos como fallback historico.
+
+| Metodo | Coluna esperada | Status atual |
+| --- | --- | --- |
+| Camargo | `et_camargo` | computed |
+| Hargreaves-Samani | `et_hargreaves_samani` | computed |
+| Makkink | `et_makkink` | computed |
+| McCloud | `et_mccloud` | computed |
+| Priestley-Taylor | `et_priestley_taylor` | computed |
+| Turc | `et_turc` | computed |
+| Global Radiation | `et_global_radiation` | computed |
+| Ivanov | `et_ivanov` | computed |
+| Jensen-Heise | `et_jensen_heise` | computed |
+| Garcia-Lopez | `et_garcia_lopez` | computed |
+| Net Radiation | `et_net_radiation` | computed |
+| Radiation-Temperature | `et_radiation_temperature` | computed |
+| Lungeon | `et_lungeon` | computed |
+| Stephens-Stewart | `et_stephens_stewart` | computed |
+| Hicks-Hess | `et_hicks_hess` | computed |
+| Penman-Monteith FAO-56 | `et_penman_monteith` | reference |
+
+Metodos ja presentes antes desta expansao continuam preservados na configuracao quando existem colunas calculadas, incluindo Thornthwaite, Thornthwaite-Camargo e Hargreaves-Samani corrigido.
+
+## Metricas de avaliacao
+
+As tabelas em `outputs/tables/{site}_{daily|monthly}_metrics.csv` comparam cada metodo alternativo contra `et_penman_monteith` usando apenas pares finitos metodo-referencia. As metricas reportadas sao:
+
+- `rmse`: raiz do erro quadratico medio, em mm por periodo;
+- `mae`: erro absoluto medio, em mm por periodo;
+- `mbe`: vies medio, calculado como metodo menos referencia;
+- `r`: coeficiente de correlacao de Pearson;
+- `r2`: quadrado de `r`;
+- `willmott_d`: indice de concordancia de Willmott;
+- `c`: coeficiente de confianca, calculado como `r * willmott_d`;
+- `classification`: classe de desempenho derivada de `c`.
+
+A classificacao segue estes limiares: `Excellent` para `c > 0.85`; `Very Good` para `0.75 < c <= 0.85`; `Good` para `0.65 < c <= 0.75`; `Average` para `0.60 < c <= 0.65`; `Poor` para `0.50 < c <= 0.60`; `Bad` para `0.40 < c <= 0.50`; e `Very Poor` para `c <= 0.40`. Quando `r`, `d` ou `c` nao podem ser estimados, a classe fica vazia.
 
 ## 1. Penman-Monteith (FAO-56)
 

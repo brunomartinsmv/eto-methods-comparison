@@ -26,7 +26,9 @@ python -m scripts.cli summarize
 ```
 
 They report the best-performing method by lowest RMSE for each site and temporal
-scale, using the current metrics tables in `outputs/tables/`.
+scale, using the current metrics tables in `outputs/tables/`. Ranking outputs
+also include per-metric ranks for MAE, MBE, Pearson r, R², Willmott d, and the
+confidence coefficient c.
 
 `summary_rankings.md` is generated alongside `outputs/tables/summary_rankings.csv`
 and lists every method ranked within each site and temporal scale.

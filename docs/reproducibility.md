@@ -6,6 +6,26 @@ Este documento descreve o ambiente, dependencias e passos minimos para reproduzi
 **EN**
 This document describes the environment, dependencies, and minimum steps to reproduce the study.
 
+## Escopo / Scope
+
+**PT**
+O comando principal preservado para compatibilidade e:
+
+```bash
+python -m scripts.cli all --year 2024
+```
+
+Ele regenera dados limpos, agregacoes, metricas e figuras principais para Manaus e Piracicaba. Para a colecao mais completa usada em revisao academica, incluindo relatorios de qualidade e sumarios, use `reproduce-paper`.
+
+**EN**
+The compatibility command is:
+
+```bash
+python -m scripts.cli all --year 2024
+```
+
+It regenerates cleaned data, aggregations, metrics, and main figures for Manaus and Piracicaba. For the fuller review-facing collection, including data-quality reports and summaries, use `reproduce-paper`.
+
 ## Ambiente / Environment
 Recomendado para novas instalacoes:
 ```bash
@@ -58,17 +78,40 @@ As localidades ficam em `configs/sites.yml`; os metodos e nomes de colunas ficam
 
 ## Comandos cientificos
 ```bash
+python -m scripts.cli compute-eto --year 2024
 python -m scripts.cli validate-data --year 2024
 python -m scripts.cli pca --site manaus
 python -m scripts.cli summarize
 python -m scripts.cli export-supplement
 ```
 
+- `compute-eto` le `data/cleaned/{site}_daily.csv` e escreve `outputs/results/{site}_daily_eto.csv` com ET0 calculada a partir de variaveis meteorologicas padronizadas.
 - `validate-data` escreve relatorios CSV em `outputs/reports/`.
 - `pca` escreve `outputs/tables/{site}_pca_loadings.csv`, `outputs/tables/{site}_pca_explained_variance.csv` e `outputs/figures/{site}/{site}_pca_biplot.png` quando ha variaveis e linhas suficientes.
 - `summarize` escreve `outputs/reports/summary.csv` e `outputs/reports/summary.md` com o melhor metodo por RMSE para cada localidade e escala temporal.
 - `export-supplement` cria `outputs/supplement/` com CSVs atuais de `outputs/tables/`, `outputs/results/` e `outputs/reports/`, deixando outputs legados fora do pacote suplementar.
 - `all` continua disponivel para compatibilidade historica.
+- `metrics` prefere `outputs/results/{site}_daily_eto.csv` quando esse arquivo existe; se nao existir, usa as colunas `et_*` pre-calculadas em `data/cleaned/{site}_daily.csv`.
+
+## Como verificar os resultados / How to check results
+
+**PT**
+Depois de executar o pipeline, comece por:
+
+- `outputs/tables/summary_rankings.csv`, para ranking por localidade e escala;
+- `outputs/reports/summary_rankings.md`, para uma versao legivel em Markdown;
+- `outputs/tables/{site}_daily_metrics.csv`, para metricas diarias;
+- `outputs/figures/{site}/{site}_daily_taylor.png`, para comparacao visual;
+- `outputs/reports/{site}_data_quality.csv`, para auditoria de dados.
+
+**EN**
+After running the pipeline, start with:
+
+- `outputs/tables/summary_rankings.csv`, for rankings by site and scale;
+- `outputs/reports/summary_rankings.md`, for a readable Markdown version;
+- `outputs/tables/{site}_daily_metrics.csv`, for daily metrics;
+- `outputs/figures/{site}/{site}_daily_taylor.png`, for visual comparison;
+- `outputs/reports/{site}_data_quality.csv`, for data-quality auditing.
 
 ## Checagens de desenvolvimento / Development checks
 ```bash
@@ -76,12 +119,13 @@ python -m pytest
 python -m ruff check .
 ```
 
-Se ainda nao houver testes versionados no checkout, `pytest` pode encerrar sem coletar testes. O CI deve tratar esse caso explicitamente ate a suite minima ser adicionada.
+O CI executa lint, testes e o pipeline principal quando `data/raw/Evapo.xlsx` esta disponivel no checkout.
 
 ## Saidas esperadas
 - `data/cleaned/*_daily.csv`
 - `outputs/results/*_rolling_7d.csv`
 - `outputs/results/*_monthly_totals.csv`
+- `outputs/results/*_daily_eto.csv`
 - `outputs/tables/*_daily_metrics.csv`
 - `outputs/tables/*_monthly_metrics.csv`
 - `outputs/tables/*_pca_loadings.csv`
@@ -93,10 +137,19 @@ Se ainda nao houver testes versionados no checkout, `pytest` pode encerrar sem c
 - `outputs/reports/summary.md`
 - `outputs/supplement/MANIFEST.md`
 
+## Citacao / Citation
+
+**PT**
+Use `CITATION.cff` ou a secao "How to Cite" do `README.md` para citar o repositorio. O DOI de versao arquivado no Zenodo e `10.5281/zenodo.18615164`; o DOI conceitual para todas as versoes e `10.5281/zenodo.18615049`.
+
+**EN**
+Use `CITATION.cff` or the "How to Cite" section in `README.md` to cite the repository. The archived Zenodo version DOI is `10.5281/zenodo.18615164`; the concept DOI for all versions is `10.5281/zenodo.18615049`.
+
 ## Padrao de nomes / Naming standard
 - Resultados diarios: `data/cleaned/{site}_daily.csv`
 - Resultados de 7 dias: `outputs/results/{site}_rolling_7d.csv`
 - Resultados mensais: `outputs/results/{site}_monthly_totals.csv`
+- ET0 diaria calculada: `outputs/results/{site}_daily_eto.csv`
 - Metricas: `outputs/tables/{site}_daily_metrics.csv` e `{site}_monthly_metrics.csv`
 - Figuras: `outputs/figures/{site}/{site}_daily_scatter_{method}_vs_pm.png`, `{site}_daily_series_{method}_vs_pm.png`, `{site}_monthly_totals.png`, `{site}_daily_taylor.png`, `{site}_monthly_taylor.png`
 - Relatorios: `outputs/reports/{site}_data_quality.csv`, `outputs/reports/data_quality_summary.csv`, `outputs/reports/summary.csv`, `outputs/reports/summary.md`

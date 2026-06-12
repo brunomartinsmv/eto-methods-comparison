@@ -1,8 +1,9 @@
 import argparse
 
 import pandas as pd
+import pytest
 
-from scripts.cli import build_parser, cmd_aggregate
+from scripts.cli import build_parser, cmd_aggregate, require_precomputed_eto_mode
 from scripts.config import DEFAULT_YEAR
 from scripts.pca_analysis import prepare_pca_data, slugify_label
 
@@ -13,6 +14,7 @@ def test_all_command_keeps_2024_default_year_and_default_input() -> None:
     assert args.year == DEFAULT_YEAR
     assert args.input.endswith("data/raw/Evapo.xlsx")
     assert args.output.endswith("data/cleaned")
+    assert args.eto_source == "precomputed"
     assert args.site is None
     assert args.all_sites is True
 
@@ -30,10 +32,33 @@ def test_validate_data_command_defaults_to_raw_input_and_reports_output() -> Non
     assert args.year == DEFAULT_YEAR
     assert args.input.endswith("data/raw/Evapo.xlsx")
     assert args.output.endswith("outputs/reports")
+    assert args.eto_source == "precomputed"
+
+
+def test_compute_eto_mode_is_explicitly_not_implemented_yet() -> None:
+    args = build_parser().parse_args(["clean", "--compute-eto"])
+
+    with pytest.raises(NotImplementedError, match="compute-eto"):
+        require_precomputed_eto_mode(args)
 
 
 def test_scientific_cli_commands_are_available() -> None:
     parser = build_parser()
+
+    compute = parser.parse_args(["compute-eto", "--site", "manaus", "--include-precomputed"])
+    assert compute.input.endswith("data/cleaned")
+    assert compute.output.endswith("outputs/results")
+    assert compute.site == "manaus"
+    assert compute.all_sites is False
+    assert compute.include_precomputed is True
+
+    analyze = parser.parse_args(["analyze-uncertainty"])
+    analyze_with_year = parser.parse_args(["analyze-uncertainty", "--year", "2024"])
+    assert analyze.input.endswith("data/cleaned")
+    assert analyze.tables_output.endswith("outputs/tables")
+    assert analyze.reports_output.endswith("outputs/reports")
+    assert analyze.figures_output.endswith("outputs/figures")
+    assert analyze_with_year.year == 2024
 
     summarize = parser.parse_args(["summarize"])
     assert summarize.input.endswith("outputs/tables")
