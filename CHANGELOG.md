@@ -1,18 +1,51 @@
 # Changelog
 
-## v1.0.0 — 2026-02-11
-- Reorganized repository structure for academic clarity and reproducibility.
-- Added modular Python pipeline with CLI (`scripts/`).
-- Added Taylor diagram generation (daily and monthly).
-- Added bilingual documentation and teaching checklist.
-- Standardized output naming conventions and moved legacy outputs.
+All notable changes to this project are documented in this file.
 
-## v1.0.1 — 2026-02-11
-- Added concept DOI to citation block.
+## [Unreleased]
 
-## v1.0.2 — 2026-02-11
-- Pointed DOI badge to the concept DOI.
+### Added
 
-## v1.0.3 - 2026-xx-xx
-- READme.md updated.
-- 
+- Added Pearson correlation (`r`), confidence coefficient (`c = r * d`), and literature performance classes to generated metrics tables.
+- Added ranking columns for Pearson `r` and confidence `c` in summary rankings.
+- Added configuration metadata for 15 ET0 estimation methods plus Penman-Monteith FAO-56 as the reference.
+- Added optional configured-site metadata for biome, climate class, region, country, and state.
+- Marked not-yet-implemented method outputs as `configured_not_computed` in `configs/methods.yml`.
+- Added `CONTRIBUTING.md` with reproducibility, scientific-change, and pull request expectations.
+- Added `CODE_OF_CONDUCT.md` for respectful academic and open-source participation.
+- Added README badges for DOI, CI, license, citation metadata, Python version, results, and contact.
+- Added reviewer-oriented navigation to `docs/README.md`.
+
+### Changed
+
+- Updated metrics documentation and generated summaries to report RMSE, MAE, MBE, Pearson `r`, R², Willmott `d`, confidence `c`, and performance classification.
+- Clarified that the repository is organized as an open, citable research compendium.
+- Clarified that Manaus and Piracicaba are demonstration sites and that additional sites are configurable.
+- Updated README installation guidance to match the Python 3.10+ requirement in `pyproject.toml`.
+- Expanded `docs/reproducibility.md` with scope, result-checking guidance, CI behavior, and citation instructions.
+
+## [1.0.2] - 2026-02-11
+
+### Changed
+
+- Pointed the DOI badge to the archived Zenodo version DOI.
+
+## [1.0.1] - 2026-02-11
+
+### Added
+
+- Added the Zenodo concept DOI to the citation block.
+
+## [1.0.0] - 2026-02-11
+
+### Added
+
+- Added a modular Python pipeline with CLI commands under `scripts/`.
+- Added daily and monthly Taylor diagram generation.
+- Added bilingual methodology documentation and a teaching checklist.
+
+### Changed
+
+- Reorganized the repository structure for academic clarity and reproducibility.
+- Standardized output naming conventions.
+- Moved historical notebook-era outputs under legacy directories.

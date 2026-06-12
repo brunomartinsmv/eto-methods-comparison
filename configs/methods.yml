@@ -1,26 +1,115 @@
 methods:
   Thornthwaite:
+    full_name: Thornthwaite temperature-photoperiod method
     column: et_thornthwaite
     short: thorn
+    status: computed
+
   Thornthwaite-Camargo:
+    full_name: Thornthwaite-Camargo hybrid method
     column: et_thornthwaite_camargo
     short: thorn_camargo
+    status: computed
+
   Camargo:
+    full_name: Camargo evapotranspiration method
     column: et_camargo
     short: camargo
-  Hargreaves & Samani:
+    status: computed
+
+  Hargreaves-Samani:
+    full_name: Hargreaves-Samani temperature-range method
     column: et_hargreaves_samani
     short: hs
-  Hargreaves & Samani (corrigido):
+    status: computed
+
+  Hargreaves-Samani corrected:
+    full_name: Locally corrected Hargreaves-Samani method
     column: et_hargreaves_samani_corr
     short: hs_corr
+    status: computed
+
   Priestley-Taylor:
+    full_name: Priestley-Taylor radiation-based method
     column: et_priestley_taylor
     short: pt
-  Penman-Monteith:
+    status: computed
+
+  Penman-Monteith FAO-56:
+    full_name: FAO-56 Penman-Monteith reference evapotranspiration
     column: et_penman_monteith
     short: pm
     reference: true
-  Garcia Lopez:
+    status: reference
+
+  Garcia-Lopez:
+    full_name: Garcia-Lopez evapotranspiration method
     column: et_garcia_lopez
     short: gl
+    status: computed
+
+  Makkink:
+    full_name: Makkink radiation-temperature method
+    column: et_makkink
+    short: makkink
+    status: computed
+
+  McCloud:
+    full_name: McCloud temperature-based method
+    column: et_mccloud
+    short: mccloud
+    status: computed
+
+  Turc:
+    full_name: Turc radiation-temperature method
+    column: et_turc
+    short: turc
+    status: computed
+
+  Global Radiation:
+    full_name: Global Radiation evapotranspiration method
+    column: et_global_radiation
+    short: global_rad
+    status: computed
+
+  Ivanov:
+    full_name: Ivanov temperature-humidity method
+    column: et_ivanov
+    short: ivanov
+    status: computed
+
+  Jensen-Heise:
+    full_name: Jensen-Heise radiation-temperature method
+    column: et_jensen_heise
+    short: jh
+    status: computed
+
+  Net Radiation:
+    full_name: Net Radiation evapotranspiration method
+    column: et_net_radiation
+    short: net_rad
+    status: computed
+
+  Radiation-Temperature:
+    full_name: Radiation-Temperature evapotranspiration method
+    column: et_radiation_temperature
+    short: rad_temp
+    status: computed
+
+  Lungeon:
+    full_name: Lungeon evapotranspiration method
+    column: et_lungeon
+    short: lungeon
+    status: computed
+
+  Stephens-Stewart:
+    full_name: Stephens-Stewart radiation-temperature method
+    column: et_stephens_stewart
+    short: ss
+    status: computed
+
+  Hicks-Hess:
+    full_name: Hicks-Hess evapotranspiration method
+    column: et_hicks_hess
+    short: hh
+    status: computed

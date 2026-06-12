@@ -47,6 +47,49 @@ def test_build_summary_selects_best_method_by_rmse_for_each_site_and_scale(tmp_p
     ]
 
 
+def test_build_summary_adds_optional_site_metadata_when_available(tmp_path: Path) -> None:
+    tables_dir = tmp_path / "tables"
+    tables_dir.mkdir()
+    pd.DataFrame(
+        {
+            "method": ["et_camargo", "et_priestley_taylor"],
+            "rmse": [1.2, 0.7],
+            "mae": [1.0, 0.5],
+            "mbe": [-0.2, 0.1],
+            "r2": [0.8, 0.9],
+            "willmott_d": [0.7, 0.95],
+        }
+    ).to_csv(tables_dir / "manaus_daily_metrics.csv", index=False)
+
+    summary = build_summary(
+        tables_dir,
+        sites=["manaus"],
+        site_metadata={
+            "manaus": {
+                "biome": "Amazonia",
+                "climate_class": "Af",
+                "region": "North",
+                "country": "Brazil",
+                "state": "AM",
+            }
+        },
+    )
+
+    assert summary[
+        ["site", "biome", "climate_class", "region", "country", "state", "best_method"]
+    ].to_dict("records") == [
+        {
+            "site": "manaus",
+            "biome": "Amazonia",
+            "climate_class": "Af",
+            "region": "North",
+            "country": "Brazil",
+            "state": "AM",
+            "best_method": "et_priestley_taylor",
+        }
+    ]
+
+
 def test_build_rankings_orders_methods_by_rmse_within_each_site_and_scale(tmp_path: Path) -> None:
     tables_dir = tmp_path / "tables"
     tables_dir.mkdir()
@@ -112,6 +155,30 @@ def test_build_rankings_orders_methods_by_rmse_within_each_site_and_scale(tmp_pa
     ]
     assert rankings.loc[rankings["method"] == "et_hargreaves_samani_corr", "rank_rmse"].iloc[0] == 1
     assert rankings.loc[rankings["method"] == "et_camargo", "rank_mbe"].iloc[0] == 3
+
+
+def test_build_rankings_adds_optional_site_metadata_when_available(tmp_path: Path) -> None:
+    tables_dir = tmp_path / "tables"
+    tables_dir.mkdir()
+    pd.DataFrame(
+        {
+            "method": ["et_camargo"],
+            "rmse": [1.2],
+            "mae": [1.0],
+            "mbe": [-0.2],
+            "r2": [0.8],
+            "willmott_d": [0.7],
+        }
+    ).to_csv(tables_dir / "manaus_daily_metrics.csv", index=False)
+
+    rankings = build_rankings(
+        tables_dir,
+        sites=["manaus"],
+        site_metadata={"manaus": {"biome": "Amazonia", "climate_class": "Af"}},
+    )
+
+    assert rankings.loc[0, "biome"] == "Amazonia"
+    assert rankings.loc[0, "climate_class"] == "Af"
 
 
 def test_write_rankings_creates_csv_and_markdown(tmp_path: Path) -> None:

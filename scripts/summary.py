@@ -4,15 +4,26 @@ from pathlib import Path
 
 import pandas as pd
 
-METRIC_COLUMNS = ["rmse", "mae", "mbe", "r2", "willmott_d"]
+METRIC_COLUMNS = ["rmse", "mae", "mbe", "r", "r2", "willmott_d", "c", "classification"]
+SITE_METADATA_COLUMNS = ["biome", "climate_class", "region", "country", "state"]
 RANK_COLUMNS = [
     "rank_rmse",
     "rank_mae",
     "rank_mbe",
+    "rank_r",
     "rank_r2",
     "rank_willmott_d",
+    "rank_c",
 ]
-RANKING_COLUMNS = ["site", "scale", "rank", "method", *METRIC_COLUMNS, *RANK_COLUMNS]
+RANKING_COLUMNS = [
+    "site",
+    *SITE_METADATA_COLUMNS,
+    "scale",
+    "rank",
+    "method",
+    *METRIC_COLUMNS,
+    *RANK_COLUMNS,
+]
 
 
 def _rank_series(series: pd.Series, *, ascending: bool) -> pd.Series:
@@ -24,14 +35,39 @@ def _rank_metrics(table: pd.DataFrame) -> pd.DataFrame:
     ranked["rank_rmse"] = _rank_series(ranked["rmse"], ascending=True)
     ranked["rank_mae"] = _rank_series(ranked["mae"], ascending=True)
     ranked["rank_mbe"] = _rank_series(ranked["mbe"].abs(), ascending=True)
-    ranked["rank_r2"] = _rank_series(ranked["r2"], ascending=False)
-    ranked["rank_willmott_d"] = _rank_series(ranked["willmott_d"], ascending=False)
+    if "r" in ranked.columns:
+        ranked["rank_r"] = _rank_series(ranked["r"], ascending=False)
+    if "r2" in ranked.columns:
+        ranked["rank_r2"] = _rank_series(ranked["r2"], ascending=False)
+    if "willmott_d" in ranked.columns:
+        ranked["rank_willmott_d"] = _rank_series(ranked["willmott_d"], ascending=False)
+    if "c" in ranked.columns:
+        ranked["rank_c"] = _rank_series(ranked["c"], ascending=False)
     ranked = ranked.sort_values("rmse", ascending=True).reset_index(drop=True)
     ranked["rank"] = pd.Series(range(1, len(ranked) + 1), dtype="Int64")
     return ranked
 
 
-def build_rankings(tables_dir: Path, sites: list[str]) -> pd.DataFrame:
+def _site_metadata_row(site: str, site_metadata: dict[str, dict] | None) -> dict[str, object]:
+    if not site_metadata:
+        return {}
+    metadata = site_metadata.get(site, {})
+    return {
+        column: metadata.get(column, "")
+        for column in SITE_METADATA_COLUMNS
+        if any(column in values for values in site_metadata.values())
+    }
+
+
+def _ordered_columns(df: pd.DataFrame, preferred: list[str]) -> list[str]:
+    return [column for column in preferred if column in df.columns]
+
+
+def build_rankings(
+    tables_dir: Path,
+    sites: list[str],
+    site_metadata: dict[str, dict] | None = None,
+) -> pd.DataFrame:
     rows = []
     for site in sites:
         for scale in ["daily", "monthly"]:
@@ -46,17 +82,23 @@ def build_rankings(tables_dir: Path, sites: list[str]) -> pd.DataFrame:
                 rows.append(
                     {
                         "site": site,
+                        **_site_metadata_row(site, site_metadata),
                         "scale": scale,
                         "rank": row["rank"],
                         "method": row["method"],
                         **{column: row[column] for column in METRIC_COLUMNS if column in row},
-                        **{column: row[column] for column in RANK_COLUMNS},
+                        **{column: row[column] for column in RANK_COLUMNS if column in row},
                     }
                 )
-    return pd.DataFrame(rows, columns=RANKING_COLUMNS)
+    df = pd.DataFrame(rows)
+    return df[_ordered_columns(df, RANKING_COLUMNS)] if not df.empty else pd.DataFrame(columns=["site", "scale"])
 
 
-def build_summary(tables_dir: Path, sites: list[str]) -> pd.DataFrame:
+def build_summary(
+    tables_dir: Path,
+    sites: list[str],
+    site_metadata: dict[str, dict] | None = None,
+) -> pd.DataFrame:
     rows = []
     for site in sites:
         for scale in ["daily", "monthly"]:
@@ -69,6 +111,7 @@ def build_summary(tables_dir: Path, sites: list[str]) -> pd.DataFrame:
             best = table.sort_values("rmse", ascending=True).iloc[0]
             row = {
                 "site": site,
+                **_site_metadata_row(site, site_metadata),
                 "scale": scale,
                 "best_method": best["method"],
             }
@@ -76,7 +119,9 @@ def build_summary(tables_dir: Path, sites: list[str]) -> pd.DataFrame:
                 if column in table.columns:
                     row[column] = best[column]
             rows.append(row)
-    return pd.DataFrame(rows)
+    df = pd.DataFrame(rows)
+    preferred = ["site", *SITE_METADATA_COLUMNS, "scale", "best_method", *METRIC_COLUMNS]
+    return df[_ordered_columns(df, preferred)] if not df.empty else pd.DataFrame()
 
 
 def write_summary(summary: pd.DataFrame, output_dir: Path) -> tuple[Path, Path]:
@@ -128,7 +173,7 @@ def write_rankings(
         "",
         "Methods are ranked within each site and temporal scale.",
         "Overall `rank` follows lowest RMSE; per-metric ranks use the same criterion",
-        "(MBE ranks by absolute bias; R² and Willmott d favor higher values).",
+        "(MBE ranks by absolute bias; r, R², Willmott d, and confidence c favor higher values).",
         "",
     ]
     if rankings.empty:

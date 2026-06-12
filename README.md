@@ -1,14 +1,24 @@
 # Reference Evapotranspiration (ETo) Methods Comparison
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18615164.svg)](https://doi.org/10.5281/zenodo.18615164)
+[![CI](https://github.com/brunomartinsmv/eto-methods-comparison/actions/workflows/reproduce.yml/badge.svg)](https://github.com/brunomartinsmv/eto-methods-comparison/actions/workflows/reproduce.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Cite this repository](https://img.shields.io/badge/citation-CITATION.cff-blue.svg)](CITATION.cff)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
+[![Results](https://img.shields.io/badge/results-summary_rankings.csv-informational.svg)](outputs/tables/summary_rankings.csv)
+[![Contact](https://img.shields.io/badge/contact-GitHub%20Issues-lightgrey.svg)](https://github.com/brunomartinsmv/eto-methods-comparison/issues)
 
-**A reproducible analysis comparing empirical and semi-empirical ETo estimation methods against Penman-Monteith (FAO-56) for Brazilian climates.**
+**A reproducible analysis framework for comparing up to 15 empirical and semi-empirical ET0 estimation methods against Penman-Monteith (FAO-56).**
+
+This repository is organized as an open, citable research compendium: it includes source data notes, executable scripts, generated outputs, tests, citation metadata, licensing, contribution guidance, and documentation for reproducing the analysis.
 
 ## Key Findings
 
-This study evaluates 7 ETo methods across two contrasting Brazilian climates:
+This repository now configures **15 alternative ET0 methods plus Penman-Monteith FAO-56 as reference**. The current computed demonstration results use the method columns already available for two contrasting Brazilian climates:
 - **Piracicaba, SP** (Cwa — humid subtropical with dry winter)
 - **Manaus, AM** (Af — tropical rainforest)
+
+Manaus and Piracicaba are demonstration sites, not a fixed multicity study design. Additional sites can be added through `configs/sites.yml` without changing the code structure.
 
 **Main results:**
 - Temperature-based methods (Thornthwaite, Camargo) systematically underestimate ETo in both climates, with errors exceeding 30% RMSE
@@ -18,18 +28,18 @@ This study evaluates 7 ETo methods across two contrasting Brazilian climates:
 
 **→ See [`outputs/tables/summary_rankings.csv`](outputs/tables/summary_rankings.csv) for a ranked comparison across sites and scales (also available as [`outputs/reports/summary_rankings.md`](outputs/reports/summary_rankings.md)).**
 
-Per-method metrics remain in `outputs/tables/{site}_{daily|monthly}_metrics.csv`.
+Per-method metrics remain in `outputs/tables/{site}_{daily|monthly}_metrics.csv`. After running `compute-eto`, metrics use the pipeline-calculated ET0 series in `outputs/results/{site}_daily_eto.csv`; if those files are absent, the legacy precomputed columns in `data/cleaned/` remain the fallback.
 
 ---
 
 ## What This Repository Provides
 
-### Ready-to-Use Results (for Piracicaba and Manaus)
+### Ready-to-Use Results (for Demonstration Sites)
 Clone and run the pipeline in under 5 minutes to generate:
 
 **📊 Metrics Tables** (`outputs/tables/`)
 - `summary_rankings.csv` — All methods ranked by site (Manaus, Piracicaba) and scale (daily, monthly)
-- `{site}_daily_metrics.csv` — RMSE, MAE, R², bias for daily estimates
+- `{site}_daily_metrics.csv` — RMSE, MAE, MBE, Pearson r, R², Willmott d, confidence c, and performance classification for daily estimates
 - `{site}_monthly_metrics.csv` — Same metrics aggregated monthly
 - **→ Start with `summary_rankings.csv` to see which methods perform best in each climate**
 
@@ -46,16 +56,17 @@ Clone and run the pipeline in under 5 minutes to generate:
 
 ### Extensible Framework
 The pipeline works for **any location** where you have meteorological data:
-- Add your data to `data/raw/` (see Data Sources below)
-- Run the same pipeline
-- Get the same outputs for your site
+- Add site metadata to `configs/sites.yml`
+- Add compatible data to `data/raw/` or adapt the reader for your source format
+- Keep method metadata in `configs/methods.yml`
+- Run the same pipeline and get the same output structure for any number of configured sites
 
 ---
 
 ## Quick Start
 
 ### Prerequisites
-- **Python 3.8 or higher** (tested on 3.9, 3.10, 3.11)
+- **Python 3.10 or higher** (CI uses Python 3.12)
   - Check your version: `python3 --version`
 - **pip** for package management
 - **Git** for cloning the repository
@@ -100,6 +111,12 @@ pip install -r requirements.txt
 ```
 This installs: pandas, numpy, matplotlib, openpyxl, and scientific libraries.
 
+For development and test workflows, install the package with development dependencies:
+
+```bash
+pip install -e ".[dev]"
+```
+
 **6. Run the complete pipeline**
 ```bash
 python -m scripts.cli all --year 2024
@@ -125,6 +142,7 @@ The current CLI uses snake-case suffixes for generated files:
 - Daily cleaned data: `data/cleaned/{site}_daily.csv`
 - 7-day rolling results: `outputs/results/{site}_rolling_7d.csv`
 - Monthly totals: `outputs/results/{site}_monthly_totals.csv`
+- Computed daily ET0 methods: `outputs/results/{site}_daily_eto.csv`
 - Daily metrics: `outputs/tables/{site}_daily_metrics.csv`
 - Monthly metrics: `outputs/tables/{site}_monthly_metrics.csv`
 - Daily scatter figures: `outputs/figures/{site}/{site}_daily_scatter_{method}_vs_pm.png`
@@ -144,8 +162,9 @@ If you only need specific outputs:
 
 ```bash
 python -m scripts.cli clean      # Clean raw data → data/cleaned/
+python -m scripts.cli compute-eto --year 2024  # Compute ET0 from cleaned weather variables → outputs/results/
 python -m scripts.cli aggregate  # Create aggregations → outputs/results/
-python -m scripts.cli metrics    # Compute RMSE, R², etc. → outputs/tables/
+python -m scripts.cli metrics    # Compute RMSE, r, R², Willmott d, c, etc. → outputs/tables/ (prefers computed ET0 if available)
 python -m scripts.cli plots      # Generate all figures → outputs/figures/
 python -m scripts.cli pca        # Optional PCA on meteorological drivers
 python -m scripts.cli validate-data  # Audit dates, missing values, interpolation traces
@@ -153,6 +172,10 @@ python -m scripts.cli summarize      # Rank methods and summarize best performer
 python -m scripts.cli reproduce-paper --year 2024  # Regenerate paper-facing outputs
 python -m scripts.cli export-supplement             # Collect supplemental CSV outputs
 ```
+
+`metrics` remains backward compatible: if `outputs/results/{site}_daily_eto.csv`
+does not exist, it falls back to `data/cleaned/{site}_daily.csv` and uses the
+precomputed `et_*` columns from the cleaned data.
 
 **Expected runtime:** ~30 seconds for full pipeline on both sites (2024 data).
 
@@ -229,7 +252,7 @@ The pipeline is designed for **any location** with meteorological data. Here's h
 
 ### Required Meteorological Variables
 
-To compute all 7 methods, you need daily data for:
+To compute the full configured set of 15 ET0 methods, you generally need daily data for:
 
 **Minimum requirements (for basic methods):**
 - Date
@@ -278,7 +301,14 @@ sites:
     lat: -15.6
     lon: -56.1
     alt_m: 165.0
+    biome: Cerrado
+    climate_class: Aw
+    region: Centro-Oeste
+    country: Brazil
+    state: MT
 ```
+
+`biome`, `climate_class`, `region`, `country`, and `state` are optional interpretive metadata. They are useful for summaries and optional grouping, but the project does not require them and does not become a fixed regional or multicity study when they are present.
 
 Method column mappings and short labels live in `configs/methods.yml`.
 
@@ -325,7 +355,7 @@ date       | temp_mean | temp_min | temp_max | radiation | wind_2m | rh_mean
 │   ├── results/        # Intermediate aggregations (rolling_7d, monthly totals)
 │   ├── figures/        # All generated plots (Taylor diagrams, scatter plots, time series)
 │   ├── reports/        # Data quality reports
-│   └── tables/         # **Metrics tables (RMSE, R², MAE, bias) ← Start here**
+│   └── tables/         # **Metrics tables (RMSE, r, R², Willmott d, c) ← Start here**
 ├── scripts/            # Analysis pipeline (CLI, cleaning, metrics, plotting)
 ├── notebooks/          # Educational Jupyter notebooks with step-by-step explanations
 ├── docs/               # Detailed methodology, equations, and interpretation guides
@@ -334,6 +364,8 @@ date       | temp_mean | temp_min | temp_max | radiation | wind_2m | rh_mean
 
 Files under `outputs/**/legacy/` are historical notebook-era outputs, not the
 official preprint result set. See [`docs/legacy.md`](docs/legacy.md).
+
+For a documentation map, start with [`docs/README.md`](docs/README.md). For exact reproduction commands, see [`docs/reproducibility.md`](docs/reproducibility.md). For contribution expectations, see [`CONTRIBUTING.md`](CONTRIBUTING.md). Participants are also covered by the project [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
 
 ---
 
@@ -368,22 +400,14 @@ The repository also includes [`CITATION.cff`](CITATION.cff), which GitHub can us
 
 ## Methods Overview
 
-This study evaluates **7 ETo estimation methods:**
+The repository configuration targets **15 alternative ET0 estimation methods** plus **Penman-Monteith FAO-56** as the reference. The `compute-eto` command calculates those methods from standardized meteorological variables and writes daily calculated series to `outputs/results/{site}_daily_eto.csv`.
 
 **Reference standard:**
 - **Penman-Monteith (FAO-56)** — Energy balance + aerodynamic approach, requires full met data
 
-**Temperature-based (empirical):**
-- **Thornthwaite** — Monthly temperature + photoperiod
-- **Camargo** — Brazilian adaptation of Thornthwaite for tropical climates
-- **Thornthwaite-Camargo** — Hybrid approach
+**Computed 15-method comparison scope:** Camargo, Hargreaves-Samani, Makkink, McCloud, Priestley-Taylor, Turc, Global Radiation, Ivanov, Jensen-Heise, Garcia-Lopez, Net Radiation, Radiation-Temperature, Lungeon, Stephens-Stewart, and Hicks-Hess.
 
-**Temperature-range based (semi-empirical):**
-- **Hargreaves-Samani (original)** — Uses daily temperature range as radiation proxy
-- **Hargreaves-Samani (calibrated)** — Locally adjusted coefficients
-
-**Energy-balance based (semi-empirical):**
-- **Priestley-Taylor** — Simplified energy balance with empirical coefficient
+The configuration also preserves existing computed legacy/auxiliary method columns: Thornthwaite, Thornthwaite-Camargo, and locally corrected Hargreaves-Samani.
 
 **For detailed equations, assumptions, limitations, and climate suitability of each method, see [`docs/methodology.md`](docs/methodology.md).**
 
@@ -433,3 +457,7 @@ For questions, suggestions, or collaboration:
 - **Author:** Bruno Martins M. Vieira
 - **Institution:** Universidade Federal do Mato Grosso
 - **GitHub Issues:** [Report issues or ask questions](https://github.com/brunomartinsmv/eto-methods-comparison/issues)
+
+## Contributing
+
+Contributions that improve reproducibility, documentation, tests, method auditability, or support for additional well-documented sites are welcome. Please read [`CONTRIBUTING.md`](CONTRIBUTING.md) before opening a pull request.
