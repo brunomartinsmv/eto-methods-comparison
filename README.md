@@ -309,7 +309,7 @@ To compute the full configured set of 15 ET0 methods, you generally need daily d
 - Variables needed: 2m temperature, surface solar radiation, 10m wind, dewpoint
 - **Automated download tool:** Use this repository to download and process ERA5 data automatically:
   ```bash
-  git clone https://github.com/brunomartinsmv/ear5-daily-statistics-data-download.git
+  git clone https://github.com/brunomartinsmv/era5-daily-statistics-data-download.git
   ```
   Follow the instructions there to get daily statistics for any location globally.
 - Best for locations without ground stations or historical gap-filling (but maybe takes a lot to download, due to your order being queued). 
