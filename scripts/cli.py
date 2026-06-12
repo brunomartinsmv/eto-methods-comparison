@@ -16,6 +16,7 @@ from . import (
     pca_analysis,
     plots,
     quality,
+    sensitivity,
     summary,
     uncertainty,
 )
@@ -95,6 +96,10 @@ def seasonal_filename(site: str) -> str:
 
 def bias_bins_filename(site: str) -> str:
     return f"{site}_bias_by_eto_bin.csv"
+
+
+def sensitivity_filename(site: str, method: str) -> str:
+    return f"{site}_sensitivity_{method}.csv"
 
 
 def figure_filename(site: str, product: str) -> str:
@@ -363,6 +368,24 @@ def cmd_analyze_uncertainty(args: argparse.Namespace) -> None:
         )
 
 
+def cmd_sensitivity(args: argparse.Namespace) -> None:
+    input_dir = Path(args.input)
+    tables_dir = Path(args.tables_output)
+    figures_dir = Path(args.figures_output)
+    _ensure_dir(tables_dir)
+    _ensure_dir(figures_dir)
+
+    for site, meta in _selected_sites(args).items():
+        df = pd.read_csv(input_dir / cleaned_daily_filename(site), parse_dates=["date"])
+        result = sensitivity.run_oat_sensitivity(df, site_meta=meta, method=args.method)
+        sensitivity.write_sensitivity_outputs(
+            result,
+            table_path=tables_dir / sensitivity_filename(site, args.method),
+            figure_path=figures_dir / site / figure_filename(site, f"sensitivity_{args.method}"),
+            title=f"OAT sensitivity - {site} - {args.method}",
+        )
+
+
 def cmd_all(args: argparse.Namespace) -> None:
     clean_args = argparse.Namespace(
         input=args.input,
@@ -620,6 +643,23 @@ def build_parser() -> argparse.ArgumentParser:
     uncertainty_parser.add_argument("--eto-bins", type=int, default=4)
     _add_site_selection(uncertainty_parser)
     uncertainty_parser.set_defaults(func=cmd_analyze_uncertainty)
+
+    sensitivity_parser = subparsers.add_parser(
+        "sensitivity",
+        help="Run optional one-at-a-time meteorological sensitivity analysis",
+    )
+    sensitivity_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
+    sensitivity_parser.add_argument("--input", default=str(DATA_CLEANED))
+    sensitivity_parser.add_argument("--tables-output", default=str(OUTPUTS_TABLES))
+    sensitivity_parser.add_argument("--figures-output", default=str(OUTPUTS_FIGURES))
+    sensitivity_parser.add_argument(
+        "--method",
+        choices=sorted(sensitivity.METHOD_OUTPUT_COLUMNS),
+        default="penman_monteith",
+        help="ET0 method to recompute under each perturbation",
+    )
+    _add_site_selection(sensitivity_parser)
+    sensitivity_parser.set_defaults(func=cmd_sensitivity)
 
     summarize_parser = subparsers.add_parser(
         "summarize",

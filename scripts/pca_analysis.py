@@ -4,12 +4,11 @@ import re
 import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import matplotlib
 import numpy as np
 import pandas as pd
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -65,13 +64,13 @@ def prepare_pca_data(df: pd.DataFrame, columns: list[str] | None = None) -> tupl
     return prepared, selected_columns
 
 
-def _build_loadings(pca: PCA, features: list[str]) -> pd.DataFrame:
+def _build_loadings(pca: Any, features: list[str]) -> pd.DataFrame:
     component_names = [f"PC{i}" for i in range(1, pca.n_components_ + 1)]
     loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
     return pd.DataFrame(loadings, index=features, columns=component_names).reset_index(names="variable")
 
 
-def _build_explained_variance(pca: PCA) -> pd.DataFrame:
+def _build_explained_variance(pca: Any) -> pd.DataFrame:
     component_names = [f"PC{i}" for i in range(1, pca.n_components_ + 1)]
     explained = pd.DataFrame(
         {
@@ -85,6 +84,15 @@ def _build_explained_variance(pca: PCA) -> pd.DataFrame:
 
 
 def fit_pca(df: pd.DataFrame, label: str) -> PCAResult:
+    try:
+        from sklearn.decomposition import PCA
+        from sklearn.preprocessing import StandardScaler
+    except ModuleNotFoundError as exc:
+        raise ModuleNotFoundError(
+            "PCA analysis requires scikit-learn. Install project dependencies with "
+            "`python -m pip install -e '.[dev]'` before running the pca command."
+        ) from exc
+
     prepared, features = prepare_pca_data(df)
     scaler = StandardScaler()
     scaled = scaler.fit_transform(prepared)
