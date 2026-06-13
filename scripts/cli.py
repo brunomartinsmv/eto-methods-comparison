@@ -9,6 +9,7 @@ import pandas as pd
 
 from . import (
     aggregate,
+    calibration,
     cleaning,
     compute_eto,
     io,
@@ -102,6 +103,14 @@ def sensitivity_filename(site: str, method: str) -> str:
     return f"{site}_sensitivity_{method}.csv"
 
 
+def calibration_coefficients_filename(site: str, method: str) -> str:
+    return f"{site}_{method}_calibration_coefficients.csv"
+
+
+def calibration_metrics_filename(site: str, method: str) -> str:
+    return f"{site}_{method}_calibration_metrics.csv"
+
+
 def figure_filename(site: str, product: str) -> str:
     return f"{site}_{product}.png"
 
@@ -186,6 +195,52 @@ def cmd_metrics(args: argparse.Namespace) -> None:
         monthly_metrics.to_csv(output_dir / metrics_filename(site, "monthly"), index=False)
 
 
+def _calibration_results_dir(input_dir: Path, results_input: str | None) -> Path | None:
+    if results_input is not None:
+        return Path(results_input)
+    if input_dir.resolve() == DATA_CLEANED.resolve():
+        return OUTPUTS_RESULTS
+    return None
+
+
+def _read_calibration_input(
+    input_dir: Path,
+    site: str,
+    *,
+    results_input: str | None = None,
+) -> pd.DataFrame:
+    cleaned = pd.read_csv(input_dir / cleaned_daily_filename(site), parse_dates=["date"])
+    results_dir = _calibration_results_dir(input_dir, results_input)
+    if results_dir is None:
+        return cleaned
+
+    computed_path = results_dir / daily_eto_filename(site)
+    if not computed_path.exists():
+        if results_input is not None:
+            raise ValueError(f"Computed results file '{computed_path}' not found for {site}")
+        return cleaned
+
+    computed = pd.read_csv(computed_path, parse_dates=["date"])
+    if REFERENCE_COLUMN not in computed.columns:
+        raise ValueError(f"Reference column '{REFERENCE_COLUMN}' not found for {site}")
+
+    reference = computed[["date", REFERENCE_COLUMN]].rename(
+        columns={REFERENCE_COLUMN: f"computed_{REFERENCE_COLUMN}"}
+    )
+    reference["computed_reference_row_present"] = True
+    merged = cleaned.drop(columns=[REFERENCE_COLUMN], errors="ignore").merge(
+        reference,
+        on="date",
+        how="left",
+        validate="one_to_one",
+    )
+    if merged["computed_reference_row_present"].isna().any():
+        raise ValueError(f"Computed reference series does not cover all cleaned dates for {site}")
+    merged = merged.drop(columns=["computed_reference_row_present"])
+    merged[REFERENCE_COLUMN] = merged.pop(f"computed_{REFERENCE_COLUMN}")
+    return merged
+
+
 def cmd_compute_eto(args: argparse.Namespace) -> None:
     input_dir = Path(args.input)
     output_dir = Path(args.output)
@@ -199,6 +254,33 @@ def cmd_compute_eto(args: argparse.Namespace) -> None:
             include_precomputed=args.include_precomputed,
         )
         computed.to_csv(output_dir / daily_eto_filename(site), index=False)
+
+
+def cmd_calibrate(args: argparse.Namespace) -> None:
+    input_dir = Path(args.input)
+    output_dir = Path(args.output)
+    _ensure_dir(output_dir)
+
+    for site in _selected_sites(args).keys():
+        df = _read_calibration_input(
+            input_dir,
+            site,
+            results_input=getattr(args, "results_input", None),
+        )
+        result = calibration.calibrate_method(
+            df,
+            method=args.method,
+            train_start=args.train_start,
+            train_end=args.train_end,
+            test_start=args.test_start,
+            test_end=args.test_end,
+        )
+        calibration.write_calibration_outputs(
+            result,
+            output_dir=output_dir,
+            site=site,
+            method=args.method,
+        )
 
 
 def cmd_plots(args: argparse.Namespace) -> None:
@@ -609,6 +691,35 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_site_selection(compute_parser)
     compute_parser.set_defaults(func=cmd_compute_eto)
+
+    calibrate_parser = subparsers.add_parser(
+        "calibrate",
+        help="Calibrate selected ET0 method coefficients with a temporal train/test split",
+    )
+    calibrate_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
+    calibrate_parser.add_argument("--input", default=str(DATA_CLEANED))
+    calibrate_parser.add_argument(
+        "--results-input",
+        default=None,
+        help=(
+            "Directory containing computed daily ET0 results to use for the reference "
+            "series. Defaults to outputs/results only when --input is the default "
+            "data/cleaned directory."
+        ),
+    )
+    calibrate_parser.add_argument("--output", default=str(OUTPUTS_TABLES))
+    calibrate_parser.add_argument(
+        "--method",
+        choices=sorted(calibration.CALIBRATABLE_METHODS),
+        required=True,
+        help="ET0 method to calibrate",
+    )
+    calibrate_parser.add_argument("--train-start", default=None)
+    calibrate_parser.add_argument("--train-end", default=None)
+    calibrate_parser.add_argument("--test-start", default=None)
+    calibrate_parser.add_argument("--test-end", default=None)
+    _add_site_selection(calibrate_parser)
+    calibrate_parser.set_defaults(func=cmd_calibrate)
 
     plots_parser = subparsers.add_parser("plots", help="Generate figures")
     plots_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)

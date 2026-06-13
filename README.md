@@ -190,6 +190,7 @@ If you only need specific outputs:
 ```bash
 python -m scripts.cli clean      # Clean raw data → data/cleaned/
 python -m scripts.cli compute-eto --year 2024  # Compute ET0 from cleaned weather variables → outputs/results/
+python -m scripts.cli calibrate --site manaus --method hargreaves_samani  # Optional local calibration
 python -m scripts.cli aggregate  # Create aggregations → outputs/results/
 python -m scripts.cli metrics    # Compute RMSE, r, R², Willmott d, c, etc. → outputs/tables/ (prefers computed ET0 if available)
 python -m scripts.cli plots      # Generate all figures → outputs/figures/
@@ -204,6 +205,27 @@ python -m scripts.cli export-supplement             # Collect supplemental CSV o
 `metrics` remains backward compatible: if `outputs/results/{site}_daily_eto.csv`
 does not exist, it falls back to `data/cleaned/{site}_daily.csv` and uses the
 precomputed `et_*` columns from the cleaned data.
+
+`calibrate` writes separate local-calibration artifacts instead of replacing
+original methods. Current calibrable methods are `hargreaves_samani`, `turc`,
+and `radiation_temperature`. It uses cleaned meteorological drivers, and when
+the default cleaned input is used it also uses `outputs/results/{site}_daily_eto.csv`
+for the pipeline-computed `et_penman_monteith` reference when that file exists,
+matching `metrics`. For custom cleaned inputs, pass the matching computed-result
+directory with `--results-input`; when supplied, the matching
+`{site}_daily_eto.csv` file is required. For explicit validation periods:
+
+```bash
+python -m scripts.cli calibrate --site manaus --method hargreaves_samani \
+  --results-input outputs/results \
+  --train-start 2024-01-01 --train-end 2024-06-30 \
+  --test-start 2024-07-01 --test-end 2024-12-31
+```
+
+The outputs are `outputs/tables/{site}_{method}_calibration_coefficients.csv`
+and `outputs/tables/{site}_{method}_calibration_metrics.csv`, including
+train/test periods, the `minimize_train_rmse` objective, fitted coefficients,
+and before/after metrics.
 
 **Expected runtime:** ~30 seconds for full pipeline on both sites (2024 data) [Tested in a MacBook Air M4, so results may vary].
 
