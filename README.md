@@ -386,7 +386,9 @@ The pipeline will automatically:
 - Compute performance tables in `outputs/tables/cuiaba_*.csv`
 - Write uncertainty/sensitivity diagnostics for the site
 
-### Data Format Example
+### Data Format Example 
+
+
 
 Your Excel sheet should look like:
 ```
@@ -398,6 +400,7 @@ date       | temp_mean | temp_min | temp_max | radiation | wind_2m | rh_mean
 
 **Note:** Column names should match those expected by `scripts/io.py`. Check the existing data structure or modify the reading functions if your format differs.
 
+(will change in the future to allow more flexible sheets)
 ---
 
 ## Repository Structure
