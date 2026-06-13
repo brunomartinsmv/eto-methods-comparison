@@ -89,6 +89,21 @@ def test_calibration_original_variant_recomputes_same_form_baseline() -> None:
     assert after["rmse"] < before["rmse"]
 
 
+def test_calibration_requires_finite_test_pairs() -> None:
+    df = _synthetic_hargreaves_frame()
+    df.loc[df["date"] >= "2024-01-05", "et_penman_monteith"] = np.nan
+
+    with pytest.raises(ValueError, match="No finite test observations"):
+        calibration.calibrate_method(
+            df,
+            method="hargreaves_samani",
+            train_start="2024-01-01",
+            train_end="2024-01-04",
+            test_start="2024-01-05",
+            test_end="2024-01-08",
+        )
+
+
 def test_write_calibration_outputs_uses_separate_coefficient_and_metric_files(tmp_path: Path) -> None:
     result = calibration.calibrate_method(
         _synthetic_hargreaves_frame(),

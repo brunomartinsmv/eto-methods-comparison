@@ -171,6 +171,24 @@ def _metrics_for_period(
     return period_metrics
 
 
+def _require_finite_metric_pairs(
+    df: pd.DataFrame,
+    *,
+    period: str,
+    ref_col: str,
+    method_cols: list[str],
+) -> None:
+    ref = df[ref_col].to_numpy()
+    for method_col in method_cols:
+        series = df[method_col].to_numpy()
+        finite_pairs = np.isfinite(ref) & np.isfinite(series)
+        if not finite_pairs.any():
+            raise ValueError(
+                f"No finite {period} observations available for {method_col} "
+                f"against {ref_col}"
+            )
+
+
 def calibrate_method(
     df: pd.DataFrame,
     *,
@@ -212,20 +230,34 @@ def calibrate_method(
     train_base = spec.predictor(predictions.loc[train_mask], 1.0)
     coefficient = _fit_scalar_coefficient(train_base, predictions.loc[train_mask, reference_col])
     predictions[spec.calibrated_column] = spec.predictor(predictions, coefficient)
+    method_cols = [spec.original_column, spec.calibrated_column]
+
+    _require_finite_metric_pairs(
+        predictions.loc[train_mask],
+        period="train",
+        ref_col=reference_col,
+        method_cols=method_cols,
+    )
+    _require_finite_metric_pairs(
+        predictions.loc[test_mask],
+        period="test",
+        ref_col=reference_col,
+        method_cols=method_cols,
+    )
 
     train_metrics = _metrics_for_period(
         predictions.loc[train_mask],
         period="train",
         ref_col=reference_col,
-        original_col=spec.original_column,
-        calibrated_col=spec.calibrated_column,
+        original_col=method_cols[0],
+        calibrated_col=method_cols[1],
     )
     test_metrics = _metrics_for_period(
         predictions.loc[test_mask],
         period="test",
         ref_col=reference_col,
-        original_col=spec.original_column,
-        calibrated_col=spec.calibrated_column,
+        original_col=method_cols[0],
+        calibrated_col=method_cols[1],
     )
 
     coefficients = pd.DataFrame(
