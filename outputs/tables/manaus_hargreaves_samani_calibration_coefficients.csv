@@ -1,2 +1,2 @@
 method,base_method,coefficient_name,coefficient,objective,reference,train_start,train_end,test_start,test_end,n_train,n_test
-hargreaves_samani_calibrated,hargreaves_samani,coefficient,0.002813398280043283,minimize_train_rmse,et_penman_monteith,2024-01-01,2024-09-12,2024-09-13,2024-12-31,256,110
+hargreaves_samani_calibrated,hargreaves_samani,coefficient,0.0014538909242446626,minimize_train_rmse,et_penman_monteith,2024-01-01,2024-09-12,2024-09-13,2024-12-31,256,110

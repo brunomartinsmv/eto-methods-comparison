@@ -3,6 +3,7 @@ import argparse
 import pandas as pd
 import pytest
 
+from scripts import calibration, cli
 from scripts.cli import build_parser, cmd_aggregate, cmd_calibrate, require_precomputed_eto_mode
 from scripts.config import DEFAULT_YEAR
 from scripts.pca_analysis import prepare_pca_data, slugify_label
@@ -178,10 +179,13 @@ def test_slugify_label_normalizes_pca_output_names() -> None:
     assert slugify_label("Mata Atlântica") == "mata_atlantica"
 
 
-def test_calibrate_command_writes_coefficients_and_metrics(tmp_path) -> None:
+def test_calibrate_command_writes_coefficients_and_metrics(tmp_path, monkeypatch) -> None:
     input_dir = tmp_path / "cleaned"
+    results_dir = tmp_path / "results"
     output_dir = tmp_path / "tables"
     input_dir.mkdir()
+    results_dir.mkdir()
+    monkeypatch.setattr(cli, "OUTPUTS_RESULTS", results_dir)
 
     dates = pd.date_range("2024-01-01", periods=4, freq="D")
     pd.DataFrame(
@@ -213,3 +217,60 @@ def test_calibrate_command_writes_coefficients_and_metrics(tmp_path) -> None:
     metrics = pd.read_csv(output_dir / "manaus_hargreaves_samani_calibration_metrics.csv")
     assert set(metrics["period"]) == {"train", "test"}
     assert set(metrics["variant"]) == {"original", "calibrated"}
+
+
+def test_calibrate_command_prefers_computed_daily_eto_when_available(
+    tmp_path, monkeypatch
+) -> None:
+    cleaned_dir = tmp_path / "cleaned"
+    results_dir = tmp_path / "results"
+    tables_dir = tmp_path / "tables"
+    cleaned_dir.mkdir()
+    results_dir.mkdir()
+
+    weather = pd.DataFrame(
+        {
+            "date": pd.date_range("2024-01-01", periods=4, freq="D"),
+            "tmin_c": [20.0, 20.2, 20.4, 20.6],
+            "tmax_c": [30.0, 30.2, 30.4, 30.6],
+            "tmed_c": [25.0, 25.2, 25.4, 25.6],
+            "ra_extraterrestre_mj_m2_d": [34.0, 34.2, 34.4, 34.6],
+        }
+    )
+    cleaned = weather.copy()
+    cleaned["et_penman_monteith"] = [10.0, 10.0, 10.0, 10.0]
+    cleaned.to_csv(cleaned_dir / "manaus_daily.csv", index=False)
+
+    computed = weather.copy()
+    computed["et_penman_monteith"] = [4.1, 4.2, 4.3, 4.4]
+    computed.to_csv(results_dir / "manaus_daily_eto.csv", index=False)
+
+    monkeypatch.setattr(cli, "OUTPUTS_RESULTS", results_dir)
+
+    args = argparse.Namespace(
+        input=str(cleaned_dir),
+        output=str(tables_dir),
+        year=2024,
+        site="manaus",
+        all_sites=False,
+        method="hargreaves_samani",
+        train_start="2024-01-01",
+        train_end="2024-01-02",
+        test_start="2024-01-03",
+        test_end="2024-01-04",
+    )
+    cmd_calibrate(args)
+
+    result_from_computed = calibration.calibrate_method(
+        computed,
+        method="hargreaves_samani",
+        train_start="2024-01-01",
+        train_end="2024-01-02",
+        test_start="2024-01-03",
+        test_end="2024-01-04",
+    )
+    coefficients = pd.read_csv(tables_dir / "manaus_hargreaves_samani_calibration_coefficients.csv")
+    assert coefficients.loc[0, "coefficient"] < 0.01
+    assert coefficients.loc[0, "coefficient"] == pytest.approx(
+        result_from_computed.coefficients.loc[0, "coefficient"]
+    )

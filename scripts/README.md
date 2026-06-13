@@ -38,7 +38,7 @@ Sites are configured in `configs/sites.yml`. Method column mappings and short la
 - `compute-eto`: calcula ET0 diaria a partir de variaveis meteorologicas limpas e escreve `outputs/results/{site}_daily_eto.csv`.
 - `pca`: roda uma analise PCA opcional e exporta loadings, variancia explicada e biplot em `outputs/tables/` e `outputs/figures/`.
 - `analyze-uncertainty`: gera intervalos bootstrap, erros sazonais e analise de viés por faixa de ETo.
-- `calibrate`: ajusta coeficientes locais opcionais para `hargreaves_samani`, `turc` e `radiation_temperature`, sempre com separacao temporal treino/teste. Escreve `outputs/tables/{site}_{method}_calibration_coefficients.csv` e `outputs/tables/{site}_{method}_calibration_metrics.csv`.
+- `calibrate`: ajusta coeficientes locais opcionais para `hargreaves_samani`, `turc` e `radiation_temperature`, sempre com separacao temporal treino/teste. Usa a referencia Penman-Monteith calculada em `outputs/results/{site}_daily_eto.csv` quando ela existe, mantendo consistencia com `metrics`. Escreve `outputs/tables/{site}_{method}_calibration_coefficients.csv` e `outputs/tables/{site}_{method}_calibration_metrics.csv`.
 - `summarize`: resume os melhores metodos por localidade e escala temporal a partir de `outputs/tables/`.
 - `reproduce-paper`: executa o pipeline principal, valida dados e atualiza a sintese usada para revisar tabelas e figuras do preprint.
 - `export-supplement`: copia CSVs atuais de tabelas, resultados intermediarios e relatorios para `outputs/supplement/`, excluindo `legacy/`.

@@ -208,7 +208,10 @@ precomputed `et_*` columns from the cleaned data.
 
 `calibrate` writes separate local-calibration artifacts instead of replacing
 original methods. Current calibrable methods are `hargreaves_samani`, `turc`,
-and `radiation_temperature`. For explicit validation periods:
+and `radiation_temperature`. It uses cleaned meteorological drivers, and when
+`outputs/results/{site}_daily_eto.csv` exists it uses the pipeline-computed
+`et_penman_monteith` reference from that file, matching `metrics`. For explicit
+validation periods:
 
 ```bash
 python -m scripts.cli calibrate --site manaus --method hargreaves_samani \

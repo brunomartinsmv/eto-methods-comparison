@@ -56,7 +56,7 @@ Metodos calibraveis nesta etapa:
 - `turc`: coeficiente escalar da equacao Turc, mantendo a correcao de umidade quando disponivel;
 - `radiation_temperature`: coeficiente escalar da forma radiacao-temperatura.
 
-A funcao objetivo e `minimize_train_rmse`: o coeficiente e estimado no periodo de treino por minimos quadrados ordinarios para minimizar RMSE contra `et_penman_monteith`. A avaliacao e reportada separadamente para treino e teste, com metricas antes/depois (`variant = original` e `variant = calibrated`). Nao se deve interpretar a metrica de treino como desempenho independente.
+A funcao objetivo e `minimize_train_rmse`: o coeficiente e estimado no periodo de treino por minimos quadrados ordinarios para minimizar RMSE contra `et_penman_monteith`. A calibracao usa as variaveis meteorologicas de `data/cleaned/{site}_daily.csv`; quando `outputs/results/{site}_daily_eto.csv` existe, a referencia `et_penman_monteith` desse arquivo calculado substitui a referencia pre-computada dos dados limpos, mantendo consistencia com o comando `metrics`. A avaliacao e reportada separadamente para treino e teste, com metricas antes/depois (`variant = original` e `variant = calibrated`). Nao se deve interpretar a metrica de treino como desempenho independente.
 
 Uso recomendado:
 

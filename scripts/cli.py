@@ -195,6 +195,31 @@ def cmd_metrics(args: argparse.Namespace) -> None:
         monthly_metrics.to_csv(output_dir / metrics_filename(site, "monthly"), index=False)
 
 
+def _read_calibration_input(input_dir: Path, site: str) -> pd.DataFrame:
+    cleaned = pd.read_csv(input_dir / cleaned_daily_filename(site), parse_dates=["date"])
+    computed_path = OUTPUTS_RESULTS / daily_eto_filename(site)
+    if not computed_path.exists():
+        return cleaned
+
+    computed = pd.read_csv(computed_path, parse_dates=["date"])
+    if REFERENCE_COLUMN not in computed.columns:
+        raise ValueError(f"Reference column '{REFERENCE_COLUMN}' not found for {site}")
+
+    reference = computed[["date", REFERENCE_COLUMN]].rename(
+        columns={REFERENCE_COLUMN: f"computed_{REFERENCE_COLUMN}"}
+    )
+    merged = cleaned.drop(columns=[REFERENCE_COLUMN], errors="ignore").merge(
+        reference,
+        on="date",
+        how="left",
+        validate="one_to_one",
+    )
+    if merged[f"computed_{REFERENCE_COLUMN}"].isna().any():
+        raise ValueError(f"Computed reference series does not cover all cleaned dates for {site}")
+    merged[REFERENCE_COLUMN] = merged.pop(f"computed_{REFERENCE_COLUMN}")
+    return merged
+
+
 def cmd_compute_eto(args: argparse.Namespace) -> None:
     input_dir = Path(args.input)
     output_dir = Path(args.output)
@@ -216,7 +241,7 @@ def cmd_calibrate(args: argparse.Namespace) -> None:
     _ensure_dir(output_dir)
 
     for site in _selected_sites(args).keys():
-        df = pd.read_csv(input_dir / cleaned_daily_filename(site), parse_dates=["date"])
+        df = _read_calibration_input(input_dir, site)
         result = calibration.calibrate_method(
             df,
             method=args.method,
