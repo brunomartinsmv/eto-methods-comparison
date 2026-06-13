@@ -207,8 +207,7 @@ def calibrate_method(
         raise ValueError("Training and test periods must both contain observations")
 
     predictions = df.copy()
-    if spec.original_column not in predictions.columns:
-        predictions[spec.original_column] = spec.predictor(predictions, default_coefficient(method))
+    predictions[spec.original_column] = spec.predictor(predictions, default_coefficient(method))
 
     train_base = spec.predictor(predictions.loc[train_mask], 1.0)
     coefficient = _fit_scalar_coefficient(train_base, predictions.loc[train_mask, reference_col])

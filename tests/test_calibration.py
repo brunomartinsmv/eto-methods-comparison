@@ -60,6 +60,35 @@ def test_calibrate_method_uses_train_split_and_reports_test_improvement() -> Non
     assert after["rmse"] < 1e-12
 
 
+def test_calibration_original_variant_recomputes_same_form_baseline() -> None:
+    df = _synthetic_hargreaves_frame()
+    df["et_hargreaves_samani"] = 99.0
+
+    result = calibration.calibrate_method(
+        df,
+        method="hargreaves_samani",
+        train_start="2024-01-01",
+        train_end="2024-01-04",
+        test_start="2024-01-05",
+        test_end="2024-01-08",
+    )
+
+    expected_baseline = hargreaves_samani(
+        t_min_c=df["tmin_c"],
+        t_max_c=df["tmax_c"],
+        t_mean_c=df["tmed_c"],
+        ra_mj_m2_day=df["ra_extraterrestre_mj_m2_d"],
+        coefficient=calibration.default_coefficient("hargreaves_samani"),
+    )
+    assert result.predictions["et_hargreaves_samani"].to_numpy() == pytest.approx(
+        expected_baseline.to_numpy()
+    )
+    before = result.metrics.query("period == 'test' and variant == 'original'").iloc[0]
+    after = result.metrics.query("period == 'test' and variant == 'calibrated'").iloc[0]
+    assert before["rmse"] < 10.0
+    assert after["rmse"] < before["rmse"]
+
+
 def test_write_calibration_outputs_uses_separate_coefficient_and_metric_files(tmp_path: Path) -> None:
     result = calibration.calibrate_method(
         _synthetic_hargreaves_frame(),
