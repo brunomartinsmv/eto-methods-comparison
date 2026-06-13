@@ -107,6 +107,7 @@ def test_scientific_cli_commands_are_available() -> None:
     assert calibrate.site == "manaus"
     assert calibrate.all_sites is False
     assert calibrate.method == "hargreaves_samani"
+    assert calibrate.results_input is None
     assert calibrate.train_start == "2024-01-01"
 
 
@@ -206,6 +207,7 @@ def test_calibrate_command_writes_coefficients_and_metrics(tmp_path, monkeypatch
         site="manaus",
         all_sites=False,
         method="hargreaves_samani",
+        results_input=None,
         train_start="2024-01-01",
         train_end="2024-01-02",
         test_start="2024-01-03",
@@ -219,7 +221,7 @@ def test_calibrate_command_writes_coefficients_and_metrics(tmp_path, monkeypatch
     assert set(metrics["variant"]) == {"original", "calibrated"}
 
 
-def test_calibrate_command_prefers_computed_daily_eto_when_available(
+def test_calibrate_command_ignores_global_computed_daily_eto_for_custom_input(
     tmp_path, monkeypatch
 ) -> None:
     cleaned_dir = tmp_path / "cleaned"
@@ -254,6 +256,60 @@ def test_calibrate_command_prefers_computed_daily_eto_when_available(
         site="manaus",
         all_sites=False,
         method="hargreaves_samani",
+        results_input=None,
+        train_start="2024-01-01",
+        train_end="2024-01-02",
+        test_start="2024-01-03",
+        test_end="2024-01-04",
+    )
+    cmd_calibrate(args)
+
+    result_from_cleaned = calibration.calibrate_method(
+        cleaned,
+        method="hargreaves_samani",
+        train_start="2024-01-01",
+        train_end="2024-01-02",
+        test_start="2024-01-03",
+        test_end="2024-01-04",
+    )
+    coefficients = pd.read_csv(tables_dir / "manaus_hargreaves_samani_calibration_coefficients.csv")
+    assert coefficients.loc[0, "coefficient"] == pytest.approx(
+        result_from_cleaned.coefficients.loc[0, "coefficient"]
+    )
+
+
+def test_calibrate_command_uses_explicit_results_input(tmp_path) -> None:
+    cleaned_dir = tmp_path / "cleaned"
+    results_dir = tmp_path / "results"
+    tables_dir = tmp_path / "tables"
+    cleaned_dir.mkdir()
+    results_dir.mkdir()
+
+    weather = pd.DataFrame(
+        {
+            "date": pd.date_range("2024-01-01", periods=4, freq="D"),
+            "tmin_c": [20.0, 20.2, 20.4, 20.6],
+            "tmax_c": [30.0, 30.2, 30.4, 30.6],
+            "tmed_c": [25.0, 25.2, 25.4, 25.6],
+            "ra_extraterrestre_mj_m2_d": [34.0, 34.2, 34.4, 34.6],
+        }
+    )
+    cleaned = weather.copy()
+    cleaned["et_penman_monteith"] = [10.0, 10.0, 10.0, 10.0]
+    cleaned.to_csv(cleaned_dir / "manaus_daily.csv", index=False)
+
+    computed = weather.copy()
+    computed["et_penman_monteith"] = [4.1, 4.2, 4.3, 4.4]
+    computed.to_csv(results_dir / "manaus_daily_eto.csv", index=False)
+
+    args = argparse.Namespace(
+        input=str(cleaned_dir),
+        output=str(tables_dir),
+        year=2024,
+        site="manaus",
+        all_sites=False,
+        method="hargreaves_samani",
+        results_input=str(results_dir),
         train_start="2024-01-01",
         train_end="2024-01-02",
         test_start="2024-01-03",
@@ -270,7 +326,6 @@ def test_calibrate_command_prefers_computed_daily_eto_when_available(
         test_end="2024-01-04",
     )
     coefficients = pd.read_csv(tables_dir / "manaus_hargreaves_samani_calibration_coefficients.csv")
-    assert coefficients.loc[0, "coefficient"] < 0.01
     assert coefficients.loc[0, "coefficient"] == pytest.approx(
         result_from_computed.coefficients.loc[0, "coefficient"]
     )

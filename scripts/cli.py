@@ -195,9 +195,26 @@ def cmd_metrics(args: argparse.Namespace) -> None:
         monthly_metrics.to_csv(output_dir / metrics_filename(site, "monthly"), index=False)
 
 
-def _read_calibration_input(input_dir: Path, site: str) -> pd.DataFrame:
+def _calibration_results_dir(input_dir: Path, results_input: str | None) -> Path | None:
+    if results_input is not None:
+        return Path(results_input)
+    if input_dir.resolve() == DATA_CLEANED.resolve():
+        return OUTPUTS_RESULTS
+    return None
+
+
+def _read_calibration_input(
+    input_dir: Path,
+    site: str,
+    *,
+    results_input: str | None = None,
+) -> pd.DataFrame:
     cleaned = pd.read_csv(input_dir / cleaned_daily_filename(site), parse_dates=["date"])
-    computed_path = OUTPUTS_RESULTS / daily_eto_filename(site)
+    results_dir = _calibration_results_dir(input_dir, results_input)
+    if results_dir is None:
+        return cleaned
+
+    computed_path = results_dir / daily_eto_filename(site)
     if not computed_path.exists():
         return cleaned
 
@@ -241,7 +258,11 @@ def cmd_calibrate(args: argparse.Namespace) -> None:
     _ensure_dir(output_dir)
 
     for site in _selected_sites(args).keys():
-        df = _read_calibration_input(input_dir, site)
+        df = _read_calibration_input(
+            input_dir,
+            site,
+            results_input=getattr(args, "results_input", None),
+        )
         result = calibration.calibrate_method(
             df,
             method=args.method,
@@ -673,6 +694,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     calibrate_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
     calibrate_parser.add_argument("--input", default=str(DATA_CLEANED))
+    calibrate_parser.add_argument(
+        "--results-input",
+        default=None,
+        help=(
+            "Directory containing computed daily ET0 results to use for the reference "
+            "series. Defaults to outputs/results only when --input is the default "
+            "data/cleaned directory."
+        ),
+    )
     calibrate_parser.add_argument("--output", default=str(OUTPUTS_TABLES))
     calibrate_parser.add_argument(
         "--method",

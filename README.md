@@ -209,12 +209,14 @@ precomputed `et_*` columns from the cleaned data.
 `calibrate` writes separate local-calibration artifacts instead of replacing
 original methods. Current calibrable methods are `hargreaves_samani`, `turc`,
 and `radiation_temperature`. It uses cleaned meteorological drivers, and when
-`outputs/results/{site}_daily_eto.csv` exists it uses the pipeline-computed
-`et_penman_monteith` reference from that file, matching `metrics`. For explicit
-validation periods:
+the default cleaned input is used it also uses `outputs/results/{site}_daily_eto.csv`
+for the pipeline-computed `et_penman_monteith` reference when that file exists,
+matching `metrics`. For custom cleaned inputs, pass the matching computed-result
+directory with `--results-input`. For explicit validation periods:
 
 ```bash
 python -m scripts.cli calibrate --site manaus --method hargreaves_samani \
+  --results-input outputs/results \
   --train-start 2024-01-01 --train-end 2024-06-30 \
   --test-start 2024-07-01 --test-end 2024-12-31
 ```

@@ -56,12 +56,13 @@ Metodos calibraveis nesta etapa:
 - `turc`: coeficiente escalar da equacao Turc, mantendo a correcao de umidade quando disponivel;
 - `radiation_temperature`: coeficiente escalar da forma radiacao-temperatura.
 
-A funcao objetivo e `minimize_train_rmse`: o coeficiente e estimado no periodo de treino por minimos quadrados ordinarios para minimizar RMSE contra `et_penman_monteith`. A calibracao usa as variaveis meteorologicas de `data/cleaned/{site}_daily.csv`; quando `outputs/results/{site}_daily_eto.csv` existe, a referencia `et_penman_monteith` desse arquivo calculado substitui a referencia pre-computada dos dados limpos, mantendo consistencia com o comando `metrics`. A avaliacao e reportada separadamente para treino e teste, com metricas antes/depois (`variant = original` e `variant = calibrated`). Nao se deve interpretar a metrica de treino como desempenho independente.
+A funcao objetivo e `minimize_train_rmse`: o coeficiente e estimado no periodo de treino por minimos quadrados ordinarios para minimizar RMSE contra `et_penman_monteith`. A calibracao usa as variaveis meteorologicas do cleaned input selecionado; quando o input padrao `data/cleaned/{site}_daily.csv` e usado, a referencia `et_penman_monteith` de `outputs/results/{site}_daily_eto.csv` substitui a referencia pre-computada dos dados limpos quando esse arquivo calculado existe, mantendo consistencia com o comando `metrics`. Para cleaned inputs customizados, informe o diretorio de resultados calculados correspondente com `--results-input`; caso contrario, a referencia vem do proprio cleaned input customizado. A avaliacao e reportada separadamente para treino e teste, com metricas antes/depois (`variant = original` e `variant = calibrated`). Nao se deve interpretar a metrica de treino como desempenho independente.
 
 Uso recomendado:
 
 ```bash
 python -m scripts.cli calibrate --site manaus --method hargreaves_samani \
+  --results-input outputs/results \
   --train-start 2024-01-01 --train-end 2024-06-30 \
   --test-start 2024-07-01 --test-end 2024-12-31
 ```
