@@ -216,6 +216,8 @@ def _read_calibration_input(
 
     computed_path = results_dir / daily_eto_filename(site)
     if not computed_path.exists():
+        if results_input is not None:
+            raise ValueError(f"Computed results file '{computed_path}' not found for {site}")
         return cleaned
 
     computed = pd.read_csv(computed_path, parse_dates=["date"])

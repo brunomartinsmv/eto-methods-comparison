@@ -212,7 +212,8 @@ and `radiation_temperature`. It uses cleaned meteorological drivers, and when
 the default cleaned input is used it also uses `outputs/results/{site}_daily_eto.csv`
 for the pipeline-computed `et_penman_monteith` reference when that file exists,
 matching `metrics`. For custom cleaned inputs, pass the matching computed-result
-directory with `--results-input`. For explicit validation periods:
+directory with `--results-input`; when supplied, the matching
+`{site}_daily_eto.csv` file is required. For explicit validation periods:
 
 ```bash
 python -m scripts.cli calibrate --site manaus --method hargreaves_samani \

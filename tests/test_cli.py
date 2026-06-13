@@ -329,3 +329,39 @@ def test_calibrate_command_uses_explicit_results_input(tmp_path) -> None:
     assert coefficients.loc[0, "coefficient"] == pytest.approx(
         result_from_computed.coefficients.loc[0, "coefficient"]
     )
+
+
+def test_calibrate_command_requires_explicit_results_input_file(tmp_path) -> None:
+    cleaned_dir = tmp_path / "cleaned"
+    results_dir = tmp_path / "results"
+    tables_dir = tmp_path / "tables"
+    cleaned_dir.mkdir()
+    results_dir.mkdir()
+
+    pd.DataFrame(
+        {
+            "date": pd.date_range("2024-01-01", periods=4, freq="D"),
+            "tmin_c": [20.0, 20.2, 20.4, 20.6],
+            "tmax_c": [30.0, 30.2, 30.4, 30.6],
+            "tmed_c": [25.0, 25.2, 25.4, 25.6],
+            "ra_extraterrestre_mj_m2_d": [34.0, 34.2, 34.4, 34.6],
+            "et_penman_monteith": [10.0, 10.0, 10.0, 10.0],
+        }
+    ).to_csv(cleaned_dir / "manaus_daily.csv", index=False)
+
+    args = argparse.Namespace(
+        input=str(cleaned_dir),
+        output=str(tables_dir),
+        year=2024,
+        site="manaus",
+        all_sites=False,
+        method="hargreaves_samani",
+        results_input=str(results_dir),
+        train_start="2024-01-01",
+        train_end="2024-01-02",
+        test_start="2024-01-03",
+        test_end="2024-01-04",
+    )
+
+    with pytest.raises(ValueError, match="Computed results file .*manaus_daily_eto.csv.* not found"):
+        cmd_calibrate(args)
