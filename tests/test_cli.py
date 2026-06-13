@@ -3,7 +3,7 @@ import argparse
 import pandas as pd
 import pytest
 
-from scripts.cli import build_parser, cmd_aggregate, require_precomputed_eto_mode
+from scripts.cli import build_parser, cmd_aggregate, cmd_calibrate, require_precomputed_eto_mode
 from scripts.config import DEFAULT_YEAR
 from scripts.pca_analysis import prepare_pca_data, slugify_label
 
@@ -84,6 +84,30 @@ def test_scientific_cli_commands_are_available() -> None:
     assert sensitivity.all_sites is False
     assert sensitivity.method == "penman_monteith"
 
+    calibrate = parser.parse_args(
+        [
+            "calibrate",
+            "--site",
+            "manaus",
+            "--method",
+            "hargreaves_samani",
+            "--train-start",
+            "2024-01-01",
+            "--train-end",
+            "2024-06-30",
+            "--test-start",
+            "2024-07-01",
+            "--test-end",
+            "2024-12-31",
+        ]
+    )
+    assert calibrate.input.endswith("data/cleaned")
+    assert calibrate.output.endswith("outputs/tables")
+    assert calibrate.site == "manaus"
+    assert calibrate.all_sites is False
+    assert calibrate.method == "hargreaves_samani"
+    assert calibrate.train_start == "2024-01-01"
+
 
 def test_aggregate_command_writes_standardized_result_filenames(tmp_path) -> None:
     input_dir = tmp_path / "cleaned"
@@ -152,3 +176,40 @@ def test_prepare_pca_data_requires_two_complete_rows() -> None:
 
 def test_slugify_label_normalizes_pca_output_names() -> None:
     assert slugify_label("Mata Atlântica") == "mata_atlantica"
+
+
+def test_calibrate_command_writes_coefficients_and_metrics(tmp_path) -> None:
+    input_dir = tmp_path / "cleaned"
+    output_dir = tmp_path / "tables"
+    input_dir.mkdir()
+
+    dates = pd.date_range("2024-01-01", periods=4, freq="D")
+    pd.DataFrame(
+        {
+            "date": dates,
+            "tmin_c": [20.0, 20.2, 20.4, 20.6],
+            "tmax_c": [30.0, 30.2, 30.4, 30.6],
+            "tmed_c": [25.0, 25.2, 25.4, 25.6],
+            "ra_extraterrestre_mj_m2_d": [34.0, 34.2, 34.4, 34.6],
+            "et_penman_monteith": [4.1, 4.2, 4.3, 4.4],
+        }
+    ).to_csv(input_dir / "manaus_daily.csv", index=False)
+
+    args = argparse.Namespace(
+        input=str(input_dir),
+        output=str(output_dir),
+        year=2024,
+        site="manaus",
+        all_sites=False,
+        method="hargreaves_samani",
+        train_start="2024-01-01",
+        train_end="2024-01-02",
+        test_start="2024-01-03",
+        test_end="2024-01-04",
+    )
+    cmd_calibrate(args)
+
+    assert (output_dir / "manaus_hargreaves_samani_calibration_coefficients.csv").exists()
+    metrics = pd.read_csv(output_dir / "manaus_hargreaves_samani_calibration_metrics.csv")
+    assert set(metrics["period"]) == {"train", "test"}
+    assert set(metrics["variant"]) == {"original", "calibrated"}

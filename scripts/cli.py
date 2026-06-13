@@ -9,6 +9,7 @@ import pandas as pd
 
 from . import (
     aggregate,
+    calibration,
     cleaning,
     compute_eto,
     io,
@@ -100,6 +101,14 @@ def bias_bins_filename(site: str) -> str:
 
 def sensitivity_filename(site: str, method: str) -> str:
     return f"{site}_sensitivity_{method}.csv"
+
+
+def calibration_coefficients_filename(site: str, method: str) -> str:
+    return f"{site}_{method}_calibration_coefficients.csv"
+
+
+def calibration_metrics_filename(site: str, method: str) -> str:
+    return f"{site}_{method}_calibration_metrics.csv"
 
 
 def figure_filename(site: str, product: str) -> str:
@@ -199,6 +208,29 @@ def cmd_compute_eto(args: argparse.Namespace) -> None:
             include_precomputed=args.include_precomputed,
         )
         computed.to_csv(output_dir / daily_eto_filename(site), index=False)
+
+
+def cmd_calibrate(args: argparse.Namespace) -> None:
+    input_dir = Path(args.input)
+    output_dir = Path(args.output)
+    _ensure_dir(output_dir)
+
+    for site in _selected_sites(args).keys():
+        df = pd.read_csv(input_dir / cleaned_daily_filename(site), parse_dates=["date"])
+        result = calibration.calibrate_method(
+            df,
+            method=args.method,
+            train_start=args.train_start,
+            train_end=args.train_end,
+            test_start=args.test_start,
+            test_end=args.test_end,
+        )
+        calibration.write_calibration_outputs(
+            result,
+            output_dir=output_dir,
+            site=site,
+            method=args.method,
+        )
 
 
 def cmd_plots(args: argparse.Namespace) -> None:
@@ -609,6 +641,26 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_site_selection(compute_parser)
     compute_parser.set_defaults(func=cmd_compute_eto)
+
+    calibrate_parser = subparsers.add_parser(
+        "calibrate",
+        help="Calibrate selected ET0 method coefficients with a temporal train/test split",
+    )
+    calibrate_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
+    calibrate_parser.add_argument("--input", default=str(DATA_CLEANED))
+    calibrate_parser.add_argument("--output", default=str(OUTPUTS_TABLES))
+    calibrate_parser.add_argument(
+        "--method",
+        choices=sorted(calibration.CALIBRATABLE_METHODS),
+        required=True,
+        help="ET0 method to calibrate",
+    )
+    calibrate_parser.add_argument("--train-start", default=None)
+    calibrate_parser.add_argument("--train-end", default=None)
+    calibrate_parser.add_argument("--test-start", default=None)
+    calibrate_parser.add_argument("--test-end", default=None)
+    _add_site_selection(calibrate_parser)
+    calibrate_parser.set_defaults(func=cmd_calibrate)
 
     plots_parser = subparsers.add_parser("plots", help="Generate figures")
     plots_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)

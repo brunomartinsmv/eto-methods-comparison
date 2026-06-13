@@ -46,6 +46,35 @@ As tabelas em `outputs/tables/{site}_{daily|monthly}_metrics.csv` comparam cada 
 
 A classificacao segue estes limiares: `Excellent` para `c > 0.85`; `Very Good` para `0.75 < c <= 0.85`; `Good` para `0.65 < c <= 0.75`; `Average` para `0.60 < c <= 0.65`; `Poor` para `0.50 < c <= 0.60`; `Bad` para `0.40 < c <= 0.50`; e `Very Poor` para `c <= 0.40`. Quando `r`, `d` ou `c` nao podem ser estimados, a classe fica vazia.
 
+## Calibracao local opcional
+
+O comando `calibrate` ajusta coeficientes locais sem substituir silenciosamente os metodos originais. As series originais mantem seus nomes (`et_hargreaves_samani`, `et_turc`, `et_radiation_temperature`); as series calibradas usam nomes separados como `et_hargreaves_samani_calibrated`.
+
+Metodos calibraveis nesta etapa:
+
+- `hargreaves_samani`: coeficiente escalar da equacao Hargreaves-Samani;
+- `turc`: coeficiente escalar da equacao Turc, mantendo a correcao de umidade quando disponivel;
+- `radiation_temperature`: coeficiente escalar da forma radiacao-temperatura.
+
+A funcao objetivo e `minimize_train_rmse`: o coeficiente e estimado no periodo de treino por minimos quadrados ordinarios para minimizar RMSE contra `et_penman_monteith`. A avaliacao e reportada separadamente para treino e teste, com metricas antes/depois (`variant = original` e `variant = calibrated`). Nao se deve interpretar a metrica de treino como desempenho independente.
+
+Uso recomendado:
+
+```bash
+python -m scripts.cli calibrate --site manaus --method hargreaves_samani \
+  --train-start 2024-01-01 --train-end 2024-06-30 \
+  --test-start 2024-07-01 --test-end 2024-12-31
+```
+
+Se as quatro datas nao forem informadas, o comando usa um split temporal deterministico 70/30 com os primeiros 70% dos dias para treino e os dias restantes para teste. Se qualquer data for informada, todas as quatro devem ser fornecidas, e `train-end` deve ser anterior a `test-start`.
+
+Artefatos:
+
+- `outputs/tables/{site}_{method}_calibration_coefficients.csv`: metodo calibrado, metodo base, nome e valor do coeficiente, periodo de treino, periodo de teste, referencia, objetivo e contagens de observacoes;
+- `outputs/tables/{site}_{method}_calibration_metrics.csv`: impacto nas metricas em treino e teste, antes e depois da calibracao.
+
+Esses coeficientes sao locais e nao devem ser transferidos para outras localidades ou periodos sem nova validacao independente.
+
 ## 1. Penman-Monteith (FAO-56)
 
 **PT — Descricao**

@@ -205,6 +205,7 @@ def turc(
     t_mean_c: ArrayLike,
     rs_mj_m2_day: ArrayLike,
     rh_mean_pct: ArrayLike | None = None,
+    coefficient: float = 0.013,
 ) -> float | np.ndarray | pd.Series:
     """Estimate ET0 with the Turc radiation-temperature method.
 
@@ -221,6 +222,8 @@ def turc(
     rh_mean_pct:
         Mean relative humidity. If provided below 50 percent, Turc's dry-air
         correction is applied.
+    coefficient:
+        Turc empirical radiation-temperature coefficient.
 
     Units
     -----
@@ -234,7 +237,7 @@ def turc(
     """
     t = as_array(t_mean_c)
     rs_cal_cm2_day = as_array(rs_mj_m2_day) * 23.9006
-    result = 0.013 * (t / (t + 15)) * (rs_cal_cm2_day + 50)
+    result = coefficient * (t / (t + 15)) * (rs_cal_cm2_day + 50)
     if rh_mean_pct is not None:
         rh = as_array(rh_mean_pct)
         correction = np.where(rh < 50, 1 + (50 - rh) / 70, 1.0)
