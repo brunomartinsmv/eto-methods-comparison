@@ -227,14 +227,16 @@ def _read_calibration_input(
     reference = computed[["date", REFERENCE_COLUMN]].rename(
         columns={REFERENCE_COLUMN: f"computed_{REFERENCE_COLUMN}"}
     )
+    reference["computed_reference_row_present"] = True
     merged = cleaned.drop(columns=[REFERENCE_COLUMN], errors="ignore").merge(
         reference,
         on="date",
         how="left",
         validate="one_to_one",
     )
-    if merged[f"computed_{REFERENCE_COLUMN}"].isna().any():
+    if merged["computed_reference_row_present"].isna().any():
         raise ValueError(f"Computed reference series does not cover all cleaned dates for {site}")
+    merged = merged.drop(columns=["computed_reference_row_present"])
     merged[REFERENCE_COLUMN] = merged.pop(f"computed_{REFERENCE_COLUMN}")
     return merged
 
