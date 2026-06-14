@@ -1,0 +1,4 @@
+date,t_mean_c,t_min_c,t_max_c,ra_mj_m2_day,rs_mj_m2_day,rn_mj_m2_day,delta_kpa_c,gamma_kpa_c,rh_mean_pct,wind_2m_m_s,saturation_vapor_pressure_kpa,actual_vapor_pressure_kpa
+2024-01-01,20.0,15.0,25.0,30.0,16.0,8.0,0.1447,0.0665,80.0,1.5,2.338,1.870
+2024-01-02,25.0,20.0,30.0,35.0,18.0,10.0,0.1887,0.0665,70.0,2.0,3.168,2.218
+2024-01-03,30.0,25.0,35.0,40.0,20.0,12.0,0.2434,0.0665,60.0,2.5,4.243,2.546
