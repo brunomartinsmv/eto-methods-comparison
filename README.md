@@ -38,7 +38,7 @@ Per-method metrics remain in `outputs/tables/{site}_{daily|monthly}_metrics.csv`
 Clone and run the pipeline in under 5 minutes to generate:
 
 **📊 Metrics Tables** (`outputs/tables/`)
-- `summary_rankings.csv` — All methods ranked by site (Manaus, Piracicaba) and scale (daily, monthly)
+- `summary_rankings.csv` — All methods ranked by site (Manaus, Piracicaba), scale (daily, monthly), and selected ranking rule
 - `{site}_daily_metrics.csv` — RMSE, MAE, MBE, Pearson r, R², Willmott d, confidence c, and performance classification for daily estimates
 - `{site}_monthly_metrics.csv` — Same metrics aggregated monthly
 - `{site}_bootstrap_metric_intervals.csv` — Bootstrap confidence intervals for method metrics
@@ -63,7 +63,7 @@ Clone and run the pipeline in under 5 minutes to generate:
 **📄 Reports** (`outputs/reports/`)
 - `{site}_data_quality.csv` and `data_quality_summary.csv` — Missing-value, date-range, and interpolation audits
 - `{site}_uncertainty_sensitivity.md` — Site-level uncertainty and sensitivity narrative
-- `summary.csv` and `summary.md` — Best method by site and temporal scale
+- `summary.csv` and `summary.md` — Best method by site, temporal scale, rank, and ranking rule
 - `summary_rankings.md` — Readable version of the ranked method table
 
 ### Extensible Framework
@@ -197,10 +197,20 @@ python -m scripts.cli plots      # Generate all figures → outputs/figures/
 python -m scripts.cli pca        # Optional PCA on meteorological drivers
 python -m scripts.cli analyze-uncertainty  # Bootstrap, seasonal, and bias-bin diagnostics
 python -m scripts.cli validate-data  # Audit dates, missing values, interpolation traces
-python -m scripts.cli summarize      # Rank methods and summarize best performers by site and scale
+python -m scripts.cli summarize      # Rank methods with the default composite rule
+python -m scripts.cli summarize --ranking rmse       # Rank by lowest RMSE
+python -m scripts.cli summarize --ranking composite  # Rank by the documented multi-metric rule
 python -m scripts.cli reproduce-paper --year 2024  # Regenerate paper-facing outputs
 python -m scripts.cli export-supplement             # Collect supplemental CSV outputs
 ```
+
+`summarize` accepts `--ranking rmse`, `--ranking mae`, `--ranking c`,
+`--ranking willmott_d`, or `--ranking composite`. The default is
+`composite`, which ranks methods within each site and temporal scale by:
+highest confidence coefficient `c`, then lowest `rmse`, lowest `mae`,
+highest `willmott_d`, and lowest absolute `mbe`. The selected rule is written
+to `selection_rule`, and the chosen order is written to `rank` in both
+`outputs/reports/summary.csv` and `outputs/tables/summary_rankings.csv`.
 
 `metrics` remains backward compatible: if `outputs/results/{site}_daily_eto.csv`
 does not exist, it falls back to `data/cleaned/{site}_daily.csv` and uses the

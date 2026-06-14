@@ -81,14 +81,15 @@ As localidades ficam em `configs/sites.yml`; os metodos e nomes de colunas ficam
 python -m scripts.cli compute-eto --year 2024
 python -m scripts.cli validate-data --year 2024
 python -m scripts.cli pca --site manaus
-python -m scripts.cli summarize
+python -m scripts.cli summarize --ranking composite
+python -m scripts.cli summarize --ranking rmse
 python -m scripts.cli export-supplement
 ```
 
 - `compute-eto` le `data/cleaned/{site}_daily.csv` e escreve `outputs/results/{site}_daily_eto.csv` com ET0 calculada a partir de variaveis meteorologicas padronizadas.
 - `validate-data` escreve relatorios CSV em `outputs/reports/`.
 - `pca` escreve `outputs/tables/{site}_pca_loadings.csv`, `outputs/tables/{site}_pca_explained_variance.csv` e `outputs/figures/{site}/{site}_pca_biplot.png` quando ha variaveis e linhas suficientes.
-- `summarize` escreve `outputs/reports/summary.csv` e `outputs/reports/summary.md` com o melhor metodo por RMSE para cada localidade e escala temporal.
+- `summarize` escreve `outputs/reports/summary.csv`, `outputs/reports/summary.md` e `outputs/tables/summary_rankings.csv` com `rank` e `selection_rule`. A regra padrao `composite` ordena por maior `c`, menor `rmse`, menor `mae`, maior `willmott_d` e menor modulo de `mbe`; tambem e possivel escolher `rmse`, `mae`, `c` ou `willmott_d`.
 - `export-supplement` cria `outputs/supplement/` com CSVs atuais de `outputs/tables/`, `outputs/results/` e `outputs/reports/`, deixando outputs legados fora do pacote suplementar.
 - `all` continua disponivel para compatibilidade historica.
 - `metrics` prefere `outputs/results/{site}_daily_eto.csv` quando esse arquivo existe; se nao existir, usa as colunas `et_*` pre-calculadas em `data/cleaned/{site}_daily.csv`.

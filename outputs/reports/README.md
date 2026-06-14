@@ -25,10 +25,14 @@ Each site report (`*_data_quality.csv`) contains one row per variable and record
 python -m scripts.cli summarize
 ```
 
-They report the best-performing method by lowest RMSE for each site and temporal
-scale, using the current metrics tables in `outputs/tables/`. Ranking outputs
-also include per-metric ranks for MAE, MBE, Pearson r, R², Willmott d, and the
-confidence coefficient c.
+They report the best-performing method for each site and temporal scale using
+the selected ranking rule and the current metrics tables in `outputs/tables/`.
+The default is `--ranking composite`: highest confidence coefficient c, then
+lowest RMSE, lowest MAE, highest Willmott d, and lowest absolute MBE. You can
+also choose `--ranking rmse`, `--ranking mae`, `--ranking c`, or
+`--ranking willmott_d`. Ranking outputs include `rank`, `selection_rule`, and
+per-metric ranks for MAE, MBE, Pearson r, R², Willmott d, and the confidence
+coefficient c.
 
 `summary_rankings.md` is generated alongside `outputs/tables/summary_rankings.csv`
 and lists every method ranked within each site and temporal scale.
