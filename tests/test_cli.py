@@ -65,6 +65,10 @@ def test_scientific_cli_commands_are_available() -> None:
     summarize = parser.parse_args(["summarize"])
     assert summarize.input.endswith("outputs/tables")
     assert summarize.output.endswith("outputs/reports")
+    assert summarize.ranking == "composite"
+
+    summarize_by_rmse = parser.parse_args(["summarize", "--ranking", "rmse"])
+    assert summarize_by_rmse.ranking == "rmse"
 
     reproduce = parser.parse_args(["reproduce-paper"])
     assert reproduce.year == DEFAULT_YEAR

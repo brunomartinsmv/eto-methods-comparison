@@ -6,6 +6,15 @@ import pandas as pd
 
 METRIC_COLUMNS = ["rmse", "mae", "mbe", "r", "r2", "willmott_d", "c", "classification"]
 SITE_METADATA_COLUMNS = ["biome", "climate_class", "region", "country", "state"]
+RANKING_RULES = ("rmse", "mae", "c", "willmott_d", "composite")
+DEFAULT_RANKING = "composite"
+SELECTION_RULE_DESCRIPTIONS = {
+    "rmse": "lowest RMSE",
+    "mae": "lowest MAE",
+    "c": "highest confidence coefficient c",
+    "willmott_d": "highest Willmott d",
+    "composite": "highest c, then lowest RMSE, lowest MAE, highest Willmott d, and lowest absolute MBE",
+}
 RANK_COLUMNS = [
     "rank_rmse",
     "rank_mae",
@@ -20,6 +29,7 @@ RANKING_COLUMNS = [
     *SITE_METADATA_COLUMNS,
     "scale",
     "rank",
+    "selection_rule",
     "method",
     *METRIC_COLUMNS,
     *RANK_COLUMNS,
@@ -43,9 +53,48 @@ def _rank_metrics(table: pd.DataFrame) -> pd.DataFrame:
         ranked["rank_willmott_d"] = _rank_series(ranked["willmott_d"], ascending=False)
     if "c" in ranked.columns:
         ranked["rank_c"] = _rank_series(ranked["c"], ascending=False)
-    ranked = ranked.sort_values("rmse", ascending=True).reset_index(drop=True)
-    ranked["rank"] = pd.Series(range(1, len(ranked) + 1), dtype="Int64")
     return ranked
+
+
+def _validate_ranking(ranking: str) -> None:
+    if ranking not in RANKING_RULES:
+        valid = ", ".join(RANKING_RULES)
+        raise ValueError(f"Unknown ranking rule '{ranking}'. Valid rules: {valid}.")
+
+
+def _required_columns_for_ranking(ranking: str) -> list[str]:
+    if ranking == "composite":
+        return ["c", "rmse", "mae", "willmott_d", "mbe"]
+    if ranking in {"rmse", "mae", "c", "willmott_d"}:
+        return [ranking]
+    _validate_ranking(ranking)
+    return []
+
+
+def _sort_ranked_table(ranked: pd.DataFrame, *, ranking: str) -> pd.DataFrame:
+    _validate_ranking(ranking)
+    missing = [column for column in _required_columns_for_ranking(ranking) if column not in ranked.columns]
+    if missing:
+        missing_text = ", ".join(missing)
+        raise ValueError(f"Ranking rule '{ranking}' requires missing metric columns: {missing_text}.")
+
+    ranked = ranked.copy()
+    if ranking == "composite":
+        ranked["_abs_mbe"] = ranked["mbe"].abs()
+        sorted_table = ranked.sort_values(
+            ["c", "rmse", "mae", "willmott_d", "_abs_mbe", "method"],
+            ascending=[False, True, True, False, True, True],
+            na_position="last",
+        ).drop(columns=["_abs_mbe"])
+    elif ranking in {"rmse", "mae"}:
+        sorted_table = ranked.sort_values([ranking, "method"], ascending=[True, True], na_position="last")
+    else:
+        sorted_table = ranked.sort_values([ranking, "method"], ascending=[False, True], na_position="last")
+
+    sorted_table = sorted_table.reset_index(drop=True)
+    sorted_table["rank"] = pd.Series(range(1, len(sorted_table) + 1), dtype="Int64")
+    sorted_table["selection_rule"] = ranking
+    return sorted_table
 
 
 def _site_metadata_row(site: str, site_metadata: dict[str, dict] | None) -> dict[str, object]:
@@ -67,7 +116,9 @@ def build_rankings(
     tables_dir: Path,
     sites: list[str],
     site_metadata: dict[str, dict] | None = None,
+    ranking: str = DEFAULT_RANKING,
 ) -> pd.DataFrame:
+    _validate_ranking(ranking)
     rows = []
     for site in sites:
         for scale in ["daily", "monthly"]:
@@ -75,9 +126,9 @@ def build_rankings(
             if not metrics_path.exists():
                 continue
             table = pd.read_csv(metrics_path)
-            if table.empty or "rmse" not in table.columns:
+            if table.empty:
                 continue
-            ranked = _rank_metrics(table)
+            ranked = _sort_ranked_table(_rank_metrics(table), ranking=ranking)
             for _, row in ranked.iterrows():
                 rows.append(
                     {
@@ -85,6 +136,7 @@ def build_rankings(
                         **_site_metadata_row(site, site_metadata),
                         "scale": scale,
                         "rank": row["rank"],
+                        "selection_rule": row["selection_rule"],
                         "method": row["method"],
                         **{column: row[column] for column in METRIC_COLUMNS if column in row},
                         **{column: row[column] for column in RANK_COLUMNS if column in row},
@@ -98,7 +150,9 @@ def build_summary(
     tables_dir: Path,
     sites: list[str],
     site_metadata: dict[str, dict] | None = None,
+    ranking: str = DEFAULT_RANKING,
 ) -> pd.DataFrame:
+    _validate_ranking(ranking)
     rows = []
     for site in sites:
         for scale in ["daily", "monthly"]:
@@ -106,13 +160,15 @@ def build_summary(
             if not metrics_path.exists():
                 continue
             table = pd.read_csv(metrics_path)
-            if table.empty or "rmse" not in table.columns:
+            if table.empty:
                 continue
-            best = table.sort_values("rmse", ascending=True).iloc[0]
+            best = _sort_ranked_table(_rank_metrics(table), ranking=ranking).iloc[0]
             row = {
                 "site": site,
                 **_site_metadata_row(site, site_metadata),
                 "scale": scale,
+                "rank": best["rank"],
+                "selection_rule": best["selection_rule"],
                 "best_method": best["method"],
             }
             for column in METRIC_COLUMNS:
@@ -120,7 +176,7 @@ def build_summary(
                     row[column] = best[column]
             rows.append(row)
     df = pd.DataFrame(rows)
-    preferred = ["site", *SITE_METADATA_COLUMNS, "scale", "best_method", *METRIC_COLUMNS]
+    preferred = ["site", *SITE_METADATA_COLUMNS, "scale", "rank", "selection_rule", "best_method", *METRIC_COLUMNS]
     return df[_ordered_columns(df, preferred)] if not df.empty else pd.DataFrame()
 
 
@@ -130,10 +186,12 @@ def write_summary(summary: pd.DataFrame, output_dir: Path) -> tuple[Path, Path]:
     markdown_path = output_dir / "summary.md"
     summary.to_csv(csv_path, index=False)
 
+    rule = summary["selection_rule"].iloc[0] if "selection_rule" in summary.columns and not summary.empty else DEFAULT_RANKING
+    rule_description = SELECTION_RULE_DESCRIPTIONS.get(str(rule), str(rule))
     lines = [
         "# Results summary",
         "",
-        "Best methods are selected by lowest RMSE for each site and temporal scale.",
+        f"Best methods are selected by `{rule}` ({rule_description}) for each site and temporal scale.",
         "",
     ]
     if summary.empty:
@@ -168,11 +226,13 @@ def write_rankings(
     markdown_path = reports_dir / "summary_rankings.md"
     rankings.to_csv(csv_path, index=False)
 
+    rule = rankings["selection_rule"].iloc[0] if "selection_rule" in rankings.columns and not rankings.empty else DEFAULT_RANKING
+    rule_description = SELECTION_RULE_DESCRIPTIONS.get(str(rule), str(rule))
     lines = [
         "# Method rankings",
         "",
         "Methods are ranked within each site and temporal scale.",
-        "Overall `rank` follows lowest RMSE; per-metric ranks use the same criterion",
+        f"Overall `rank` follows `{rule}` ({rule_description}); per-metric ranks use their own metric criterion",
         "(MBE ranks by absolute bias; r, R², Willmott d, and confidence c favor higher values).",
         "",
     ]
@@ -184,7 +244,7 @@ def write_rankings(
                 [
                     f"## {site.title()} — {scale}",
                     "",
-                    f"Best overall: **{group.iloc[0]['method']}** (RMSE = {_format_metric(group.iloc[0]['rmse'])}).",
+                    f"Best overall: **{group.iloc[0]['method']}** by `{rule}`.",
                     "",
                 ]
             )

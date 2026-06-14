@@ -526,9 +526,10 @@ def cmd_summarize(args: argparse.Namespace) -> None:
     tables_dir = Path(args.input)
     reports_dir = Path(args.output)
     selected_sites = _selected_sites(args)
-    summary_df = summary.build_summary(tables_dir, sites=sites, site_metadata=selected_sites)
+    ranking = getattr(args, "ranking", summary.DEFAULT_RANKING)
+    summary_df = summary.build_summary(tables_dir, sites=sites, site_metadata=selected_sites, ranking=ranking)
     summary.write_summary(summary_df, reports_dir)
-    rankings_df = summary.build_rankings(tables_dir, sites=sites, site_metadata=selected_sites)
+    rankings_df = summary.build_rankings(tables_dir, sites=sites, site_metadata=selected_sites, ranking=ranking)
     summary.write_rankings(rankings_df, tables_dir, reports_dir)
 
 
@@ -564,6 +565,7 @@ def cmd_reproduce_paper(args: argparse.Namespace) -> None:
         output=str(OUTPUTS_REPORTS),
         site=args.site,
         all_sites=args.all_sites,
+        ranking=summary.DEFAULT_RANKING,
     )
     cmd_summarize(summarize_args)
 
@@ -778,6 +780,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     summarize_parser.add_argument("--input", default=str(OUTPUTS_TABLES))
     summarize_parser.add_argument("--output", default=str(OUTPUTS_REPORTS))
+    summarize_parser.add_argument(
+        "--ranking",
+        choices=summary.RANKING_RULES,
+        default=summary.DEFAULT_RANKING,
+        help=(
+            "Ranking rule for selecting best methods: rmse, mae, c, willmott_d, "
+            "or composite (default: composite)"
+        ),
+    )
     _add_site_selection(summarize_parser)
     summarize_parser.set_defaults(func=cmd_summarize)
 
