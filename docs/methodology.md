@@ -8,10 +8,13 @@ Este capitulo apresenta, de forma detalhada, os metodos usados para estimar a ev
 
 O repositorio agora configura 15 metodos alternativos de ET0 e usa Penman-Monteith FAO-56 como referencia. Manaus e Piracicaba sao localidades demonstrativas configuradas em `configs/sites.yml`; o projeto nao esta limitado a essas cidades. Novas localidades podem ser adicionadas por configuracao e por dados de entrada compatíveis.
 
-O comando `compute-eto` calcula os metodos configurados a partir de variaveis meteorologicas padronizadas em `data/cleaned/` e escreve `outputs/results/{site}_daily_eto.csv`. As metricas preferem essas series calculadas quando o arquivo existe; caso contrario, usam as colunas `et_*` pre-calculadas dos dados limpos como fallback historico.
+O comando `compute-eto` calcula os metodos com `status: computed` a partir de variaveis meteorologicas padronizadas em `data/cleaned/` e escreve `outputs/results/{site}_daily_eto.csv`. Metodos com `status: precomputed_only` sao preservados da planilha quando presentes no input limpo. As metricas preferem essas series calculadas quando o arquivo existe; caso contrario, usam as colunas `et_*` pre-calculadas dos dados limpos como fallback historico.
 
 | Metodo | Coluna esperada | Status atual |
 | --- | --- | --- |
+| Thornthwaite | `et_thornthwaite` | precomputed_only |
+| Thornthwaite-Camargo | `et_thornthwaite_camargo` | precomputed_only |
+| Hargreaves-Samani corrected | `et_hargreaves_samani_corr` | precomputed_only |
 | Camargo | `et_camargo` | computed |
 | Hargreaves-Samani | `et_hargreaves_samani` | computed |
 | Makkink | `et_makkink` | computed |
@@ -29,7 +32,7 @@ O comando `compute-eto` calcula os metodos configurados a partir de variaveis me
 | Hicks-Hess | `et_hicks_hess` | computed |
 | Penman-Monteith FAO-56 | `et_penman_monteith` | reference |
 
-Metodos ja presentes antes desta expansao continuam preservados na configuracao quando existem colunas calculadas, incluindo Thornthwaite, Thornthwaite-Camargo e Hargreaves-Samani corrigido.
+Metodos `precomputed_only` dependem de colunas historicas da planilha `Evapo.xlsx` e nao sao recalculados pelo pipeline. Thornthwaite e Thornthwaite-Camargo usam desagregacao diaria legada nao documentada no codigo; Hargreaves-Samani corrigido usa coeficientes locais calibrados fora do pipeline (ver `methodological_assumptions.md`). O comando `compute-eto --include-precomputed` registra comparacoes automaticas entre series calculadas e colunas pre-calculadas quando ambas estao disponiveis.
 
 ## Metricas de avaliacao
 

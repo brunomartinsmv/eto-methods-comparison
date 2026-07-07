@@ -156,12 +156,17 @@ def test_repository_methods_config_declares_full_name_and_computation_status() -
         assert metadata["full_name"]
         assert metadata["column"].startswith("et_")
         assert metadata["short"]
-        assert metadata["status"] in {"computed", "reference"}
+        assert metadata["status"] in {"computed", "precomputed_only", "reference"}
 
     computed_methods = {
         method_name
         for method_name, metadata in data["methods"].items()
         if metadata["status"] == "computed"
+    }
+    precomputed_only_methods = {
+        method_name
+        for method_name, metadata in data["methods"].items()
+        if metadata["status"] == "precomputed_only"
     }
     assert {
         "Makkink",
@@ -176,3 +181,8 @@ def test_repository_methods_config_declares_full_name_and_computation_status() -
         "Stephens-Stewart",
         "Hicks-Hess",
     } <= computed_methods
+    assert precomputed_only_methods == {
+        "Thornthwaite",
+        "Thornthwaite-Camargo",
+        "Hargreaves-Samani corrected",
+    }

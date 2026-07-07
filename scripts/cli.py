@@ -37,6 +37,7 @@ from .config import (
     select_sites,
 )
 from .eto_io import read_eto_frame
+from .logging_config import get_logger, setup_logging
 from .naming import (
     bias_bins_filename,
     bootstrap_filename,
@@ -49,6 +50,8 @@ from .naming import (
     seasonal_filename,
     sensitivity_filename,
 )
+
+logger = get_logger("cli")
 
 
 class SiteAction(argparse.Action):
@@ -166,7 +169,9 @@ def cmd_clean(args: argparse.Namespace) -> None:
     for site, meta in _selected_sites(args).items():
         df = io.read_evapo_sheet(input_path, meta["sheet"], year=args.year)
         df = cleaning.clean_daily(df)
-        io.write_cleaned(df, output_dir / cleaned_daily_filename(site))
+        output_path = output_dir / cleaned_daily_filename(site)
+        io.write_cleaned(df, output_path)
+        logger.info("wrote cleaned daily data for %s to %s", site, output_path)
 
     _maybe_compute_eto_after_clean(args)
 
@@ -192,7 +197,9 @@ def cmd_validate_data(args: argparse.Namespace) -> None:
 
     if reports:
         combined = pd.concat(reports, ignore_index=True)
-        combined.to_csv(output_dir / "data_quality_summary.csv", index=False)
+        summary_path = output_dir / "data_quality_summary.csv"
+        combined.to_csv(summary_path, index=False)
+        logger.info("wrote data quality summary to %s (%d site report(s))", summary_path, len(reports))
 
 
 def cmd_aggregate(args: argparse.Namespace) -> None:
@@ -209,6 +216,7 @@ def cmd_aggregate(args: argparse.Namespace) -> None:
 
         monthly = aggregate.monthly_sum(df, method_cols)
         monthly.to_csv(output_dir / monthly_totals_filename(site), index=False)
+        logger.info("wrote rolling and monthly aggregates for %s", site)
 
 
 def cmd_metrics(args: argparse.Namespace) -> None:
@@ -230,6 +238,7 @@ def cmd_metrics(args: argparse.Namespace) -> None:
         monthly_df = aggregate.monthly_sum(df, method_cols)
         monthly_metrics = metrics.compute_metrics(monthly_df, ref_col, [c for c in method_cols if c != ref_col])
         monthly_metrics.to_csv(output_dir / metrics_filename(site, "monthly"), index=False)
+        logger.info("wrote daily and monthly metrics for %s (%d methods)", site, len(method_cols) - 1)
 
 
 def _calibration_results_dir(input_dir: Path, results_input: str | None) -> Path | None:
@@ -285,12 +294,15 @@ def cmd_compute_eto(args: argparse.Namespace) -> None:
 
     for site, meta in _selected_sites(args).items():
         df = pd.read_csv(input_dir / cleaned_daily_filename(site), parse_dates=["date"])
-        computed = compute_eto.compute_daily_eto(
+        result = compute_eto.compute_daily_eto(
             df,
             site_meta=meta,
             include_precomputed=args.include_precomputed,
         )
-        computed.to_csv(output_dir / daily_eto_filename(site), index=False)
+        output_path = output_dir / daily_eto_filename(site)
+        result.frame.to_csv(output_path, index=False)
+        result.report.log_summary(site=site)
+        logger.info("wrote computed daily ETo for %s to %s", site, output_path)
 
 
 def cmd_calibrate(args: argparse.Namespace) -> None:
@@ -318,6 +330,7 @@ def cmd_calibrate(args: argparse.Namespace) -> None:
             site=site,
             method=args.method,
         )
+        logger.info("wrote calibration outputs for %s (%s)", site, args.method)
 
 
 def cmd_plots(args: argparse.Namespace) -> None:
@@ -367,6 +380,7 @@ def cmd_plots(args: argparse.Namespace) -> None:
             site_dir / figure_filename(site, "monthly_taylor"),
             title=f"Taylor diagram (monthly) - {site}",
         )
+        logger.info("wrote figures for %s (%d alternative methods)", site, len(method_cols) - 1)
 
 
 def _site_group_label(meta: dict) -> str | None:
@@ -436,6 +450,7 @@ def cmd_pca(args: argparse.Namespace) -> None:
                 "Check that at least two candidate meteorological variables are available."
             )
         raise ValueError("PCA could not be completed for the selected input.")
+    logger.info("completed PCA for %s", ", ".join(successful_labels))
 
 
 def cmd_analyze_uncertainty(args: argparse.Namespace) -> None:
@@ -485,6 +500,7 @@ def cmd_analyze_uncertainty(args: argparse.Namespace) -> None:
             site_dir / figure_filename(site, "bias_by_eto_bin"),
             title=f"Bias by Penman-Monteith ETo range - {site}",
         )
+        logger.info("wrote uncertainty analysis outputs for %s", site)
 
 
 def cmd_sensitivity(args: argparse.Namespace) -> None:
@@ -503,6 +519,7 @@ def cmd_sensitivity(args: argparse.Namespace) -> None:
             figure_path=figures_dir / site / figure_filename(site, f"sensitivity_{args.method}"),
             title=f"OAT sensitivity - {site} - {args.method}",
         )
+        logger.info("wrote sensitivity outputs for %s (%s)", site, args.method)
 
 
 def cmd_all(args: argparse.Namespace) -> None:
@@ -517,6 +534,7 @@ def cmd_all(args: argparse.Namespace) -> None:
     cmd_clean(clean_args)
 
     _run_downstream_analysis(args)
+    logger.info("completed pipeline for year %s", args.year)
 
 
 def cmd_summarize(args: argparse.Namespace) -> None:
@@ -529,6 +547,7 @@ def cmd_summarize(args: argparse.Namespace) -> None:
     summary.write_summary(summary_df, reports_dir)
     rankings_df = summary.build_rankings(tables_dir, sites=sites, site_metadata=selected_sites, ranking=ranking)
     summary.write_rankings(rankings_df, tables_dir, reports_dir)
+    logger.info("wrote summary and rankings to %s", reports_dir)
 
 
 def cmd_reproduce_paper(args: argparse.Namespace) -> None:
@@ -551,6 +570,7 @@ def cmd_reproduce_paper(args: argparse.Namespace) -> None:
         ranking=summary.DEFAULT_RANKING,
     )
     cmd_summarize(summarize_args)
+    logger.info("completed paper reproduction for year %s", args.year)
 
 
 def cmd_export_supplement(args: argparse.Namespace) -> None:
@@ -585,6 +605,7 @@ def cmd_export_supplement(args: argparse.Namespace) -> None:
     ]
     lines.extend(f"- `{path}`" for path in copied)
     manifest.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    logger.info("exported %d supplement file(s) to %s", len(copied), output_dir)
 
 
 def _add_site_selection(parser: argparse.ArgumentParser) -> None:
@@ -629,6 +650,12 @@ def _add_eto_source_selection(parser: argparse.ArgumentParser) -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="ETo pipeline CLI")
     parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Enable debug logging",
+    )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -813,6 +840,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
+    setup_logging(verbose=getattr(args, "verbose", False))
 
     args.func(args)
 
