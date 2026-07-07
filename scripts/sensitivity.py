@@ -62,7 +62,7 @@ def run_oat_sensitivity(
     method_col = METHOD_OUTPUT_COLUMNS[method]
     _require_method_inputs(df, method)
 
-    baseline = compute_eto.compute_daily_eto(df, site_meta=site_meta)
+    baseline = compute_eto.compute_daily_eto(df, site_meta=site_meta).frame
     if method_col not in baseline.columns:
         raise ValueError(
             f"Method '{method}' could not be computed. Expected output column '{method_col}' was not produced."
@@ -99,7 +99,7 @@ def run_oat_sensitivity(
             factor = 1 + perturbation / 100
             for column in perturbation_columns:
                 perturbed[column] = pd.to_numeric(perturbed[column], errors="coerce") * factor
-            result = compute_eto.compute_daily_eto(perturbed, site_meta=site_meta)
+            result = compute_eto.compute_daily_eto(perturbed, site_meta=site_meta).frame
             series = pd.to_numeric(result[method_col], errors="coerce")
             perturbed_mean = float(series.mean())
             delta = perturbed_mean - baseline_mean

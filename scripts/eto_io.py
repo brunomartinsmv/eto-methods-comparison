@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from .config import OUTPUTS_RESULTS
+from .config import METHODS, OUTPUTS_RESULTS
 from .naming import cleaned_daily_filename, daily_eto_filename
 
 
@@ -46,12 +46,19 @@ def read_eto_frame(
 
     if computed_path.exists():
         df = pd.read_csv(computed_path, parse_dates=["date"])
-        if merge_cleaned_auxiliary and cleaned_path.exists():
+        if cleaned_path.exists():
             cleaned = pd.read_csv(cleaned_path, parse_dates=["date"])
-            aux_cols = [column for column in cleaned.columns if column != "date" and column not in df.columns]
-            if aux_cols:
+            merge_cols: list[str] = []
+            if merge_cleaned_auxiliary:
+                merge_cols.extend(
+                    column for column in cleaned.columns if column != "date" and column not in df.columns
+                )
+            for column in METHODS.precomputed_only_columns:
+                if column in cleaned.columns and column not in df.columns and column not in merge_cols:
+                    merge_cols.append(column)
+            if merge_cols:
                 df = df.merge(
-                    cleaned[["date", *aux_cols]],
+                    cleaned[["date", *merge_cols]],
                     on="date",
                     how="left",
                     validate="one_to_one",

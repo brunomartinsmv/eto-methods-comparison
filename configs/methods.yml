@@ -3,13 +3,13 @@ methods:
     full_name: Thornthwaite temperature-photoperiod method
     column: et_thornthwaite
     short: thorn
-    status: computed
+    status: precomputed_only
 
   Thornthwaite-Camargo:
     full_name: Thornthwaite-Camargo hybrid method
     column: et_thornthwaite_camargo
     short: thorn_camargo
-    status: computed
+    status: precomputed_only
 
   Camargo:
     full_name: Camargo evapotranspiration method
@@ -27,7 +27,7 @@ methods:
     full_name: Locally corrected Hargreaves-Samani method
     column: et_hargreaves_samani_corr
     short: hs_corr
-    status: computed
+    status: precomputed_only
 
   Priestley-Taylor:
     full_name: Priestley-Taylor radiation-based method

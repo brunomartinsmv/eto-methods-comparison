@@ -24,11 +24,31 @@ SITES_CONFIG = CONFIGS / "sites.yml"
 METHODS_CONFIG = CONFIGS / "methods.yml"
 
 
+VALID_METHOD_STATUSES = frozenset({"computed", "precomputed_only", "reference"})
+
+
 @dataclass(frozen=True)
 class MethodsConfig:
     columns: dict[str, str]
     short_names: dict[str, str]
+    status_by_name: dict[str, str]
     reference_column: str = "et_penman_monteith"
+
+    @property
+    def precomputed_only_columns(self) -> frozenset[str]:
+        return frozenset(
+            column
+            for name, column in self.columns.items()
+            if self.status_by_name.get(name) == "precomputed_only"
+        )
+
+    @property
+    def computed_columns(self) -> frozenset[str]:
+        return frozenset(
+            column
+            for name, column in self.columns.items()
+            if self.status_by_name.get(name) == "computed"
+        )
 
 
 def _read_yaml(path: Path) -> dict:
@@ -55,18 +75,30 @@ def load_methods_config(path: Path = METHODS_CONFIG) -> MethodsConfig:
 
     columns: dict[str, str] = {}
     short_names: dict[str, str] = {}
+    status_by_name: dict[str, str] = {}
     reference_column = "et_penman_monteith"
     for method_name, meta in methods.items():
         if not isinstance(meta, dict) or "column" not in meta:
             raise ValueError(f"Method '{method_name}' in {path} must define a column")
         column = str(meta["column"])
-        columns[str(method_name)] = column
+        name = str(method_name)
+        columns[name] = column
+        status = str(meta.get("status", "computed"))
+        if status not in VALID_METHOD_STATUSES:
+            allowed = ", ".join(sorted(VALID_METHOD_STATUSES))
+            raise ValueError(f"Method '{method_name}' in {path} has invalid status '{status}'. Expected: {allowed}")
+        status_by_name[name] = status
         if "short" in meta:
             short_names[column] = str(meta["short"])
         if bool(meta.get("reference")):
             reference_column = column
 
-    return MethodsConfig(columns=columns, short_names=short_names, reference_column=reference_column)
+    return MethodsConfig(
+        columns=columns,
+        short_names=short_names,
+        status_by_name=status_by_name,
+        reference_column=reference_column,
+    )
 
 
 def select_sites(
