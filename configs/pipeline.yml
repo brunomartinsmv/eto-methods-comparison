@@ -1,0 +1,18 @@
+# Default pipeline parameters (override via CLI flags where available).
+
+calibration:
+  train_fraction: 0.7
+
+sensitivity:
+  perturbation_min_pct: -50
+  perturbation_max_pct: 50
+  perturbation_step_pct: 10
+
+uncertainty:
+  bootstrap_samples: 1000
+  confidence: 0.95
+  eto_bins: 4
+  rainfall_column: rain_mm
+
+cleaning:
+  max_gap_days: 7

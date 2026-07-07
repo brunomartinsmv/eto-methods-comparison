@@ -111,11 +111,11 @@ def _date_mask(df: pd.DataFrame, start: str, end: str) -> pd.Series:
     return (dates >= pd.Timestamp(start)) & (dates <= pd.Timestamp(end))
 
 
-def _default_temporal_split(df: pd.DataFrame) -> tuple[str, str, str, str]:
+def _default_temporal_split(df: pd.DataFrame, *, train_fraction: float = 0.7) -> tuple[str, str, str, str]:
     dates = pd.Series(pd.to_datetime(df["date"]).dropna().sort_values().unique())
     if len(dates) < 2:
         raise ValueError("Need at least two dates for separate train/test calibration")
-    split_idx = max(1, int(np.floor(len(dates) * 0.7)))
+    split_idx = max(1, int(np.floor(len(dates) * train_fraction)))
     if split_idx >= len(dates):
         split_idx = len(dates) - 1
     return (
@@ -132,9 +132,11 @@ def _resolve_split(
     train_end: str | None,
     test_start: str | None,
     test_end: str | None,
+    *,
+    train_fraction: float = 0.7,
 ) -> tuple[str, str, str, str]:
     if not any([train_start, train_end, test_start, test_end]):
-        return _default_temporal_split(df)
+        return _default_temporal_split(df, train_fraction=train_fraction)
     if not all([train_start, train_end, test_start, test_end]):
         raise ValueError("Provide all split dates: train-start, train-end, test-start, test-end")
     assert train_start is not None
@@ -199,6 +201,7 @@ def calibrate_method(
     test_start: str | None = None,
     test_end: str | None = None,
     reference_col: str = REFERENCE_COLUMN,
+    train_fraction: float = 0.7,
 ) -> CalibrationResult:
     if method not in CALIBRATABLE_METHODS:
         available = ", ".join(sorted(CALIBRATABLE_METHODS))
@@ -217,6 +220,7 @@ def calibrate_method(
         train_end,
         test_start,
         test_end,
+        train_fraction=train_fraction,
     )
     train_mask = _date_mask(df, train_start, train_end)
     test_mask = _date_mask(df, test_start, test_end)

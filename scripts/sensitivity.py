@@ -9,20 +9,26 @@ import numpy as np
 import pandas as pd
 
 from . import compute_eto
+from .config import METHODS, PIPELINE
+from .feasibility import METHOD_REQUIRED_COLUMNS
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+
+def _method_key(column: str) -> str:
+    return column.removeprefix("et_")
+
+
 METHOD_OUTPUT_COLUMNS = {
-    "penman_monteith": "et_penman_monteith",
-    "turc": "et_turc",
-    "radiation_temperature": "et_radiation_temperature",
+    _method_key(column): column
+    for column in sorted(METHODS.computed_columns | {METHODS.reference_column})
 }
 
 METHOD_REQUIRED_COLUMNS = {
-    "penman_monteith": ["tmed_c", "rad_net_mj_m2_d", "wind_mean_ms"],
-    "turc": ["tmed_c", "rad_global_mj_m2_d"],
-    "radiation_temperature": ["tmed_c", "rad_global_mj_m2_d"],
+    _method_key(column): requirements
+    for column, requirements in METHOD_REQUIRED_COLUMNS.items()
+    if column in METHOD_OUTPUT_COLUMNS.values()
 }
 
 
@@ -42,7 +48,19 @@ SENSITIVITY_VARIABLES = [
     SensitivityVariable("rad_net_mj_m2_d", "radiacao_liquida"),
 ]
 
-PERTURBATIONS = tuple(range(-50, 51, 10))
+
+def default_perturbations() -> tuple[int, ...]:
+    pipeline = PIPELINE
+    return tuple(
+        range(
+            pipeline.sensitivity_perturbation_min_pct,
+            pipeline.sensitivity_perturbation_max_pct + 1,
+            pipeline.sensitivity_perturbation_step_pct,
+        )
+    )
+
+
+PERTURBATIONS = default_perturbations()
 
 
 def run_oat_sensitivity(
@@ -172,7 +190,8 @@ def plot_sensitivity(sensitivity: pd.DataFrame, output_path: Path, *, title: str
 
 
 def _require_method_inputs(df: pd.DataFrame, method: str) -> None:
-    missing = [column for column in METHOD_REQUIRED_COLUMNS[method] if column not in df.columns]
+    required = METHOD_REQUIRED_COLUMNS.get(method, [])
+    missing = [column for column in required if column not in df.columns]
     if method == "penman_monteith":
         has_humidity = "rh_mean_pct" in df.columns or {"tmin_c", "tmax_c", "rh_min_pct", "rh_max_pct"} <= set(
             df.columns

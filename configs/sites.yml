@@ -1,3 +1,9 @@
+defaults:
+  reader:
+    format: evapo_legacy
+    skiprows: 4
+  wind_height_m: 10.0
+
 sites:
   manaus:
     sheet: Manaus

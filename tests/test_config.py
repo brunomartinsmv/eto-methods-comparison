@@ -54,6 +54,7 @@ sites:
             "region": "Centro-Oeste",
             "country": "Brazil",
             "state": "MT",
+            "wind_height_m": 10.0,
         }
     }
 
@@ -75,6 +76,7 @@ sites:
 
     assert "biome" not in sites["test_site"]
     assert sites["test_site"]["sheet"] == "Test Sheet"
+    assert sites["test_site"]["wind_height_m"] == 10.0
 
 
 def test_select_sites_returns_requested_site_and_rejects_unknown_site() -> None:

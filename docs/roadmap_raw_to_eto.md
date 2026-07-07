@@ -35,10 +35,12 @@ gerar metricas, tabelas e figuras.
 - `scripts/summary.py`
 - `tests/*` que constroem DataFrames diretamente com colunas `et_*`
 
-`configs/methods.yml` tambem contem metodos configurados mas ainda nao
-calculados no pipeline atual, como Makkink, McCloud, Turc, Ivanov e outros. A
-migracao deve distinguir metodos prontos para calculo, metodos apenas
-configurados e colunas historicas presentes em planilhas legadas.
+`configs/methods.yml` tambem contem metodos configurados mas ainda
+dependentes de colunas pre-calculadas no modo legado, como Thornthwaite,
+Thornthwaite-Camargo e Hargreaves-Samani corrigido (`precomputed_only`).
+Metodos como Makkink, Turc, McCloud, Ivanov e varios empiricos de radiacao
+ja sao calculados em `scripts/compute_eto.py` quando os insumos estao
+disponiveis.
 
 ## Plano de migracao
 
@@ -47,12 +49,9 @@ configurados e colunas historicas presentes em planilhas legadas.
    - Unidades canonicas.
    - Tratamento de altitude, latitude, hemisferio, calendario e ano bissexto.
 
-2. Implementar modulo de variaveis derivadas.
-   - Radiacao extraterrestre por dia e latitude.
-   - Pressao atmosferica e constante psicrometrica por altitude.
-   - Pressao de vapor de saturacao e real.
-   - Slope da curva de pressao de vapor.
-   - Conversao de vento para 2 m quando a altura for conhecida.
+2. Implementar modulo de variaveis derivadas. **Concluido** em
+   `scripts/derived_meteo.py` (pressao de vapor, slope, gamma, Ra, conversao
+   de vento 10 m para 2 m).
 
 3. Implementar formulas de ETo em modulo dedicado.
    - Penman-Monteith FAO-56.
