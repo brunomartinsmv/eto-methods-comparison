@@ -153,6 +153,107 @@ def test_scientific_cli_commands_are_available() -> None:
     assert calibrate.train_start == "2024-01-01"
 
 
+def test_cmd_all_runs_compute_eto_before_downstream(monkeypatch) -> None:
+    from scripts.cli import cmd_all
+
+    calls: list[str] = []
+
+    def fake_clean(args: argparse.Namespace) -> None:
+        calls.append("clean")
+
+    def fake_compute(args: argparse.Namespace, **kwargs: object) -> None:
+        calls.append("compute")
+
+    def fake_downstream(args: argparse.Namespace, **kwargs: object) -> None:
+        calls.append("downstream")
+
+    monkeypatch.setattr(cli, "cmd_clean", fake_clean)
+    monkeypatch.setattr(cli, "_run_compute_eto", fake_compute)
+    monkeypatch.setattr(cli, "_run_downstream_analysis", fake_downstream)
+
+    args = argparse.Namespace(
+        input="data/raw/Evapo.xlsx",
+        output="data/cleaned",
+        year=DEFAULT_YEAR,
+        site=None,
+        all_sites=True,
+        eto_source="precomputed",
+    )
+    cmd_all(args)
+
+    assert calls == ["clean", "compute", "downstream"]
+
+
+def test_cmd_all_skips_duplicate_compute_when_compute_eto_flag_set(monkeypatch) -> None:
+    from scripts.cli import cmd_all
+
+    calls: list[str] = []
+
+    def fake_clean(args: argparse.Namespace) -> None:
+        calls.append("clean")
+
+    def fake_compute(args: argparse.Namespace, **kwargs: object) -> None:
+        calls.append("compute")
+
+    def fake_downstream(args: argparse.Namespace, **kwargs: object) -> None:
+        calls.append("downstream")
+
+    monkeypatch.setattr(cli, "cmd_clean", fake_clean)
+    monkeypatch.setattr(cli, "_run_compute_eto", fake_compute)
+    monkeypatch.setattr(cli, "_run_downstream_analysis", fake_downstream)
+
+    args = argparse.Namespace(
+        input="data/raw/Evapo.xlsx",
+        output="data/cleaned",
+        year=DEFAULT_YEAR,
+        site=None,
+        all_sites=True,
+        eto_source="compute",
+    )
+    cmd_all(args)
+
+    assert calls == ["clean", "downstream"]
+
+
+def test_reproduce_paper_reruns_downstream_after_validation_compute(monkeypatch) -> None:
+    from scripts.cli import cmd_reproduce_paper
+
+    calls: list[str] = []
+
+    def fake_all(args: argparse.Namespace) -> None:
+        calls.append("all")
+
+    def fake_compute(args: argparse.Namespace, **kwargs: object) -> None:
+        calls.append(f"compute:{kwargs.get('include_precomputed', False)}")
+
+    def fake_downstream(args: argparse.Namespace, **kwargs: object) -> None:
+        calls.append("downstream")
+
+    def fake_validate(args: argparse.Namespace) -> None:
+        calls.append("validate")
+
+    def fake_summarize(args: argparse.Namespace) -> None:
+        calls.append("summarize")
+
+    monkeypatch.setattr(cli, "cmd_all", fake_all)
+    monkeypatch.setattr(cli, "_run_compute_eto", fake_compute)
+    monkeypatch.setattr(cli, "_run_downstream_analysis", fake_downstream)
+    monkeypatch.setattr(cli, "cmd_validate_data", fake_validate)
+    monkeypatch.setattr(cli, "cmd_summarize", fake_summarize)
+
+    args = argparse.Namespace(
+        input="data/raw/Evapo.xlsx",
+        output="data/cleaned",
+        year=DEFAULT_YEAR,
+        site=None,
+        all_sites=True,
+        eto_source="precomputed",
+    )
+    cmd_reproduce_paper(args)
+
+    assert calls == ["all", "compute:True", "downstream", "validate", "summarize"]
+
+
 def test_aggregate_command_writes_standardized_result_filenames(tmp_path) -> None:
     input_dir = tmp_path / "cleaned"
     output_dir = tmp_path / "results"
