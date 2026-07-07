@@ -114,6 +114,29 @@ def test_scientific_cli_commands_are_available() -> None:
     supplement = parser.parse_args(["export-supplement"])
     assert supplement.output.endswith("outputs/supplement")
 
+    inspect = parser.parse_args(["inspect", "--site", "manaus"])
+    assert inspect.input.endswith("data/raw/Evapo.xlsx")
+    assert inspect.use_cleaned is True
+
+    run_site = parser.parse_args(["run-site", "--site", "manaus", "--compute-eto"])
+    assert run_site.site == "manaus"
+    assert run_site.eto_source == "compute"
+
+    run_method = parser.parse_args(["run-method", "--site", "manaus", "--method", "hs"])
+    assert run_method.method == "hs"
+
+    quickstart = parser.parse_args(["quickstart"])
+    assert quickstart.command == "quickstart"
+
+    report_site = parser.parse_args(["report-site", "--site", "piracicaba"])
+    assert report_site.site == "piracicaba"
+
+    build_index = parser.parse_args(["build-index"])
+    assert build_index.output.endswith("outputs")
+
+    clean_outputs = parser.parse_args(["clean-outputs", "--dry-run"])
+    assert clean_outputs.dry_run is True
+
     pca = parser.parse_args(["pca"])
     assert pca.input.endswith("data/cleaned")
     assert pca.tables.endswith("outputs/tables")

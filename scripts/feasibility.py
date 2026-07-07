@@ -1,0 +1,250 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import Path
+
+import pandas as pd
+
+from . import compute_eto
+from .config import METHODS, MethodsConfig
+
+WEATHER_VARIABLES = (
+    "tmed_c",
+    "tmin_c",
+    "tmax_c",
+    "rh_mean_pct",
+    "rh_min_pct",
+    "rh_max_pct",
+    "wind_mean_ms",
+    "rad_global_mj_m2_d",
+    "rad_net_mj_m2_d",
+    "ra_extraterrestre_mj_m2_d",
+    "rain_mm",
+)
+
+METHOD_REQUIRED_COLUMNS: dict[str, list[str]] = {
+    "et_penman_monteith": ["tmed_c", "rad_net_mj_m2_d", "wind_mean_ms"],
+    "et_camargo": ["tmed_c", "ra_extraterrestre_mj_m2_d"],
+    "et_hargreaves_samani": ["tmin_c", "tmax_c", "tmed_c", "ra_extraterrestre_mj_m2_d"],
+    "et_makkink": ["tmed_c", "rad_global_mj_m2_d"],
+    "et_turc": ["tmed_c", "rad_global_mj_m2_d"],
+    "et_global_radiation": ["rad_global_mj_m2_d"],
+    "et_jensen_heise": ["tmed_c", "rad_global_mj_m2_d"],
+    "et_radiation_temperature": ["tmed_c", "rad_global_mj_m2_d"],
+    "et_stephens_stewart": ["tmed_c", "rad_global_mj_m2_d"],
+    "et_hicks_hess": ["tmed_c", "rad_global_mj_m2_d", "wind_mean_ms"],
+    "et_garcia_lopez": ["tmed_c", "rad_global_mj_m2_d", "rh_mean_pct", "wind_mean_ms"],
+    "et_mccloud": ["tmed_c"],
+    "et_ivanov": ["tmed_c", "rh_mean_pct"],
+    "et_lungeon": ["tmed_c", "rh_mean_pct"],
+    "et_net_radiation": ["rad_net_mj_m2_d"],
+    "et_priestley_taylor": ["tmed_c", "rad_net_mj_m2_d"],
+}
+
+HUMIDITY_GROUPS = (
+    {"rh_mean_pct"},
+    {"rh_min_pct", "rh_max_pct", "tmin_c", "tmax_c"},
+)
+
+
+def _dataframe_to_markdown(df: pd.DataFrame) -> str:
+    if df.empty:
+        return "_No rows._"
+    headers = [str(column) for column in df.columns]
+    lines = [
+        "| " + " | ".join(headers) + " |",
+        "| " + " | ".join("---" for _ in headers) + " |",
+    ]
+    for _, row in df.iterrows():
+        cells = [str(row[column]).replace("|", "\\|") for column in df.columns]
+        lines.append("| " + " | ".join(cells) + " |")
+    return "\n".join(lines)
+
+
+@dataclass(frozen=True)
+class MethodFeasibility:
+    method_name: str
+    column: str
+    status: str
+    required_columns: str
+    missing_columns: str
+    valid_day_fraction: float
+    reason: str
+
+
+def _humidity_available(df: pd.DataFrame) -> bool:
+    if "rh_mean_pct" in df.columns:
+        return True
+    return {"rh_min_pct", "rh_max_pct", "tmin_c", "tmax_c"} <= set(df.columns)
+
+
+def _valid_fraction(df: pd.DataFrame, columns: list[str]) -> float:
+    if df.empty or not columns:
+        return 0.0
+    numeric = df[columns].apply(pd.to_numeric, errors="coerce")
+    complete_rows = numeric.notna().all(axis=1)
+    return float(complete_rows.mean())
+
+
+def _status_for_column(
+    column: str,
+    df: pd.DataFrame,
+    methods: MethodsConfig,
+) -> MethodFeasibility:
+    method_name = next((name for name, col in methods.columns.items() if col == column), column)
+    status_key = methods.status_by_name.get(method_name, "computed")
+
+    if status_key == "reference":
+        required = METHOD_REQUIRED_COLUMNS.get(column, [])
+        missing = [col for col in required if col not in df.columns]
+        if column == "et_penman_monteith" and not missing and not _humidity_available(df):
+            missing = ["rh_mean_pct or (rh_min_pct, rh_max_pct, tmin_c, tmax_c)"]
+        valid_fraction = _valid_fraction(df, [c for c in required if c in df.columns])
+        feasibility_status = "reference" if not missing else "missing_inputs"
+        reason = "reference method" if not missing else f"missing columns: {', '.join(missing)}"
+        return MethodFeasibility(
+            method_name=method_name,
+            column=column,
+            status=feasibility_status,
+            required_columns=", ".join(required),
+            missing_columns=", ".join(missing),
+            valid_day_fraction=valid_fraction,
+            reason=reason,
+        )
+
+    if status_key == "precomputed_only":
+        present = column in df.columns
+        valid_fraction = float(pd.to_numeric(df[column], errors="coerce").notna().mean()) if present else 0.0
+        return MethodFeasibility(
+            method_name=method_name,
+            column=column,
+            status="precomputed_only" if present else "missing_precomputed",
+            required_columns="spreadsheet column",
+            missing_columns="" if present else column,
+            valid_day_fraction=valid_fraction,
+            reason="attached from input" if present else "precomputed column absent from input",
+        )
+
+    required = METHOD_REQUIRED_COLUMNS.get(column, [])
+    missing = [col for col in required if col not in df.columns]
+    if column == "et_penman_monteith" and not missing and not _humidity_available(df):
+        missing = ["rh_mean_pct or (rh_min_pct, rh_max_pct, tmin_c, tmax_c)"]
+    valid_fraction = _valid_fraction(df, [c for c in required if c in df.columns])
+    if missing:
+        feasibility_status = "missing_inputs"
+        reason = f"missing columns: {', '.join(missing)}"
+    else:
+        feasibility_status = "computable"
+        reason = "all required inputs present"
+    return MethodFeasibility(
+        method_name=method_name,
+        column=column,
+        status=feasibility_status,
+        required_columns=", ".join(required),
+        missing_columns=", ".join(missing),
+        valid_day_fraction=valid_fraction,
+        reason=reason,
+    )
+
+
+def build_method_feasibility(df: pd.DataFrame, methods: MethodsConfig | None = None) -> pd.DataFrame:
+    methods = methods or METHODS
+    rows = [_status_for_column(column, df, methods) for column in methods.columns.values()]
+    return pd.DataFrame([row.__dict__ for row in rows])
+
+
+def build_input_summary(df: pd.DataFrame) -> pd.DataFrame:
+    rows: list[dict[str, object]] = []
+    n_days = len(df)
+    for variable in WEATHER_VARIABLES:
+        if variable not in df.columns:
+            rows.append(
+                {
+                    "variable": variable,
+                    "present": False,
+                    "valid_days": 0,
+                    "missing_days": n_days,
+                    "valid_fraction": 0.0,
+                }
+            )
+            continue
+        valid = pd.to_numeric(df[variable], errors="coerce").notna()
+        valid_days = int(valid.sum())
+        rows.append(
+            {
+                "variable": variable,
+                "present": True,
+                "valid_days": valid_days,
+                "missing_days": n_days - valid_days,
+                "valid_fraction": float(valid.mean()) if n_days else 0.0,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def build_feasibility_from_compute(df: pd.DataFrame, site_meta: dict) -> pd.DataFrame:
+    """Cross-check static requirements with the compute-eto skip report."""
+    static = build_method_feasibility(df).set_index("column")
+    result = compute_eto.compute_daily_eto(df, site_meta=site_meta, include_precomputed=False)
+    for skip in result.report.skipped:
+        if skip.column in static.index:
+            static.loc[skip.column, "status"] = "missing_inputs"
+            static.loc[skip.column, "reason"] = skip.reason
+    for column in result.report.computed:
+        if column in static.index:
+            static.loc[column, "status"] = "computable"
+            static.loc[column, "reason"] = "computed successfully in dry-run"
+    for column in result.report.attached_precomputed_only:
+        if column in static.index:
+            static.loc[column, "status"] = "precomputed_only"
+            static.loc[column, "reason"] = "attached from input"
+    return static.reset_index(drop=True)
+
+
+def write_feasibility_reports(
+    feasibility: pd.DataFrame,
+    input_summary: pd.DataFrame,
+    output_dir: Path,
+    site: str,
+) -> tuple[Path, Path, Path, Path]:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    csv_path = output_dir / f"{site}_method_feasibility.csv"
+    md_path = output_dir / f"{site}_method_feasibility.md"
+    input_csv = output_dir / f"{site}_input_summary.csv"
+    input_md = output_dir / f"{site}_input_summary.md"
+
+    feasibility.to_csv(csv_path, index=False)
+    input_summary.to_csv(input_csv, index=False)
+
+    lines = [
+        f"# Method feasibility — {site}",
+        "",
+        "This report summarizes which ET0 methods can be computed from the available data.",
+        "",
+        _dataframe_to_markdown(feasibility),
+        "",
+        "## Input variable coverage",
+        "",
+        _dataframe_to_markdown(input_summary),
+    ]
+    md_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    input_lines = [
+        f"# Input summary — {site}",
+        "",
+        _dataframe_to_markdown(input_summary),
+    ]
+    input_md.write_text("\n".join(input_lines) + "\n", encoding="utf-8")
+    return csv_path, md_path, input_csv, input_md
+
+
+def resolve_method_column(method_key: str, methods: MethodsConfig | None = None) -> str:
+    methods = methods or METHODS
+    normalized = method_key.strip().lower().replace("-", "_").replace(" ", "_")
+    for name, column in methods.columns.items():
+        slug = name.lower().replace("-", "_").replace(" ", "_")
+        short = methods.short_names.get(column, "")
+        if normalized in {slug, column, short, column.removeprefix("et_")}:
+            return column
+    available = ", ".join(sorted(methods.short_names.get(col, col) for col in methods.columns.values()))
+    raise ValueError(f"Unknown method '{method_key}'. Available methods: {available}")

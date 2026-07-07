@@ -49,3 +49,23 @@ def calibration_metrics_filename(site: str, method: str) -> str:
 
 def figure_filename(site: str, product: str) -> str:
     return f"{site}_{product}.png"
+
+
+def method_only_filename(site: str, method_id: str) -> str:
+    return f"{site}_{method_id}_only.csv"
+
+
+def method_feasibility_filename(site: str) -> str:
+    return f"{site}_method_feasibility.csv"
+
+
+def input_summary_filename(site: str) -> str:
+    return f"{site}_input_summary.csv"
+
+
+def site_report_md_filename(site: str) -> str:
+    return f"{site}_report.md"
+
+
+def site_report_html_filename(site: str) -> str:
+    return f"{site}_report.html"

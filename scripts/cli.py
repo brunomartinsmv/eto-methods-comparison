@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import shutil
 import warnings
 from pathlib import Path
@@ -12,16 +13,19 @@ from . import (
     calibration,
     cleaning,
     compute_eto,
+    feasibility,
     io,
     metrics,
     pca_analysis,
     plots,
     quality,
+    report_builder,
     sensitivity,
     summary,
     uncertainty,
 )
 from .config import (
+    BASE_DIR,
     DATA_CLEANED,
     DATA_RAW,
     DEFAULT_YEAR,
@@ -44,6 +48,7 @@ from .naming import (
     cleaned_daily_filename,
     daily_eto_filename,
     figure_filename,
+    method_only_filename,
     metrics_filename,
     monthly_totals_filename,
     rolling_7d_filename,
@@ -167,7 +172,7 @@ def cmd_clean(args: argparse.Namespace) -> None:
     _ensure_dir(output_dir)
 
     for site, meta in _selected_sites(args).items():
-        df = io.read_evapo_sheet(input_path, meta["sheet"], year=args.year)
+        df = io.read_site_data(input_path, meta, year=args.year)
         df = cleaning.clean_daily(df)
         output_path = output_dir / cleaned_daily_filename(site)
         io.write_cleaned(df, output_path)
@@ -183,7 +188,7 @@ def cmd_validate_data(args: argparse.Namespace) -> None:
 
     reports = []
     for site, meta in _selected_sites(args).items():
-        raw_df = io.read_evapo_sheet(input_path, meta["sheet"], year=args.year)
+        raw_df = io.read_site_data(input_path, meta, year=args.year)
         cleaned_df, audit = cleaning.clean_daily_with_audit(raw_df)
         report = quality.build_quality_report(
             site=site,
@@ -573,37 +578,279 @@ def cmd_reproduce_paper(args: argparse.Namespace) -> None:
     logger.info("completed paper reproduction for year %s", args.year)
 
 
+def cmd_inspect(args: argparse.Namespace) -> None:
+    input_path = Path(args.input)
+    cleaned_dir = Path(args.cleaned_input)
+    output_dir = Path(args.output)
+    _ensure_dir(output_dir)
+
+    for site, meta in _selected_sites(args).items():
+        cleaned_path = cleaned_dir / cleaned_daily_filename(site)
+        if args.use_cleaned and cleaned_path.exists():
+            df = pd.read_csv(cleaned_path, parse_dates=["date"])
+        else:
+            raw_df = io.read_site_data(input_path, meta, year=args.year)
+            df = cleaning.clean_daily(raw_df)
+
+        feasibility_df = feasibility.build_feasibility_from_compute(df, meta)
+        input_summary = feasibility.build_input_summary(df)
+        feasibility.write_feasibility_reports(feasibility_df, input_summary, output_dir, site)
+        logger.info("wrote feasibility reports for %s to %s", site, output_dir)
+
+
+def cmd_run_method(args: argparse.Namespace) -> None:
+    input_dir = Path(args.input)
+    output_dir = Path(args.output)
+    _ensure_dir(output_dir)
+
+    method_col = feasibility.resolve_method_column(args.method)
+    method_id = METHOD_SHORT.get(method_col, method_col.removeprefix("et_"))
+
+    for site, meta in _selected_sites(args).items():
+        df = pd.read_csv(input_dir / cleaned_daily_filename(site), parse_dates=["date"])
+        result = compute_eto.compute_selected_methods(
+            df,
+            method_columns=[method_col],
+            site_meta=meta,
+            include_reference=True,
+        )
+        output_path = output_dir / method_only_filename(site, method_id)
+        result.frame.to_csv(output_path, index=False)
+        result.report.log_summary(site=site)
+        logger.info("wrote single-method ET0 for %s (%s) to %s", site, method_id, output_path)
+
+
+RUN_SITE_STEPS = (
+    "clean",
+    "validate-data",
+    "inspect",
+    "compute-eto",
+    "aggregate",
+    "metrics",
+    "plots",
+    "analyze-uncertainty",
+    "summarize",
+    "report-site",
+)
+
+
+def _parse_run_site_steps(steps: str | None) -> tuple[str, ...]:
+    if not steps:
+        return RUN_SITE_STEPS
+    selected = tuple(part.strip() for part in steps.split(",") if part.strip())
+    unknown = [step for step in selected if step not in RUN_SITE_STEPS]
+    if unknown:
+        available = ", ".join(RUN_SITE_STEPS)
+        raise ValueError(f"Unknown run-site step(s): {', '.join(unknown)}. Available: {available}")
+    return selected
+
+
+def cmd_run_site(args: argparse.Namespace) -> None:
+    steps = _parse_run_site_steps(getattr(args, "steps", None))
+    site_kwargs = _pipeline_site_kwargs(args)
+
+    if "clean" in steps:
+        cmd_clean(
+            argparse.Namespace(
+                input=args.input,
+                output=args.output,
+                eto_source="precomputed",
+                include_precomputed=False,
+                **site_kwargs,
+            )
+        )
+    if "validate-data" in steps:
+        cmd_validate_data(
+            argparse.Namespace(
+                input=args.input,
+                output=str(OUTPUTS_REPORTS),
+                eto_source=getattr(args, "eto_source", "precomputed"),
+                **site_kwargs,
+            )
+        )
+    if "inspect" in steps:
+        cmd_inspect(
+            argparse.Namespace(
+                input=args.input,
+                cleaned_input=args.output,
+                output=str(OUTPUTS_REPORTS),
+                use_cleaned=True,
+                **site_kwargs,
+            )
+        )
+    if "compute-eto" in steps:
+        _run_compute_eto(args, include_precomputed=getattr(args, "include_precomputed", False))
+    if any(step in steps for step in ("aggregate", "metrics", "plots", "analyze-uncertainty")):
+        downstream_steps = tuple(step for step in steps if step in RUN_SITE_STEPS[4:8])
+        if downstream_steps == ("aggregate", "metrics", "plots", "analyze-uncertainty"):
+            _run_downstream_analysis(args)
+        else:
+            if "aggregate" in steps:
+                cmd_aggregate(
+                    argparse.Namespace(input=args.output, output=str(OUTPUTS_RESULTS), **site_kwargs)
+                )
+            if "metrics" in steps:
+                cmd_metrics(
+                    argparse.Namespace(input=args.output, output=str(OUTPUTS_TABLES), **site_kwargs)
+                )
+            if "plots" in steps:
+                cmd_plots(
+                    argparse.Namespace(input=args.output, output=str(OUTPUTS_FIGURES), **site_kwargs)
+                )
+            if "analyze-uncertainty" in steps:
+                cmd_analyze_uncertainty(
+                    argparse.Namespace(
+                        input=args.output,
+                        tables_output=str(OUTPUTS_TABLES),
+                        reports_output=str(OUTPUTS_REPORTS),
+                        figures_output=str(OUTPUTS_FIGURES),
+                        bootstrap_samples=1000,
+                        confidence=0.95,
+                        random_state=args.year,
+                        rainfall_column="rain_mm",
+                        eto_bins=4,
+                        **site_kwargs,
+                    )
+                )
+    if "summarize" in steps:
+        cmd_summarize(
+            argparse.Namespace(
+                input=str(OUTPUTS_TABLES),
+                output=str(OUTPUTS_REPORTS),
+                ranking=summary.DEFAULT_RANKING,
+                **site_kwargs,
+            )
+        )
+    if "report-site" in steps:
+        cmd_report_site(
+            argparse.Namespace(
+                output=str(OUTPUTS_REPORTS),
+                **site_kwargs,
+            )
+        )
+    logger.info("completed run-site for year %s", args.year)
+
+
+def cmd_quickstart(args: argparse.Namespace) -> None:
+    cmd_reproduce_paper(args)
+    for site in _selected_sites(args).keys():
+        cmd_inspect(
+            argparse.Namespace(
+                input=args.input,
+                cleaned_input=args.output,
+                output=str(OUTPUTS_REPORTS),
+                use_cleaned=True,
+                site=site,
+                all_sites=False,
+            )
+        )
+        cmd_report_site(argparse.Namespace(output=str(OUTPUTS_REPORTS), site=site, all_sites=False))
+    cmd_export_supplement(argparse.Namespace(output=str(OUTPUTS_SUPPLEMENT)))
+    cmd_build_index(argparse.Namespace(output=str(BASE_DIR / "outputs"), site=args.site, all_sites=args.all_sites))
+    logger.info("quickstart complete — open outputs/index.html for navigation")
+
+
+def cmd_report_site(args: argparse.Namespace) -> None:
+    output_dir = Path(args.output)
+    for site in _selected_sites(args).keys():
+        md_path, html_path = report_builder.write_site_report(site, output_dir)
+        logger.info("wrote site report for %s to %s and %s", site, md_path, html_path)
+
+
+def cmd_build_index(args: argparse.Namespace) -> None:
+    output_dir = Path(args.output)
+    sites = list(_selected_sites(args).keys())
+    md_path, html_path = report_builder.write_index(sites, output_dir)
+    logger.info("wrote results index to %s and %s", md_path, html_path)
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def cmd_clean_outputs(args: argparse.Namespace) -> None:
+    targets: list[Path] = []
+    for directory in (OUTPUTS_RESULTS, OUTPUTS_TABLES, OUTPUTS_REPORTS):
+        if directory.exists():
+            targets.extend(path for path in directory.glob("*") if path.is_file())
+    if OUTPUTS_FIGURES.exists():
+        for site_dir in OUTPUTS_FIGURES.iterdir():
+            if not site_dir.is_dir() or site_dir.name == "legacy":
+                continue
+            targets.extend(path for path in site_dir.glob("*") if path.is_file())
+    index_dir = OUTPUTS_REPORTS.parent
+    targets.extend(path for path in (index_dir / "index.md", index_dir / "index.html") if path.exists())
+    if OUTPUTS_SUPPLEMENT.exists() and not args.keep_supplement:
+        targets.extend(path for path in OUTPUTS_SUPPLEMENT.rglob("*") if path.is_file())
+
+    removed = 0
+    for path in sorted(targets):
+        if args.dry_run:
+            logger.info("would remove %s", path)
+        else:
+            path.unlink()
+            removed += 1
+    action = "would remove" if args.dry_run else "removed"
+    logger.info("%s %d output file(s)", action, len(targets) if args.dry_run else removed)
+
+
 def cmd_export_supplement(args: argparse.Namespace) -> None:
     output_dir = Path(args.output)
     _ensure_dir(output_dir)
 
-    sources = [
-        OUTPUTS_TABLES,
-        OUTPUTS_RESULTS,
-        OUTPUTS_REPORTS,
-    ]
-    copied: list[str] = []
-    for source_dir in sources:
+    copied: list[tuple[str, str]] = []
+    for source_dir in (OUTPUTS_TABLES, OUTPUTS_RESULTS, OUTPUTS_REPORTS):
         if not source_dir.exists():
             continue
         destination_dir = output_dir / source_dir.name
         _ensure_dir(destination_dir)
-        for source_path in sorted(source_dir.glob("*.csv")):
+        for source_path in sorted(source_dir.glob("*")):
+            if not source_path.is_file():
+                continue
+            if source_path.suffix.lower() not in {".csv", ".md", ".html"}:
+                continue
             destination_path = destination_dir / source_path.name
             shutil.copy2(source_path, destination_path)
-            copied.append(str(destination_path.relative_to(output_dir)))
+            rel = str(destination_path.relative_to(output_dir))
+            copied.append((rel, _sha256(destination_path)))
+
+    figures_dest = output_dir / "figures"
+    if OUTPUTS_FIGURES.exists():
+        for site_dir in sorted(OUTPUTS_FIGURES.iterdir()):
+            if not site_dir.is_dir() or site_dir.name == "legacy":
+                continue
+            site_dest = figures_dest / site_dir.name
+            _ensure_dir(site_dest)
+            for source_path in sorted(site_dir.glob("*.png")):
+                destination_path = site_dest / source_path.name
+                shutil.copy2(source_path, destination_path)
+                rel = str(destination_path.relative_to(output_dir))
+                copied.append((rel, _sha256(destination_path)))
+
+    for name in ("index.md", "index.html"):
+        index_path = OUTPUTS_REPORTS.parent / name
+        if index_path.exists():
+            destination_path = output_dir / name
+            shutil.copy2(index_path, destination_path)
+            copied.append((name, _sha256(destination_path)))
 
     manifest = output_dir / "MANIFEST.md"
     lines = [
         "# Supplement export",
         "",
-        "This directory contains CSV tables, intermediate results, and data-quality reports",
+        "This directory contains tables, reports, selected figures, and index files",
         "generated by the current CLI pipeline. Legacy outputs are intentionally excluded.",
         "",
         "## Files",
         "",
+        "| File | SHA256 |",
+        "| --- | --- |",
     ]
-    lines.extend(f"- `{path}`" for path in copied)
+    lines.extend(f"| `{path}` | `{digest}` |" for path, digest in copied)
     manifest.write_text("\n".join(lines) + "\n", encoding="utf-8")
     logger.info("exported %d supplement file(s) to %s", len(copied), output_dir)
 
@@ -829,10 +1076,106 @@ def build_parser() -> argparse.ArgumentParser:
 
     supplement_parser = subparsers.add_parser(
         "export-supplement",
-        help="Copy current CSV outputs into a supplemental export directory",
+        help="Copy current outputs into a supplemental export directory",
     )
     supplement_parser.add_argument("--output", default=str(OUTPUTS_SUPPLEMENT))
     supplement_parser.set_defaults(func=cmd_export_supplement)
+
+    inspect_parser = subparsers.add_parser(
+        "inspect",
+        help="Report which ET0 methods can be computed from available input data",
+    )
+    inspect_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
+    inspect_parser.add_argument("--input", default=str(DATA_RAW / "Evapo.xlsx"))
+    inspect_parser.add_argument("--cleaned-input", default=str(DATA_CLEANED))
+    inspect_parser.add_argument("--output", default=str(OUTPUTS_REPORTS))
+    inspect_parser.add_argument(
+        "--use-cleaned",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Prefer cleaned daily CSV when available (default: true)",
+    )
+    _add_site_selection(inspect_parser)
+    inspect_parser.set_defaults(func=cmd_inspect)
+
+    run_site_parser = subparsers.add_parser(
+        "run-site",
+        help="Run the core pipeline for one or all configured sites",
+    )
+    run_site_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
+    run_site_parser.add_argument("--input", default=str(DATA_RAW / "Evapo.xlsx"))
+    run_site_parser.add_argument("--output", default=str(DATA_CLEANED))
+    run_site_parser.add_argument(
+        "--steps",
+        default=None,
+        help=f"Comma-separated steps (default: all). Choices: {', '.join(RUN_SITE_STEPS)}",
+    )
+    run_site_parser.add_argument(
+        "--include-precomputed",
+        action="store_true",
+        help="Pass --include-precomputed to compute-eto when that step runs",
+    )
+    _add_eto_source_selection(run_site_parser)
+    _add_site_selection(run_site_parser)
+    run_site_parser.set_defaults(func=cmd_run_site)
+
+    run_method_parser = subparsers.add_parser(
+        "run-method",
+        help="Compute one ET0 method plus Penman-Monteith reference",
+    )
+    run_method_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
+    run_method_parser.add_argument("--input", default=str(DATA_CLEANED))
+    run_method_parser.add_argument("--output", default=str(OUTPUTS_RESULTS))
+    run_method_parser.add_argument(
+        "--method",
+        required=True,
+        help="Method key (short name, slug, or et_* column)",
+    )
+    _add_site_selection(run_method_parser)
+    run_method_parser.set_defaults(func=cmd_run_method)
+
+    quickstart_parser = subparsers.add_parser(
+        "quickstart",
+        help="Reproduce paper outputs, reports, supplement, and navigation index",
+    )
+    quickstart_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
+    quickstart_parser.add_argument("--input", default=str(DATA_RAW / "Evapo.xlsx"))
+    quickstart_parser.add_argument("--output", default=str(DATA_CLEANED))
+    _add_eto_source_selection(quickstart_parser)
+    _add_site_selection(quickstart_parser)
+    quickstart_parser.set_defaults(func=cmd_quickstart)
+
+    report_site_parser = subparsers.add_parser(
+        "report-site",
+        help="Build consolidated Markdown and HTML report for a site",
+    )
+    report_site_parser.add_argument("--output", default=str(OUTPUTS_REPORTS))
+    _add_site_selection(report_site_parser)
+    report_site_parser.set_defaults(func=cmd_report_site)
+
+    build_index_parser = subparsers.add_parser(
+        "build-index",
+        help="Build consolidated Markdown and HTML index of pipeline outputs",
+    )
+    build_index_parser.add_argument("--output", default=str(BASE_DIR / "outputs"))
+    _add_site_selection(build_index_parser)
+    build_index_parser.set_defaults(func=cmd_build_index)
+
+    clean_outputs_parser = subparsers.add_parser(
+        "clean-outputs",
+        help="Remove regenerable files under outputs/ (preserves legacy/)",
+    )
+    clean_outputs_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="List files that would be removed without deleting them",
+    )
+    clean_outputs_parser.add_argument(
+        "--keep-supplement",
+        action="store_true",
+        help="Do not remove files under outputs/supplement/",
+    )
+    clean_outputs_parser.set_defaults(func=cmd_clean_outputs)
 
     return parser
 

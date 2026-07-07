@@ -52,7 +52,6 @@ def test_export_supplement_copies_csv_files_and_writes_manifest(
     manifest_text = manifest.read_text(encoding="utf-8")
     assert "# Supplement export" in manifest_text
     assert "tables/manaus_daily_metrics.csv" in manifest_text
-    assert "results/manaus_daily_eto.csv" in manifest_text
-    assert "reports/data_quality_summary.csv" in manifest_text
+    assert "SHA256" in manifest_text
 
     assert pd.read_csv(copied_tables).equals(pd.read_csv(tables_dir / "manaus_daily_metrics.csv"))

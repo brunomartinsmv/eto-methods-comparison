@@ -1,17 +1,25 @@
-- Add scientific regression tests for ET0 methods
-- Add composite ranking for ET0 method summaries
-- Improve supplemental export package
-- Update README to reflect configurable ET0 comparison workflow
-- Document future scope and deferred analyses
-- Update scripts to allow more flexible sheets
-- Explain better the evapotranspirations equations and how they work, using papers and books as reference; 
-- add a diagnostics of data before doing the calculations
-- create a "run one" command
-- create a automatic city report
-- sintesize the availabe data, to user know wich methods will be calculated
-- create a "application mode" to user calculate one method instead of doing all process
-- create an index output, will all results in one .md and html file (for better visualization)
-- add a clean older outputs script
-- deploy a "software version" of this, to be more friendly to new users. 
-the goal is to be easy and fast to generate all the results, with like 4/5 command line
+# Pipeline backlog
 
+## Completed
+
+- [x] Scientific regression tests for ET0 methods (`tests/test_scientific_regression.py`)
+- [x] Composite ranking for ET0 summaries (`summarize --ranking composite`)
+- [x] Improved supplemental export package (`export-supplement` with reports, figures, checksums)
+- [x] README reflects configurable ET0 workflow
+- [x] Future scope documentation (`docs/future_scope.md`)
+- [x] Flexible site readers via `reader` blocks in `configs/sites.yml`
+- [x] Pre-calculation diagnostics (`inspect`)
+- [x] Single-site wrapper (`run-site`)
+- [x] Single-method mode (`run-method`)
+- [x] Input synthesis (`inspect` input summary reports)
+- [x] Consolidated site reports (`report-site`)
+- [x] Global results index (`build-index`)
+- [x] Clean older outputs (`clean-outputs`)
+- [x] Friendly onboarding workflow (`quickstart`)
+
+## Deferred
+
+- Expand equation documentation with full LaTeX derivations per method
+- Implement Thornthwaite-family methods in Python (currently `precomputed_only`)
+- Resolve Garcia-Lopez legacy scale mismatch with spreadsheet baseline
+- Packaged GUI / web application distribution

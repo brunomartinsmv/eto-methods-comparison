@@ -338,3 +338,38 @@ def compute_daily_eto(
         result = _compare_with_precomputed(result, df, report)
 
     return ComputeDailyEtoResult(frame=result, report=report)
+
+
+def compute_selected_methods(
+    df: pd.DataFrame,
+    *,
+    method_columns: list[str],
+    site_meta: dict,
+    include_reference: bool = True,
+) -> ComputeDailyEtoResult:
+    """Compute a subset of ET0 methods plus the reference when requested."""
+    full = compute_daily_eto(df, site_meta=site_meta, include_precomputed=False)
+    selected = list(method_columns)
+    if include_reference and "et_penman_monteith" not in selected:
+        selected.append("et_penman_monteith")
+
+    frame = pd.DataFrame(index=df.index)
+    if "date" in df.columns:
+        frame["date"] = df["date"]
+
+    report = ComputeEtoReport()
+    for column in selected:
+        if column in full.frame.columns:
+            frame[column] = full.frame[column]
+            if column in full.report.computed:
+                report.computed.append(column)
+            elif column in full.report.attached_precomputed_only:
+                report.attached_precomputed_only.append(column)
+        else:
+            skip = next((item for item in full.report.skipped if item.column == column), None)
+            if skip:
+                report.skipped.append(skip)
+            else:
+                report.skipped.append(MethodSkip(column, "method not produced"))
+
+    return ComputeDailyEtoResult(frame=frame, report=report)

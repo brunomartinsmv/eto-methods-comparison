@@ -21,6 +21,12 @@ All notable changes to this project are documented in this file.
 - Added monthly, rainfall-season, and ET0-bin error summaries and figures.
 - Added local calibration workflow for selected ET0 methods, including a calibrate CLI command, temporal train/test split support, calibrated output columns, coefficient exports, and calibration metrics exports.
 - Added example Manaus calibration outputs for the Hargreaves-Samani method.
+- Added `inspect` CLI command with method feasibility and input summary reports.
+- Added `run-site`, `run-method`, `quickstart`, `report-site`, `build-index`, and `clean-outputs` CLI commands.
+- Added flexible site readers via optional `reader` configuration in `configs/sites.yml`.
+- Added consolidated Markdown/HTML site reports and a global results index.
+- Added `docs/future_scope.md` documenting deferred analyses and known limitations.
+- Improved `export-supplement` to include reports, figures, checksums, and index files.
 
 ### Changed
 
