@@ -41,7 +41,7 @@ def actual_vapor_pressure_kpa(df: pd.DataFrame) -> pd.Series:
     raise ValueError("Need humidity columns to estimate actual vapor pressure")
 
 
-def _required(df: pd.DataFrame, columns: list[str], method: str) -> bool:
+def _required(df: pd.DataFrame, columns: list[str]) -> bool:
     missing = [column for column in columns if column not in df.columns]
     return not missing
 
@@ -75,7 +75,7 @@ def compute_daily_eto(
     altitude_m = float(site_meta.get("alt_m", DEFAULT_ALTITUDE_M))
     gamma = psychrometric_constant_kpa_c(altitude_m)
 
-    if _required(df, ["tmed_c", "rad_net_mj_m2_d", "wind_mean_ms"], "penman_monteith"):
+    if _required(df, ["tmed_c", "rad_net_mj_m2_d", "wind_mean_ms"]):
         delta = vapor_pressure_slope_kpa_c(df["tmed_c"])
         es = saturation_vapor_pressure_kpa(df["tmed_c"])
         ea = actual_vapor_pressure_kpa(df)
@@ -90,7 +90,7 @@ def compute_daily_eto(
             gamma_kpa_c=gamma,
         )
 
-    if _required(df, ["tmed_c", "ra_extraterrestre_mj_m2_d"], "camargo"):
+    if _required(df, ["tmed_c", "ra_extraterrestre_mj_m2_d"]):
         result["et_camargo"] = eto_methods.camargo(
             t_mean_c=df["tmed_c"],
             ra_mj_m2_day=df["ra_extraterrestre_mj_m2_d"],
@@ -99,7 +99,6 @@ def compute_daily_eto(
     if _required(
         df,
         ["tmin_c", "tmax_c", "tmed_c", "ra_extraterrestre_mj_m2_d"],
-        "hargreaves_samani",
     ):
         result["et_hargreaves_samani"] = eto_methods.hargreaves_samani(
             t_min_c=df["tmin_c"],
@@ -108,7 +107,7 @@ def compute_daily_eto(
             ra_mj_m2_day=df["ra_extraterrestre_mj_m2_d"],
         )
 
-    if _required(df, ["tmed_c", "rad_global_mj_m2_d"], "radiation_methods"):
+    if _required(df, ["tmed_c", "rad_global_mj_m2_d"]):
         delta = vapor_pressure_slope_kpa_c(df["tmed_c"])
         result["et_makkink"] = eto_methods.makkink(
             delta_kpa_c=delta,
@@ -149,10 +148,10 @@ def compute_daily_eto(
                 rs_mj_m2_day=df["rad_global_mj_m2_d"],
             )
 
-    if _required(df, ["tmed_c"], "mccloud"):
+    if _required(df, ["tmed_c"]):
         result["et_mccloud"] = eto_methods.mccloud(t_mean_c=df["tmed_c"])
 
-    if _required(df, ["tmed_c", "rh_mean_pct"], "humidity_methods"):
+    if _required(df, ["tmed_c", "rh_mean_pct"]):
         result["et_ivanov"] = eto_methods.ivanov(
             t_mean_c=df["tmed_c"],
             rh_mean_pct=df["rh_mean_pct"],
@@ -162,7 +161,7 @@ def compute_daily_eto(
             rh_mean_pct=df["rh_mean_pct"],
         )
 
-    if _required(df, ["rad_net_mj_m2_d"], "net_radiation"):
+    if _required(df, ["rad_net_mj_m2_d"]):
         result["et_net_radiation"] = eto_methods.net_radiation(
             rn_mj_m2_day=df["rad_net_mj_m2_d"],
         )

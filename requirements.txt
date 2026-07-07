@@ -1,9 +1,9 @@
 # Runtime dependencies kept for compatibility with existing pip workflows.
 # For project metadata and development dependencies, see pyproject.toml.
+# Optional ERA5 download support: pip install -e ".[era5]"
 pandas>=2.2,<3.1
 numpy>=1.26,<3
 matplotlib>=3.8,<4
 scikit-learn>=1.5,<2
 openpyxl>=3.1,<4
 PyYAML>=6,<7
-cdsapi>=0.7.7

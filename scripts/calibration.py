@@ -9,6 +9,7 @@ import pandas as pd
 
 from . import eto_methods, metrics
 from .config import REFERENCE_COLUMN
+from .naming import calibration_coefficients_filename, calibration_metrics_filename
 
 OBJECTIVE = "minimize_train_rmse"
 
@@ -303,8 +304,8 @@ def write_calibration_outputs(
     method: str,
 ) -> tuple[Path, Path]:
     output_dir.mkdir(parents=True, exist_ok=True)
-    coefficients_path = output_dir / f"{site}_{method}_calibration_coefficients.csv"
-    metrics_path = output_dir / f"{site}_{method}_calibration_metrics.csv"
+    coefficients_path = output_dir / calibration_coefficients_filename(site, method)
+    metrics_path = output_dir / calibration_metrics_filename(site, method)
     result.coefficients.to_csv(coefficients_path, index=False)
     result.metrics.to_csv(metrics_path, index=False)
     return coefficients_path, metrics_path

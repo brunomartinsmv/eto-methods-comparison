@@ -36,6 +36,18 @@ from .config import (
     SITES,
     select_sites,
 )
+from .naming import (
+    bias_bins_filename,
+    bootstrap_filename,
+    cleaned_daily_filename,
+    daily_eto_filename,
+    figure_filename,
+    metrics_filename,
+    monthly_totals_filename,
+    rolling_7d_filename,
+    seasonal_filename,
+    sensitivity_filename,
+)
 
 
 class SiteAction(argparse.Action):
@@ -58,61 +70,22 @@ def _method_cols_present(df: pd.DataFrame) -> list[str]:
     return [col for col in METHOD_COLUMNS.values() if col in df.columns]
 
 
-def require_precomputed_eto_mode(args: argparse.Namespace) -> None:
-    if getattr(args, "eto_source", "precomputed") == "compute":
-        raise NotImplementedError(
-            "Use the 'compute-eto' subcommand after cleaning standardized weather data. "
-            "The clean/validate/all flags keep --use-precomputed-eto as the "
-            "legacy-compatible default."
-        )
+def _compute_eto_requested(args: argparse.Namespace) -> bool:
+    return getattr(args, "eto_source", "precomputed") == "compute"
 
 
-def cleaned_daily_filename(site: str) -> str:
-    return f"{site}_daily.csv"
-
-
-def rolling_7d_filename(site: str) -> str:
-    return f"{site}_rolling_7d.csv"
-
-
-def monthly_totals_filename(site: str) -> str:
-    return f"{site}_monthly_totals.csv"
-
-
-def daily_eto_filename(site: str) -> str:
-    return f"{site}_daily_eto.csv"
-
-
-def metrics_filename(site: str, scale: str) -> str:
-    return f"{site}_{scale}_metrics.csv"
-
-
-def bootstrap_filename(site: str) -> str:
-    return f"{site}_bootstrap_metric_intervals.csv"
-
-
-def seasonal_filename(site: str) -> str:
-    return f"{site}_seasonal_error_metrics.csv"
-
-
-def bias_bins_filename(site: str) -> str:
-    return f"{site}_bias_by_eto_bin.csv"
-
-
-def sensitivity_filename(site: str, method: str) -> str:
-    return f"{site}_sensitivity_{method}.csv"
-
-
-def calibration_coefficients_filename(site: str, method: str) -> str:
-    return f"{site}_{method}_calibration_coefficients.csv"
-
-
-def calibration_metrics_filename(site: str, method: str) -> str:
-    return f"{site}_{method}_calibration_metrics.csv"
-
-
-def figure_filename(site: str, product: str) -> str:
-    return f"{site}_{product}.png"
+def _maybe_compute_eto_after_clean(args: argparse.Namespace) -> None:
+    if not _compute_eto_requested(args):
+        return
+    compute_args = argparse.Namespace(
+        input=str(Path(args.output)),
+        output=str(OUTPUTS_RESULTS),
+        year=getattr(args, "year", DEFAULT_YEAR),
+        site=getattr(args, "site", None),
+        all_sites=getattr(args, "all_sites", True),
+        include_precomputed=getattr(args, "include_precomputed", False),
+    )
+    cmd_compute_eto(compute_args)
 
 
 def _selected_sites(args: argparse.Namespace) -> dict[str, dict]:
@@ -120,7 +93,6 @@ def _selected_sites(args: argparse.Namespace) -> dict[str, dict]:
 
 
 def cmd_clean(args: argparse.Namespace) -> None:
-    require_precomputed_eto_mode(args)
     input_path = Path(args.input)
     output_dir = Path(args.output)
     _ensure_dir(output_dir)
@@ -130,9 +102,10 @@ def cmd_clean(args: argparse.Namespace) -> None:
         df = cleaning.clean_daily(df)
         io.write_cleaned(df, output_dir / cleaned_daily_filename(site))
 
+    _maybe_compute_eto_after_clean(args)
+
 
 def cmd_validate_data(args: argparse.Namespace) -> None:
-    require_precomputed_eto_mode(args)
     input_path = Path(args.input)
     output_dir = Path(args.output)
     _ensure_dir(output_dir)
@@ -636,7 +609,10 @@ def _add_eto_source_selection(parser: argparse.ArgumentParser) -> None:
         dest="eto_source",
         action="store_const",
         const="compute",
-        help="Reserved for direct raw-to-ETo cleaning; use the compute-eto subcommand after clean",
+        help=(
+            "After cleaning, compute ET0 from standardized meteorological variables "
+            "and write outputs/results/{site}_daily_eto.csv"
+        ),
     )
 
 

@@ -3,7 +3,24 @@ from pathlib import Path
 import pytest
 import yaml
 
-from scripts.config import METHODS_CONFIG, load_methods_config, load_sites_config, select_sites
+from scripts.config import (
+    METHODS_CONFIG,
+    clear_config_cache,
+    load_methods_config,
+    load_sites_config,
+    select_sites,
+)
+
+
+def test_lazy_config_attributes_load_on_first_access() -> None:
+    import scripts.config as config
+
+    clear_config_cache()
+    sites = config.SITES
+    methods = config.METHOD_COLUMNS
+
+    assert "manaus" in sites
+    assert "et_penman_monteith" in methods.values()
 
 
 def test_load_sites_config_reads_site_metadata_from_yaml(tmp_path: Path) -> None:
