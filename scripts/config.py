@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -82,11 +84,35 @@ def select_sites(
     return sites
 
 
-SITES = load_sites_config()
-METHODS = load_methods_config()
-METHOD_COLUMNS = METHODS.columns
-METHOD_SHORT = METHODS.short_names
-REFERENCE_COLUMN = METHODS.reference_column
+@lru_cache(maxsize=1)
+def _cached_sites() -> dict[str, dict]:
+    return load_sites_config()
+
+
+@lru_cache(maxsize=1)
+def _cached_methods() -> MethodsConfig:
+    return load_methods_config()
+
+
+def clear_config_cache() -> None:
+    """Clear lazily loaded configuration caches (useful in tests)."""
+    _cached_sites.cache_clear()
+    _cached_methods.cache_clear()
+
+
+def __getattr__(name: str) -> Any:
+    if name == "SITES":
+        return _cached_sites()
+    if name == "METHODS":
+        return _cached_methods()
+    if name == "METHOD_COLUMNS":
+        return _cached_methods().columns
+    if name == "METHOD_SHORT":
+        return _cached_methods().short_names
+    if name == "REFERENCE_COLUMN":
+        return _cached_methods().reference_column
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 LEGACY_METHOD_COLUMN_ALIASES = {
     "Hargreaves & Samani": "et_hargreaves_samani",

@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from scripts import calibration, cli
-from scripts.cli import build_parser, cmd_aggregate, cmd_calibrate, require_precomputed_eto_mode
+from scripts.cli import build_parser, cmd_aggregate, cmd_calibrate
 from scripts.config import DEFAULT_YEAR
 from scripts.pca_analysis import prepare_pca_data, slugify_label
 
@@ -37,11 +37,48 @@ def test_validate_data_command_defaults_to_raw_input_and_reports_output() -> Non
     assert args.eto_source == "precomputed"
 
 
-def test_compute_eto_mode_is_explicitly_not_implemented_yet() -> None:
-    args = build_parser().parse_args(["clean", "--compute-eto"])
+def test_clean_command_accepts_compute_eto_flag() -> None:
+    args = build_parser().parse_args(["clean", "--compute-eto", "--site", "manaus"])
 
-    with pytest.raises(NotImplementedError, match="compute-eto"):
-        require_precomputed_eto_mode(args)
+    assert args.eto_source == "compute"
+    assert args.site == "manaus"
+    assert args.all_sites is False
+
+
+def test_clean_compute_eto_flag_runs_compute_after_cleaning(tmp_path, monkeypatch) -> None:
+    from scripts.cli import _maybe_compute_eto_after_clean
+
+    cleaned_dir = tmp_path / "cleaned"
+    results_dir = tmp_path / "results"
+    cleaned_dir.mkdir()
+    results_dir.mkdir()
+    monkeypatch.setattr(cli, "OUTPUTS_RESULTS", results_dir)
+
+    pd.DataFrame(
+        {
+            "date": pd.date_range("2024-01-01", periods=2, freq="D"),
+            "tmin_c": [20.0, 21.0],
+            "tmax_c": [30.0, 31.0],
+            "tmed_c": [25.0, 26.0],
+            "rh_mean_pct": [80.0, 81.0],
+            "wind_mean_ms": [2.0, 2.1],
+            "rad_global_mj_m2_d": [18.0, 19.0],
+            "rad_net_mj_m2_d": [10.0, 11.0],
+            "ra_extraterrestre_mj_m2_d": [34.0, 34.5],
+        }
+    ).to_csv(cleaned_dir / "manaus_daily.csv", index=False)
+
+    args = argparse.Namespace(
+        eto_source="compute",
+        output=str(cleaned_dir),
+        year=2024,
+        site="manaus",
+        all_sites=False,
+        include_precomputed=False,
+    )
+    _maybe_compute_eto_after_clean(args)
+
+    assert (results_dir / "manaus_daily_eto.csv").exists()
 
 
 def test_scientific_cli_commands_are_available() -> None:

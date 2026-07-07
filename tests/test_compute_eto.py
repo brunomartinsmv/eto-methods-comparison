@@ -7,8 +7,9 @@ import numpy as np
 import pandas as pd
 
 from scripts import cli, compute_eto
-from scripts.cli import cmd_compute_eto, cmd_metrics, daily_eto_filename
+from scripts.cli import cmd_compute_eto, cmd_metrics
 from scripts.config import REFERENCE_COLUMN
+from scripts.naming import daily_eto_filename
 
 
 def _weather_frame() -> pd.DataFrame:
