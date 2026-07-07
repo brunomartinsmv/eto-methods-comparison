@@ -13,7 +13,8 @@ from scripts.config import REFERENCE_COLUMN
 from scripts.naming import figure_filename
 
 
-def _minimal_eto_frame(n_days: int = 7) -> pd.DataFrame:
+def _minimal_eto_frame(n_days: int = 40) -> pd.DataFrame:
+    """Enough days to span two months so monthly Taylor diagram is generated."""
     dates = pd.date_range("2024-01-01", periods=n_days, freq="D")
     return pd.DataFrame(
         {
@@ -30,10 +31,13 @@ def test_plots_command_writes_expected_figures_in_temporary_directory(
 ) -> None:
     cleaned_dir = tmp_path / "cleaned"
     figures_dir = tmp_path / "figures"
+    results_dir = tmp_path / "results"
     cleaned_dir.mkdir()
+    results_dir.mkdir()
     _minimal_eto_frame().to_csv(cleaned_dir / "manaus_daily.csv", index=False)
 
     monkeypatch.setattr(cli, "OUTPUTS_FIGURES", figures_dir)
+    monkeypatch.setattr("scripts.eto_io.OUTPUTS_RESULTS", results_dir)
 
     args = argparse.Namespace(
         input=str(cleaned_dir),

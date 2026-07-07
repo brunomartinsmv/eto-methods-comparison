@@ -29,6 +29,7 @@ def isolated_pipeline_dirs(tmp_path: Path, monkeypatch):
 
     monkeypatch.setattr(cli, "DATA_CLEANED", cleaned_dir)
     monkeypatch.setattr(cli, "OUTPUTS_RESULTS", results_dir)
+    monkeypatch.setattr("scripts.eto_io.OUTPUTS_RESULTS", results_dir)
     monkeypatch.setattr(cli, "OUTPUTS_FIGURES", figures_dir)
     monkeypatch.setattr(cli, "OUTPUTS_TABLES", tables_dir)
     monkeypatch.setattr(cli, "OUTPUTS_REPORTS", reports_dir)
@@ -70,5 +71,6 @@ def test_reproduce_paper_runs_end_to_end_with_synthetic_fixture(
     assert figures, "expected figures for manaus"
 
     eto = pd.read_csv(dirs["results"] / daily_eto_filename("manaus"))
+    assert len(eto) == 14
     assert "et_penman_monteith" in eto.columns
     assert "precomputed_et_penman_monteith" in eto.columns
