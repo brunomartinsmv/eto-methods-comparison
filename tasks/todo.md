@@ -9,13 +9,16 @@
 - [x] Future scope documentation (`docs/future_scope.md`)
 - [x] Flexible site readers via `reader` blocks in `configs/sites.yml`
 - [x] Pre-calculation diagnostics (`inspect`)
-- [x] Single-site wrapper (`run-site`)
+- [x] Single-site wrapper (`run-site`, alias `run-one`)
 - [x] Single-method mode (`run-method`)
 - [x] Input synthesis (`inspect` input summary reports)
 - [x] Consolidated site reports (`report-site`)
 - [x] Global results index (`build-index`)
 - [x] Clean older outputs (`clean-outputs`)
 - [x] Friendly onboarding workflow (`quickstart`)
+- [x] Derived meteorological variables module (`scripts/derived_meteo.py`)
+- [x] Configurable pipeline defaults (`configs/pipeline.yml`)
+- [x] Cleaning gap limits and long-gap warnings (`clean --max-gap`)
 
 ## Deferred
 

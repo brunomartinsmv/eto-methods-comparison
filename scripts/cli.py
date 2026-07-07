@@ -36,6 +36,7 @@ from .config import (
     OUTPUTS_RESULTS,
     OUTPUTS_SUPPLEMENT,
     OUTPUTS_TABLES,
+    PIPELINE,
     REFERENCE_COLUMN,
     SITES,
     select_sites,
@@ -109,6 +110,17 @@ def _pipeline_site_kwargs(args: argparse.Namespace) -> dict[str, int | str | boo
     }
 
 
+def _pipeline_uncertainty_kwargs(args: argparse.Namespace) -> dict[str, int | float | str]:
+    pipeline = PIPELINE
+    return {
+        "bootstrap_samples": getattr(args, "bootstrap_samples", pipeline.uncertainty_bootstrap_samples),
+        "confidence": getattr(args, "confidence", pipeline.uncertainty_confidence),
+        "random_state": getattr(args, "random_state", args.year),
+        "rainfall_column": getattr(args, "rainfall_column", pipeline.uncertainty_rainfall_column),
+        "eto_bins": getattr(args, "eto_bins", pipeline.uncertainty_eto_bins),
+    }
+
+
 def _run_downstream_analysis(args: argparse.Namespace, *, cleaned_input: str | None = None) -> None:
     cleaned = cleaned_input or str(DATA_CLEANED)
     site_kwargs = _pipeline_site_kwargs(args)
@@ -140,11 +152,7 @@ def _run_downstream_analysis(args: argparse.Namespace, *, cleaned_input: str | N
             tables_output=str(OUTPUTS_TABLES),
             reports_output=str(OUTPUTS_REPORTS),
             figures_output=str(OUTPUTS_FIGURES),
-            bootstrap_samples=1000,
-            confidence=0.95,
-            random_state=args.year,
-            rainfall_column="rain_mm",
-            eto_bins=4,
+            **_pipeline_uncertainty_kwargs(args),
             **site_kwargs,
         )
     )
@@ -170,13 +178,27 @@ def cmd_clean(args: argparse.Namespace) -> None:
     input_path = Path(args.input)
     output_dir = Path(args.output)
     _ensure_dir(output_dir)
+    max_gap = getattr(args, "max_gap", None)
+    if max_gap is None:
+        max_gap = PIPELINE.cleaning_max_gap_days
 
     for site, meta in _selected_sites(args).items():
-        df = io.read_site_data(input_path, meta, year=args.year)
-        df = cleaning.clean_daily(df)
+        df = io.select_cleaned_columns(io.read_site_data(input_path, meta, year=args.year))
+        cleaned_df, audit = cleaning.clean_daily_with_audit(df, max_gap=max_gap)
         output_path = output_dir / cleaned_daily_filename(site)
-        io.write_cleaned(df, output_path)
+        io.write_cleaned(cleaned_df, output_path)
         logger.info("wrote cleaned daily data for %s to %s", site, output_path)
+        for variable, segments in audit.long_gaps_by_variable.items():
+            for start, end, length in segments:
+                logger.warning(
+                    "%s: long gap in %s (%d days) from %s to %s exceeds max_gap=%s",
+                    site,
+                    variable,
+                    length,
+                    start.date(),
+                    end.date(),
+                    max_gap,
+                )
 
     _maybe_compute_eto_after_clean(args)
 
@@ -185,11 +207,15 @@ def cmd_validate_data(args: argparse.Namespace) -> None:
     input_path = Path(args.input)
     output_dir = Path(args.output)
     _ensure_dir(output_dir)
+    max_gap = getattr(args, "max_gap", None)
+    if max_gap is None:
+        max_gap = PIPELINE.cleaning_max_gap_days
 
     reports = []
     for site, meta in _selected_sites(args).items():
         raw_df = io.read_site_data(input_path, meta, year=args.year)
-        cleaned_df, audit = cleaning.clean_daily_with_audit(raw_df)
+        canonical_df = io.select_cleaned_columns(raw_df)
+        cleaned_df, audit = cleaning.clean_daily_with_audit(canonical_df, max_gap=max_gap)
         report = quality.build_quality_report(
             site=site,
             raw_df=raw_df,
@@ -328,6 +354,11 @@ def cmd_calibrate(args: argparse.Namespace) -> None:
             train_end=args.train_end,
             test_start=args.test_start,
             test_end=args.test_end,
+            train_fraction=(
+                getattr(args, "train_fraction", None)
+                if getattr(args, "train_fraction", None) is not None
+                else PIPELINE.calibration_train_fraction
+            ),
         )
         calibration.write_calibration_outputs(
             result,
@@ -515,9 +546,20 @@ def cmd_sensitivity(args: argparse.Namespace) -> None:
     _ensure_dir(tables_dir)
     _ensure_dir(figures_dir)
 
+    perturbations = getattr(args, "perturbations", None)
+    if perturbations is None:
+        perturbation_values = sensitivity.default_perturbations()
+    else:
+        perturbation_values = tuple(int(value) for value in perturbations.split(","))
+
     for site, meta in _selected_sites(args).items():
         df = pd.read_csv(input_dir / cleaned_daily_filename(site), parse_dates=["date"])
-        result = sensitivity.run_oat_sensitivity(df, site_meta=meta, method=args.method)
+        result = sensitivity.run_oat_sensitivity(
+            df,
+            site_meta=meta,
+            method=args.method,
+            perturbations=perturbation_values,
+        )
         sensitivity.write_sensitivity_outputs(
             result,
             table_path=tables_dir / sensitivity_filename(site, args.method),
@@ -704,11 +746,7 @@ def cmd_run_site(args: argparse.Namespace) -> None:
                         tables_output=str(OUTPUTS_TABLES),
                         reports_output=str(OUTPUTS_REPORTS),
                         figures_output=str(OUTPUTS_FIGURES),
-                        bootstrap_samples=1000,
-                        confidence=0.95,
-                        random_state=args.year,
-                        rainfall_column="rain_mm",
-                        eto_bins=4,
+                        **_pipeline_uncertainty_kwargs(args),
                         **site_kwargs,
                     )
                 )
@@ -910,6 +948,12 @@ def build_parser() -> argparse.ArgumentParser:
     clean_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
     clean_parser.add_argument("--input", default=str(DATA_RAW / "Evapo.xlsx"))
     clean_parser.add_argument("--output", default=str(DATA_CLEANED))
+    clean_parser.add_argument(
+        "--max-gap",
+        type=int,
+        default=None,
+        help="Maximum consecutive missing days to interpolate (default: configs/pipeline.yml)",
+    )
     _add_eto_source_selection(clean_parser)
     _add_site_selection(clean_parser)
     clean_parser.set_defaults(func=cmd_clean)
@@ -928,6 +972,12 @@ def build_parser() -> argparse.ArgumentParser:
     validate_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
     validate_parser.add_argument("--input", default=str(DATA_RAW / "Evapo.xlsx"))
     validate_parser.add_argument("--output", default=str(OUTPUTS_REPORTS))
+    validate_parser.add_argument(
+        "--max-gap",
+        type=int,
+        default=None,
+        help="Maximum consecutive missing days to interpolate (default: configs/pipeline.yml)",
+    )
     _add_eto_source_selection(validate_parser)
     _add_site_selection(validate_parser)
     validate_parser.set_defaults(func=cmd_validate_data)
@@ -980,6 +1030,12 @@ def build_parser() -> argparse.ArgumentParser:
     calibrate_parser.add_argument("--train-end", default=None)
     calibrate_parser.add_argument("--test-start", default=None)
     calibrate_parser.add_argument("--test-end", default=None)
+    calibrate_parser.add_argument(
+        "--train-fraction",
+        type=float,
+        default=None,
+        help="Default train fraction when split dates are omitted (default: configs/pipeline.yml)",
+    )
     _add_site_selection(calibrate_parser)
     calibrate_parser.set_defaults(func=cmd_calibrate)
 
@@ -1030,6 +1086,11 @@ def build_parser() -> argparse.ArgumentParser:
         choices=sorted(sensitivity.METHOD_OUTPUT_COLUMNS),
         default="penman_monteith",
         help="ET0 method to recompute under each perturbation",
+    )
+    sensitivity_parser.add_argument(
+        "--perturbations",
+        default=None,
+        help="Comma-separated perturbation percentages (default: configs/pipeline.yml)",
     )
     _add_site_selection(sensitivity_parser)
     sensitivity_parser.set_defaults(func=cmd_sensitivity)
@@ -1118,6 +1179,27 @@ def build_parser() -> argparse.ArgumentParser:
     _add_eto_source_selection(run_site_parser)
     _add_site_selection(run_site_parser)
     run_site_parser.set_defaults(func=cmd_run_site)
+
+    run_one_parser = subparsers.add_parser(
+        "run-one",
+        help="Alias for run-site (single-site pipeline wrapper)",
+    )
+    run_one_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
+    run_one_parser.add_argument("--input", default=str(DATA_RAW / "Evapo.xlsx"))
+    run_one_parser.add_argument("--output", default=str(DATA_CLEANED))
+    run_one_parser.add_argument(
+        "--steps",
+        default=None,
+        help=f"Comma-separated steps (default: all). Choices: {', '.join(RUN_SITE_STEPS)}",
+    )
+    run_one_parser.add_argument(
+        "--include-precomputed",
+        action="store_true",
+        help="Pass --include-precomputed to compute-eto when that step runs",
+    )
+    _add_eto_source_selection(run_one_parser)
+    _add_site_selection(run_one_parser)
+    run_one_parser.set_defaults(func=cmd_run_site)
 
     run_method_parser = subparsers.add_parser(
         "run-method",

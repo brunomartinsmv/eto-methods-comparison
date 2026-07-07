@@ -12,6 +12,7 @@ import pandas as pd
 import pytest
 
 from scripts import compute_eto
+from scripts.derived_meteo import wind_speed_at_2m
 from scripts.eto_methods import garcia_lopez
 
 
@@ -64,13 +65,15 @@ def test_garcia_lopez_computed_values_differ_greatly_from_spreadsheet_precompute
 
 def test_garcia_lopez_pipeline_matches_eto_methods_implementation() -> None:
     df = _synthetic_weather_with_legacy_precomputed()
+    site_meta = {"alt_m": 61.25, "wind_height_m": 10.0}
+    wind_2m = wind_speed_at_2m(df["wind_mean_ms"], measurement_height_m=site_meta["wind_height_m"])
     expected = garcia_lopez(
         t_mean_c=df["tmed_c"],
         rh_mean_pct=df["rh_mean_pct"],
-        wind_2m_m_s=df["wind_mean_ms"],
+        wind_2m_m_s=wind_2m,
         rs_mj_m2_day=df["rad_global_mj_m2_d"],
     )
-    result = compute_eto.compute_daily_eto(df, site_meta={"alt_m": 61.25})
+    result = compute_eto.compute_daily_eto(df, site_meta=site_meta)
     np.testing.assert_allclose(result.frame["et_garcia_lopez"], expected, rtol=1e-10)
 
 

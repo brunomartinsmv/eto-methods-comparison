@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -11,6 +12,7 @@ from .config import (
     LEGACY_METHOD_COLUMN_ALIASES,
     METHOD_COLUMNS,
     WEATHER_COLUMNS,
+    load_sites_defaults,
 )
 
 
@@ -24,16 +26,28 @@ class ReaderConfig:
 
 
 def resolve_reader_config(site_meta: dict, default_input: Path) -> ReaderConfig:
+    defaults = load_sites_defaults()
+    default_reader = defaults.reader if isinstance(defaults.reader, dict) else {}
     reader = site_meta.get("reader")
     if not isinstance(reader, dict):
-        return ReaderConfig(sheet=str(site_meta.get("sheet", "")))
+        reader = {}
+    merged_reader = {**default_reader, **reader}
 
-    column_map = reader.get("column_map")
+    column_map = merged_reader.get("column_map")
+    default_format = str(default_reader.get("format", "evapo_legacy"))
+    merged_format = str(merged_reader.get("format", default_format))
+    if "skiprows" in reader:
+        skiprows = int(reader["skiprows"])
+    elif merged_format == "generic":
+        skiprows = 0
+    else:
+        skiprows = int(merged_reader.get("skiprows", int(default_reader.get("skiprows", 4))))
+
     return ReaderConfig(
-        format=str(reader.get("format", "evapo_legacy")),
-        path=reader.get("path"),
-        sheet=reader.get("sheet", site_meta.get("sheet")),
-        skiprows=int(reader.get("skiprows", 0 if reader.get("format") == "generic" else 4)),
+        format=merged_format,
+        path=merged_reader.get("path"),
+        sheet=merged_reader.get("sheet", site_meta.get("sheet")),
+        skiprows=skiprows,
         column_map={str(k): str(v) for k, v in column_map.items()} if isinstance(column_map, dict) else None,
     )
 
@@ -47,6 +61,12 @@ def _parse_date_series(series: pd.Series, year: int) -> pd.Series:
     if parsed.notna().sum() > len(series) * 0.5:
         return parsed
 
+    warnings.warn(
+        "Date parsing fell back to day-of-month heuristics with implicit month rollover; "
+        "verify parsed dates against the source spreadsheet.",
+        UserWarning,
+        stacklevel=3,
+    )
     numeric = numeric.fillna(1).astype(int)
     months = []
     current_month = 1
@@ -72,8 +92,37 @@ def _apply_column_map(df: pd.DataFrame, column_map: dict[str, str] | None) -> pd
     return df.rename(columns=rename_map)
 
 
-def read_evapo_sheet(path: Path, sheet: str, year: int = DEFAULT_YEAR) -> pd.DataFrame:
-    df = pd.read_excel(path, sheet_name=sheet, skiprows=4)
+def canonical_cleaned_columns(df: pd.DataFrame) -> list[str]:
+    """Return column order for cleaned daily CSV output."""
+    weather = [col for col in WEATHER_COLUMNS.values() if col in df.columns and col != "date"]
+    derived = [col for col in ("ra_extraterrestre_mj_m2_d",) if col in df.columns]
+    methods = sorted(col for col in METHOD_COLUMNS.values() if col in df.columns)
+    ordered = ["date"] if "date" in df.columns else []
+    for group in (weather, derived, methods):
+        for column in group:
+            if column not in ordered:
+                ordered.append(column)
+    return ordered
+
+
+def select_cleaned_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Keep canonical weather, derived, and ET0 columns; drop legacy spreadsheet extras."""
+    columns = canonical_cleaned_columns(df)
+    if not columns:
+        return df
+    return df.loc[:, columns]
+
+
+def read_evapo_sheet(
+    path: Path,
+    sheet: str,
+    year: int = DEFAULT_YEAR,
+    *,
+    skiprows: int | None = None,
+) -> pd.DataFrame:
+    if skiprows is None:
+        skiprows = int(load_sites_defaults().reader.get("skiprows", 4))
+    df = pd.read_excel(path, sheet_name=sheet, skiprows=skiprows)
     df = df.loc[:, [c for c in df.columns if not str(c).startswith("Unnamed")]]
     df = _apply_column_map(df, None)
     if "date" in df.columns:
@@ -123,4 +172,4 @@ def read_site_data(
 
 def write_cleaned(df: pd.DataFrame, output_path: Path) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(output_path, index=False)
+    select_cleaned_columns(df).to_csv(output_path, index=False)

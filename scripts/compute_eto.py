@@ -7,11 +7,33 @@ import pandas as pd
 
 from . import eto_methods
 from .config import METHODS
+from .derived_meteo import (
+    actual_vapor_pressure_kpa,
+    psychrometric_constant_kpa_c,
+    saturation_vapor_pressure_kpa,
+    vapor_pressure_slope_kpa_c,
+    wind_speed_at_2m,
+)
 from .fao56 import penman_monteith_fao56
 from .logging_config import get_logger
 
 DEFAULT_ALTITUDE_M = 0.0
+DEFAULT_WIND_HEIGHT_M = 10.0
 logger = get_logger("compute_eto")
+
+# Re-export derived meteorological helpers for backward compatibility.
+__all__ = [
+    "ComputeDailyEtoResult",
+    "ComputeEtoReport",
+    "MethodSkip",
+    "PrecomputedComparison",
+    "actual_vapor_pressure_kpa",
+    "compute_daily_eto",
+    "compute_selected_methods",
+    "psychrometric_constant_kpa_c",
+    "saturation_vapor_pressure_kpa",
+    "vapor_pressure_slope_kpa_c",
+]
 
 
 @dataclass(frozen=True)
@@ -67,38 +89,6 @@ class ComputeDailyEtoResult:
     report: ComputeEtoReport
 
 
-def saturation_vapor_pressure_kpa(t_c: pd.Series) -> pd.Series:
-    """Return saturation vapor pressure in kPa for air temperature in degrees C."""
-    return 0.6108 * np.exp((17.27 * t_c) / (t_c + 237.3))
-
-
-def vapor_pressure_slope_kpa_c(t_c: pd.Series) -> pd.Series:
-    """Return slope of saturation vapor pressure curve in kPa C-1."""
-    es = saturation_vapor_pressure_kpa(t_c)
-    return 4098 * es / (t_c + 237.3) ** 2
-
-
-def atmospheric_pressure_kpa(altitude_m: float) -> float:
-    """Return atmospheric pressure in kPa from altitude in m using FAO-56."""
-    return 101.3 * ((293 - 0.0065 * altitude_m) / 293) ** 5.26
-
-
-def psychrometric_constant_kpa_c(altitude_m: float) -> float:
-    """Return psychrometric constant in kPa C-1 from altitude in m."""
-    return 0.000665 * atmospheric_pressure_kpa(altitude_m)
-
-
-def actual_vapor_pressure_kpa(df: pd.DataFrame) -> pd.Series:
-    """Estimate actual vapor pressure in kPa from standardized humidity columns."""
-    if {"tmin_c", "tmax_c", "rh_min_pct", "rh_max_pct"} <= set(df.columns):
-        es_tmin = saturation_vapor_pressure_kpa(df["tmin_c"])
-        es_tmax = saturation_vapor_pressure_kpa(df["tmax_c"])
-        return (es_tmin * df["rh_max_pct"] / 100 + es_tmax * df["rh_min_pct"] / 100) / 2
-    if "rh_mean_pct" in df.columns:
-        return saturation_vapor_pressure_kpa(df["tmed_c"]) * df["rh_mean_pct"] / 100
-    raise ValueError("Need humidity columns to estimate actual vapor pressure")
-
-
 def _missing_columns(df: pd.DataFrame, columns: list[str]) -> list[str]:
     return [column for column in columns if column not in df.columns]
 
@@ -109,6 +99,11 @@ def _record_skip(report: ComputeEtoReport, column: str, missing: list[str]) -> N
 
 def _record_computed(report: ComputeEtoReport, column: str) -> None:
     report.computed.append(column)
+
+
+def _wind_for_pm(df: pd.DataFrame, site_meta: dict) -> pd.Series:
+    wind_height_m = float(site_meta.get("wind_height_m", DEFAULT_WIND_HEIGHT_M))
+    return wind_speed_at_2m(df["wind_mean_ms"], measurement_height_m=wind_height_m)
 
 
 def _compare_with_precomputed(
@@ -181,6 +176,7 @@ def compute_daily_eto(
 
     altitude_m = float(site_meta.get("alt_m", DEFAULT_ALTITUDE_M))
     gamma = psychrometric_constant_kpa_c(altitude_m)
+    wind_2m = _wind_for_pm(df, site_meta) if "wind_mean_ms" in df.columns else None
 
     missing = _missing_columns(df, ["tmed_c", "rad_net_mj_m2_d", "wind_mean_ms"])
     if not missing:
@@ -191,7 +187,7 @@ def compute_daily_eto(
             t_mean_c=df["tmed_c"],
             rn_mj_m2_day=df["rad_net_mj_m2_d"],
             g_mj_m2_day=0.0,
-            wind_2m_m_s=df["wind_mean_ms"],
+            wind_2m_m_s=wind_2m,
             saturation_vapor_pressure_kpa=es,
             actual_vapor_pressure_kpa=ea,
             delta_kpa_c=delta,
@@ -257,20 +253,20 @@ def compute_daily_eto(
             rs_mj_m2_day=df["rad_global_mj_m2_d"],
         )
         _record_computed(report, "et_stephens_stewart")
-        if "wind_mean_ms" in df.columns:
+        if wind_2m is not None:
             result["et_hicks_hess"] = eto_methods.hicks_hess(
                 t_mean_c=df["tmed_c"],
                 rs_mj_m2_day=df["rad_global_mj_m2_d"],
-                wind_2m_m_s=df["wind_mean_ms"],
+                wind_2m_m_s=wind_2m,
             )
             _record_computed(report, "et_hicks_hess")
         else:
             _record_skip(report, "et_hicks_hess", ["wind_mean_ms"])
-        if {"rh_mean_pct", "wind_mean_ms"} <= set(df.columns):
+        if {"rh_mean_pct", "wind_mean_ms"} <= set(df.columns) and wind_2m is not None:
             result["et_garcia_lopez"] = eto_methods.garcia_lopez(
                 t_mean_c=df["tmed_c"],
                 rh_mean_pct=df["rh_mean_pct"],
-                wind_2m_m_s=df["wind_mean_ms"],
+                wind_2m_m_s=wind_2m,
                 rs_mj_m2_day=df["rad_global_mj_m2_d"],
             )
             _record_computed(report, "et_garcia_lopez")

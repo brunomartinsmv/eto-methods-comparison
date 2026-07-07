@@ -22,6 +22,7 @@ DEFAULT_YEAR = 2024
 
 SITES_CONFIG = CONFIGS / "sites.yml"
 METHODS_CONFIG = CONFIGS / "methods.yml"
+PIPELINE_CONFIG = CONFIGS / "pipeline.yml"
 
 
 VALID_METHOD_STATUSES = frozenset({"computed", "precomputed_only", "reference"})
@@ -51,6 +52,25 @@ class MethodsConfig:
         )
 
 
+@dataclass(frozen=True)
+class SitesDefaults:
+    reader: dict[str, object]
+    wind_height_m: float = 10.0
+
+
+@dataclass(frozen=True)
+class PipelineConfig:
+    calibration_train_fraction: float = 0.7
+    sensitivity_perturbation_min_pct: int = -50
+    sensitivity_perturbation_max_pct: int = 50
+    sensitivity_perturbation_step_pct: int = 10
+    uncertainty_bootstrap_samples: int = 1000
+    uncertainty_confidence: float = 0.95
+    uncertainty_eto_bins: int = 4
+    uncertainty_rainfall_column: str = "rain_mm"
+    cleaning_max_gap_days: int | None = 7
+
+
 def _read_yaml(path: Path) -> dict:
     with path.open(encoding="utf-8") as stream:
         loaded = yaml.safe_load(stream) or {}
@@ -59,12 +79,56 @@ def _read_yaml(path: Path) -> dict:
     return loaded
 
 
+def load_sites_defaults(path: Path = SITES_CONFIG) -> SitesDefaults:
+    data = _read_yaml(path)
+    defaults = data.get("defaults", {})
+    if not isinstance(defaults, dict):
+        defaults = {}
+    reader = defaults.get("reader", {})
+    if not isinstance(reader, dict):
+        reader = {}
+    return SitesDefaults(
+        reader=reader,
+        wind_height_m=float(defaults.get("wind_height_m", 10.0)),
+    )
+
+
 def load_sites_config(path: Path = SITES_CONFIG) -> dict[str, dict]:
     data = _read_yaml(path)
+    defaults = load_sites_defaults(path)
     sites = data.get("sites")
     if not isinstance(sites, dict) or not sites:
         raise ValueError(f"Expected non-empty 'sites' mapping in {path}")
-    return {str(site): dict(meta) for site, meta in sites.items()}
+
+    merged: dict[str, dict] = {}
+    for site, meta in sites.items():
+        site_meta = dict(meta)
+        if "wind_height_m" not in site_meta:
+            site_meta["wind_height_m"] = defaults.wind_height_m
+        merged[str(site)] = site_meta
+    return merged
+
+
+def load_pipeline_config(path: Path = PIPELINE_CONFIG) -> PipelineConfig:
+    data = _read_yaml(path)
+    calibration = data.get("calibration", {})
+    sensitivity = data.get("sensitivity", {})
+    uncertainty = data.get("uncertainty", {})
+    cleaning = data.get("cleaning", {})
+    if not all(isinstance(section, dict) for section in (calibration, sensitivity, uncertainty, cleaning)):
+        raise ValueError(f"Expected section mappings in {path}")
+    max_gap = cleaning.get("max_gap_days")
+    return PipelineConfig(
+        calibration_train_fraction=float(calibration.get("train_fraction", 0.7)),
+        sensitivity_perturbation_min_pct=int(sensitivity.get("perturbation_min_pct", -50)),
+        sensitivity_perturbation_max_pct=int(sensitivity.get("perturbation_max_pct", 50)),
+        sensitivity_perturbation_step_pct=int(sensitivity.get("perturbation_step_pct", 10)),
+        uncertainty_bootstrap_samples=int(uncertainty.get("bootstrap_samples", 1000)),
+        uncertainty_confidence=float(uncertainty.get("confidence", 0.95)),
+        uncertainty_eto_bins=int(uncertainty.get("eto_bins", 4)),
+        uncertainty_rainfall_column=str(uncertainty.get("rainfall_column", "rain_mm")),
+        cleaning_max_gap_days=None if max_gap is None else int(max_gap),
+    )
 
 
 def load_methods_config(path: Path = METHODS_CONFIG) -> MethodsConfig:
@@ -126,10 +190,16 @@ def _cached_methods() -> MethodsConfig:
     return load_methods_config()
 
 
+@lru_cache(maxsize=1)
+def _cached_pipeline() -> PipelineConfig:
+    return load_pipeline_config()
+
+
 def clear_config_cache() -> None:
     """Clear lazily loaded configuration caches (useful in tests)."""
     _cached_sites.cache_clear()
     _cached_methods.cache_clear()
+    _cached_pipeline.cache_clear()
 
 
 def __getattr__(name: str) -> Any:
@@ -143,6 +213,8 @@ def __getattr__(name: str) -> Any:
         return _cached_methods().short_names
     if name == "REFERENCE_COLUMN":
         return _cached_methods().reference_column
+    if name == "PIPELINE":
+        return _cached_pipeline()
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
