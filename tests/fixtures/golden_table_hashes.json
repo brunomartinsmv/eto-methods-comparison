@@ -1,0 +1,18 @@
+{
+  "manaus_bias_by_eto_bin.csv": "b55bc1989ce12b71a27fc74912f677c529de31e8064ab91dbe456a066e44ff85",
+  "manaus_bootstrap_metric_intervals.csv": "6336edda54f9135f8fbc8614ff4fdfb0cdd3ad4273761e9a84784fabb578a25b",
+  "manaus_daily_metrics.csv": "8fb5e5ab4b52ffd162851f5eca2fa8534a5c3dd1776b8d9fe51175fe0312d2f0",
+  "manaus_hargreaves_samani_calibration_coefficients.csv": "db1ebfbf3a79ff2ee495adbd0feb7dba7b0c7638960374792e7f2336e6ddacfd",
+  "manaus_hargreaves_samani_calibration_metrics.csv": "e88e099aa1b19e037472372792b932b8063b7e8007ba9cb618953237fd26bd30",
+  "manaus_monthly_metrics.csv": "89290dd90910e9a4834d12e27a3cd8f1402724d9edc42bd54be159b17e855e63",
+  "manaus_seasonal_error_metrics.csv": "2b92dffcee81c505e0ed361c181b17c7d09c6e7058009bf1da7b34fbdf16364f",
+  "manaus_sensitivity_penman_monteith.csv": "f2e69638effa6c0088a01da1176a55a9b0b66301806d3ef8f82a25cf0e9c9ebc",
+  "manaus_sensitivity_radiation_temperature.csv": "0a679dc2811f5815decc556ea9ea5f03015d41d43fba93ba58dec2112757647e",
+  "manaus_sensitivity_turc.csv": "67bf978afe6345b4fb6987021652f331de1aa65befd2e6248732f126873681a6",
+  "piracicaba_bias_by_eto_bin.csv": "77ceb9f3dd3a207057a2943e4e4c5dac5c06dd5d63a15150b15221391de99547",
+  "piracicaba_bootstrap_metric_intervals.csv": "c75666ace96efe7350cd7317115c7f68469691545b657c7e7cc7e1ade1c4c5cf",
+  "piracicaba_daily_metrics.csv": "d6101613a8aec64961352750dd5ecedc491b0cca205901bbb05e9379782930be",
+  "piracicaba_monthly_metrics.csv": "7432b5bd4fc8449ad9e8038c169ff21755417fd8f296ce9e3c72af39bc9f7c52",
+  "piracicaba_seasonal_error_metrics.csv": "f61f0515e40e8002829a1ed39b3854bbb7becc4b23ed53005675949c9857e84f",
+  "summary_rankings.csv": "f506a00a619d4607997488e1faacb911e0176bb5d10154aa2e3e636e36edac98"
+}
