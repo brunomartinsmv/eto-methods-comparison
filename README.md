@@ -68,7 +68,8 @@ Clone and run the pipeline in under 5 minutes to generate:
 
 ### Extensible Framework
 The pipeline works for **any location** where you have meteorological data:
-- Add site metadata to `configs/sites.yml`
+- Add site metadata to `configs/sites.yml` (and optional defaults in the same file)
+- Tune pipeline defaults in `configs/pipeline.yml` (calibration split, sensitivity perturbations, uncertainty bootstrap/bins, cleaning gap limit)
 - Add compatible data to `data/raw/` or adapt the reader for your source format
 - Keep method metadata in `configs/methods.yml`
 - Run the same pipeline and get the same output structure for any number of configured sites
@@ -152,6 +153,7 @@ python -m scripts.cli quickstart --year 2024 --site manaus
 ```bash
 python -m scripts.cli inspect --site manaus          # Check which methods are feasible
 python -m scripts.cli run-site --site manaus --compute-eto  # Full pipeline for one site
+python -m scripts.cli run-one --site manaus --compute-eto   # Alias for run-site
 python -m scripts.cli report-site --site manaus      # Consolidated Markdown/HTML report
 python -m scripts.cli build-index                    # Global index (outputs/index.html)
 ```
@@ -229,6 +231,7 @@ python -m scripts.cli metrics    # Compute RMSE, r, R², Willmott d, c, etc. →
 python -m scripts.cli plots      # Generate all figures → outputs/figures/
 python -m scripts.cli pca        # Optional PCA on meteorological drivers
 python -m scripts.cli analyze-uncertainty  # Bootstrap, seasonal, and bias-bin diagnostics
+python -m scripts.cli sensitivity --site manaus --method turc  # One-at-a-time meteorological sensitivity
 python -m scripts.cli validate-data  # Audit dates, missing values, interpolation traces
 python -m scripts.cli summarize      # Rank methods with the default composite rule
 python -m scripts.cli summarize --ranking rmse       # Rank by lowest RMSE
@@ -237,6 +240,7 @@ python -m scripts.cli reproduce-paper --year 2024  # Regenerate paper-facing out
 python -m scripts.cli quickstart --year 2024       # Onboarding: reproduce + reports + index + supplement
 python -m scripts.cli inspect --site manaus        # Pre-flight method feasibility report
 python -m scripts.cli run-site --site manaus       # Full single-site pipeline wrapper
+python -m scripts.cli run-one --site manaus        # Alias for run-site
 python -m scripts.cli run-method --site manaus --method hs  # Compute one method + PM reference
 python -m scripts.cli report-site --site manaus    # Consolidated Markdown/HTML site report
 python -m scripts.cli build-index                  # Navigation index (outputs/index.html)
@@ -258,7 +262,9 @@ precomputed `et_*` columns from the cleaned data.
 
 `calibrate` writes separate local-calibration artifacts instead of replacing
 original methods. Current calibrable methods are `hargreaves_samani`, `turc`,
-and `radiation_temperature`. It uses cleaned meteorological drivers, and when
+and `radiation_temperature`. When train/test dates are omitted, the default
+70/30 temporal split comes from `configs/pipeline.yml` (override with
+`--train-fraction`). It uses cleaned meteorological drivers, and when
 the default cleaned input is used it also uses `outputs/results/{site}_daily_eto.csv`
 for the pipeline-computed `et_penman_monteith` reference when that file exists,
 matching `metrics`. For custom cleaned inputs, pass the matching computed-result
@@ -276,6 +282,15 @@ The outputs are `outputs/tables/{site}_{method}_calibration_coefficients.csv`
 and `outputs/tables/{site}_{method}_calibration_metrics.csv`, including
 train/test periods, the `minimize_train_rmse` objective, fitted coefficients,
 and before/after metrics.
+
+`analyze-uncertainty` and `all` read their bootstrap sample count, ETo bin
+count, and related defaults from `configs/pipeline.yml`. `sensitivity` supports
+all computed ET0 methods and uses the perturbation grid defined there unless
+you pass `--perturbations` (for example `--perturbations -50,-25,0,25,50`).
+
+`clean` and `validate-data` accept `--max-gap` to limit linear interpolation
+across consecutive missing days (default from `configs/pipeline.yml`). Longer
+gaps are left as missing values and logged as warnings.
 
 **Expected runtime:** ~30 seconds for full pipeline on both sites (2024 data) [Tested in a MacBook Air M4, so results may vary].
 
@@ -361,7 +376,7 @@ To compute the full configured set of 15 ET0 methods, you generally need daily d
 
 **For complete analysis (including Penman-Monteith):**
 - Net radiation (Rn) or solar radiation
-- Wind speed at 2m height (u2)
+- Wind speed (converted to 2 m height inside the pipeline when `wind_height_m` is set in `configs/sites.yml`; default 10 m for legacy spreadsheets)
 - Relative humidity or vapor pressure
 - Soil heat flux (G) — often assumed as 0 for daily calculations
 
@@ -396,10 +411,16 @@ To compute the full configured set of 15 ET0 methods, you generally need daily d
 - Columns must include: date, temperature variables, radiation, wind, humidity
 - See `data/raw/Evapo.xlsx` as reference
 
-**2. Edit configuration** (`configs/sites.yml`)
+**2. Edit configuration**
 
-Add your site to the `sites` mapping:
+`configs/sites.yml` — add your site to the `sites` mapping:
 ```yaml
+defaults:
+  reader:
+    format: evapo_legacy
+    skiprows: 4
+  wind_height_m: 10.0
+
 sites:
   cuiaba:
     sheet: Cuiaba
@@ -413,9 +434,12 @@ sites:
     state: MT
 ```
 
-`biome`, `climate_class`, `region`, `country`, and `state` are optional interpretive metadata. They are useful for summaries and optional grouping, but the project does not require them and does not become a fixed regional or multicity study when they are present.
+`configs/pipeline.yml` — optional global defaults for calibration split,
+sensitivity perturbations, uncertainty bootstrap/bins, and cleaning gap limits.
 
-Method column mappings and short labels live in `configs/methods.yml`.
+`configs/methods.yml` — method column mappings and short labels.
+
+`biome`, `climate_class`, `region`, `country`, and `state` are optional interpretive metadata. They are useful for summaries and optional grouping, but the project does not require them and does not become a fixed regional or multicity study when they are present.
 
 **3. Run the pipeline**
 ```bash
@@ -448,11 +472,11 @@ date       | temp_mean | temp_min | temp_max | radiation | wind_2m | rh_mean
 ...
 ```
 
-**Note:** Column names should match those expected by `scripts/io.py`, or configure a custom `reader` block in `configs/sites.yml` for CSV/Excel files with different headers.
+**Note:** Column names should match those expected by `scripts/io.py`, or configure a custom `reader` block in `configs/sites.yml` for CSV/Excel files with different headers. The `clean` step writes only canonical weather, derived, and `et_*` columns to `{site}_daily.csv`; legacy spreadsheet extras are dropped.
 
 ### Flexible input readers
 
-Sites can declare a custom reader in `configs/sites.yml`:
+Global reader defaults live under `defaults.reader` in `configs/sites.yml`. Per-site blocks can override them:
 
 ```yaml
 sites:
@@ -478,7 +502,12 @@ The default `evapo_legacy` format keeps compatibility with `Evapo.xlsx` (sheet n
 .
 ├── data/
 │   ├── raw/            # Original meteorological data (Evapo.xlsx)
-│   └── cleaned/        # Processed daily time series
+│   └── cleaned/        # Processed daily time series ({site}_daily.csv)
+│       └── legacy/     # Non-canonical historical exports kept for reference
+├── configs/
+│   ├── sites.yml       # Site metadata and reader defaults
+│   ├── methods.yml     # ET0 method metadata
+│   └── pipeline.yml    # Calibration, sensitivity, uncertainty, and cleaning defaults
 ├── outputs/
 │   ├── results/        # Intermediate aggregations (rolling_7d, monthly totals)
 │   ├── figures/        # All generated plots (Taylor diagrams, scatter plots, time series)
@@ -528,7 +557,7 @@ The repository also includes [`CITATION.cff`](CITATION.cff), which GitHub can us
 
 ## Methods Overview
 
-The repository configuration targets **15 alternative ET0 estimation methods** plus **Penman-Monteith FAO-56** as the reference. The `compute-eto` command calculates those methods from standardized meteorological variables and writes daily calculated series to `outputs/results/{site}_daily_eto.csv`.
+The repository configuration targets **15 alternative ET0 estimation methods** plus **Penman-Monteith FAO-56** as the reference. The `compute-eto` command calculates those methods from standardized meteorological variables and writes daily calculated series to `outputs/results/{site}_daily_eto.csv`. Derived inputs such as saturation vapor pressure, psychrometric constant, extraterrestrial radiation, and wind correction to 2 m are handled in `scripts/derived_meteo.py`.
 
 **Reference standard:**
 - **Penman-Monteith (FAO-56)** — Energy balance + aerodynamic approach, requires full met data
