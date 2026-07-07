@@ -7,8 +7,12 @@ on:
 
 jobs:
   validate:
-    name: Lint, test, and reproduce
+    name: Lint, test, and reproduce (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
     env:
       MPLCONFIGDIR: /tmp/matplotlib-cache
 
@@ -16,10 +20,10 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
           cache: "pip"
 
       - name: Install project and development dependencies
@@ -30,13 +34,13 @@ jobs:
       - name: Lint active Python source
         run: python -m ruff check .
 
-      - name: Run tests
+      - name: Run tests (including golden-file table hashes)
         run: python -m pytest
 
-      - name: Run reproducibility pipeline when raw data is available
+      - name: Run paper reproduction when raw data is available
         run: |
           if [ -f data/raw/Evapo.xlsx ]; then
-            python -m scripts.cli all --year 2024
+            python -m scripts.cli reproduce-paper --year 2024
           else
-            echo "Skipping full reproduction: data/raw/Evapo.xlsx is not available in this checkout."
+            echo "Skipping paper reproduction: data/raw/Evapo.xlsx is not available in this checkout."
           fi
