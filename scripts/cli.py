@@ -448,7 +448,7 @@ def cmd_analyze_uncertainty(args: argparse.Namespace) -> None:
     _ensure_dir(figures_dir)
 
     for site in _selected_sites(args).keys():
-        df = read_eto_frame(site, cleaned_dir=input_dir)
+        df = read_eto_frame(site, cleaned_dir=input_dir, merge_cleaned_auxiliary=True)
         method_cols = [col for col in _method_cols_present(df) if col != REFERENCE_COLUMN]
         if REFERENCE_COLUMN not in df.columns:
             raise ValueError(f"Reference column '{REFERENCE_COLUMN}' not found for {site}")
@@ -515,9 +515,6 @@ def cmd_all(args: argparse.Namespace) -> None:
         eto_source=getattr(args, "eto_source", "precomputed"),
     )
     cmd_clean(clean_args)
-
-    if not _compute_eto_requested(args):
-        _run_compute_eto(args)
 
     _run_downstream_analysis(args)
 
@@ -783,7 +780,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     all_parser = subparsers.add_parser(
         "all",
-        help="Run full pipeline (clean, compute-eto, aggregate, metrics, plots, uncertainty)",
+        help="Run full pipeline (clean, aggregate, metrics, plots, uncertainty; use --compute-eto to calculate ET0)",
     )
     all_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
     all_parser.add_argument("--input", default=str(DATA_RAW / "Evapo.xlsx"))

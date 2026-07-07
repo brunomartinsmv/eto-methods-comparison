@@ -60,6 +60,39 @@ def test_read_eto_frame_loads_preferred_source(tmp_path: Path) -> None:
     assert frame.loc[0, "et_camargo"] == 2.0
 
 
+def test_read_eto_frame_merges_auxiliary_columns_from_cleaned(tmp_path: Path) -> None:
+    cleaned_dir = tmp_path / "cleaned"
+    results_dir = tmp_path / "results"
+    cleaned_dir.mkdir()
+    results_dir.mkdir()
+
+    pd.DataFrame(
+        {
+            "date": ["2024-01-01", "2024-01-02"],
+            "rain_mm": [10.0, 0.0],
+            "et_penman_monteith": [1.0, 1.0],
+            "et_camargo": [10.0, 10.0],
+        }
+    ).to_csv(cleaned_dir / "manaus_daily.csv", index=False)
+    pd.DataFrame(
+        {
+            "date": ["2024-01-01", "2024-01-02"],
+            "et_penman_monteith": [1.0, 1.0],
+            "et_camargo": [2.0, 2.0],
+        }
+    ).to_csv(results_dir / daily_eto_filename("manaus"), index=False)
+
+    frame = read_eto_frame(
+        "manaus",
+        cleaned_dir=cleaned_dir,
+        results_dir=results_dir,
+        merge_cleaned_auxiliary=True,
+    )
+
+    assert frame.loc[0, "et_camargo"] == 2.0
+    assert frame.loc[0, "rain_mm"] == 10.0
+
+
 def test_metrics_prefers_computed_daily_eto_when_available(tmp_path: Path, monkeypatch) -> None:
     cleaned_dir = tmp_path / "cleaned"
     results_dir = tmp_path / "results"

@@ -33,9 +33,29 @@ def read_eto_frame(
     *,
     cleaned_dir: Path,
     results_dir: Path | None = None,
+    merge_cleaned_auxiliary: bool = False,
 ) -> pd.DataFrame:
-    """Load the preferred daily ET₀ DataFrame for a site."""
-    return pd.read_csv(
-        eto_input_path(site, cleaned_dir=cleaned_dir, results_dir=results_dir),
-        parse_dates=["date"],
-    )
+    """Load the preferred daily ET₀ DataFrame for a site.
+
+    When the computed daily file is used and ``merge_cleaned_auxiliary`` is true,
+    non-ET₀ columns from the cleaned CSV (e.g. ``rain_mm``) are merged in by date.
+    """
+    resolved_results = results_dir if results_dir is not None else OUTPUTS_RESULTS
+    computed_path = resolved_results / daily_eto_filename(site)
+    cleaned_path = cleaned_dir / cleaned_daily_filename(site)
+
+    if computed_path.exists():
+        df = pd.read_csv(computed_path, parse_dates=["date"])
+        if merge_cleaned_auxiliary and cleaned_path.exists():
+            cleaned = pd.read_csv(cleaned_path, parse_dates=["date"])
+            aux_cols = [column for column in cleaned.columns if column != "date" and column not in df.columns]
+            if aux_cols:
+                df = df.merge(
+                    cleaned[["date", *aux_cols]],
+                    on="date",
+                    how="left",
+                    validate="one_to_one",
+                )
+        return df
+
+    return pd.read_csv(cleaned_path, parse_dates=["date"])

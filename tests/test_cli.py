@@ -153,7 +153,7 @@ def test_scientific_cli_commands_are_available() -> None:
     assert calibrate.train_start == "2024-01-01"
 
 
-def test_cmd_all_runs_compute_eto_before_downstream(monkeypatch) -> None:
+def test_cmd_all_skips_compute_in_precomputed_mode(monkeypatch) -> None:
     from scripts.cli import cmd_all
 
     calls: list[str] = []
@@ -181,7 +181,7 @@ def test_cmd_all_runs_compute_eto_before_downstream(monkeypatch) -> None:
     )
     cmd_all(args)
 
-    assert calls == ["clean", "compute", "downstream"]
+    assert calls == ["clean", "downstream"]
 
 
 def test_cmd_all_skips_duplicate_compute_when_compute_eto_flag_set(monkeypatch) -> None:
