@@ -12,6 +12,7 @@ Academic documentation. Use `methodology.md` for methods, `reproducibility.md` f
 - [`reproducibility.md`](reproducibility.md): ambiente, instalacao, comandos de reproducao, checagens e saidas esperadas.
 - [`data_provenance.md`](data_provenance.md): origem e rastreabilidade dos dados usados no estudo.
 - [`roadmap_raw_to_eto.md`](roadmap_raw_to_eto.md): plano tecnico para migrar de colunas ETo pre-calculadas para calculo a partir de variaveis meteorologicas.
+- [`future_scope.md`](future_scope.md): escopo futuro, limitacoes conhecidas e analises adiadas.
 - [`sensitivity_analysis.md`](sensitivity_analysis.md): analise opcional OAT para resposta da ET0 a perturbacoes meteorologicas.
 - [`legacy.md`](legacy.md): diferenca entre outputs historicos e resultados atuais do pipeline.
 - [`teaching_checklist.md`](teaching_checklist.md): roteiro curto para estudantes e leitores que estao aprendendo ETo.

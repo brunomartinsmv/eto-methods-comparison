@@ -129,6 +129,39 @@ For development and test workflows, install the package with development depende
 pip install -e ".[dev]"
 ```
 
+### Recommended workflow
+
+For a first run, use the onboarding command. It reproduces the paper-facing outputs,
+writes feasibility reports, builds per-site HTML reports, exports a supplement package,
+and generates a navigation index:
+
+```bash
+python -m scripts.cli quickstart --year 2024
+```
+
+Then open `outputs/index.html` in a browser to browse tables, figures, and reports.
+
+For a single configured site:
+
+```bash
+python -m scripts.cli quickstart --year 2024 --site manaus
+```
+
+**Step-by-step alternative** (when you want more control):
+
+```bash
+python -m scripts.cli inspect --site manaus          # Check which methods are feasible
+python -m scripts.cli run-site --site manaus --compute-eto  # Full pipeline for one site
+python -m scripts.cli report-site --site manaus      # Consolidated Markdown/HTML report
+python -m scripts.cli build-index                    # Global index (outputs/index.html)
+```
+
+To compute only one method plus the Penman-Monteith reference:
+
+```bash
+python -m scripts.cli run-method --site manaus --method hs
+```
+
 **6. Run the paper-facing reproduction workflow**
 ```bash
 python -m scripts.cli reproduce-paper --year 2024
@@ -201,7 +234,14 @@ python -m scripts.cli summarize      # Rank methods with the default composite r
 python -m scripts.cli summarize --ranking rmse       # Rank by lowest RMSE
 python -m scripts.cli summarize --ranking composite  # Rank by the documented multi-metric rule
 python -m scripts.cli reproduce-paper --year 2024  # Regenerate paper-facing outputs
-python -m scripts.cli export-supplement             # Collect supplemental CSV outputs
+python -m scripts.cli quickstart --year 2024       # Onboarding: reproduce + reports + index + supplement
+python -m scripts.cli inspect --site manaus        # Pre-flight method feasibility report
+python -m scripts.cli run-site --site manaus       # Full single-site pipeline wrapper
+python -m scripts.cli run-method --site manaus --method hs  # Compute one method + PM reference
+python -m scripts.cli report-site --site manaus    # Consolidated Markdown/HTML site report
+python -m scripts.cli build-index                  # Navigation index (outputs/index.html)
+python -m scripts.cli clean-outputs --dry-run      # List regenerable output files
+python -m scripts.cli export-supplement             # Collect supplemental outputs
 ```
 
 `summarize` accepts `--ranking rmse`, `--ranking mae`, `--ranking c`,
@@ -408,9 +448,28 @@ date       | temp_mean | temp_min | temp_max | radiation | wind_2m | rh_mean
 ...
 ```
 
-**Note:** Column names should match those expected by `scripts/io.py`. Check the existing data structure or modify the reading functions if your format differs.
+**Note:** Column names should match those expected by `scripts/io.py`, or configure a custom `reader` block in `configs/sites.yml` for CSV/Excel files with different headers.
 
-(will change in the future to allow more flexible sheets)
+### Flexible input readers
+
+Sites can declare a custom reader in `configs/sites.yml`:
+
+```yaml
+sites:
+  my_station:
+    lat: -15.6
+    lon: -56.1
+    alt_m: 165.0
+    reader:
+      format: generic
+      path: data/raw/my_station.csv
+      skiprows: 0
+      column_map:
+        "Temp Média": tmed_c
+        "Data": date
+```
+
+The default `evapo_legacy` format keeps compatibility with `Evapo.xlsx` (sheet name + 4 header rows).
 ---
 
 ## Repository Structure
