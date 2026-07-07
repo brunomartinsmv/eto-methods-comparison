@@ -36,6 +36,7 @@ from .config import (
     SITES,
     select_sites,
 )
+from .eto_io import read_eto_frame
 from .naming import (
     bias_bins_filename,
     bootstrap_filename,
@@ -92,6 +93,71 @@ def _selected_sites(args: argparse.Namespace) -> dict[str, dict]:
     return select_sites(SITES, site=getattr(args, "site", None), all_sites=getattr(args, "all_sites", True))
 
 
+def _pipeline_site_kwargs(args: argparse.Namespace) -> dict[str, int | str | bool | None]:
+    return {
+        "year": args.year,
+        "site": args.site,
+        "all_sites": args.all_sites,
+    }
+
+
+def _run_downstream_analysis(args: argparse.Namespace, *, cleaned_input: str | None = None) -> None:
+    cleaned = cleaned_input or str(DATA_CLEANED)
+    site_kwargs = _pipeline_site_kwargs(args)
+
+    cmd_aggregate(
+        argparse.Namespace(
+            input=cleaned,
+            output=str(OUTPUTS_RESULTS),
+            **site_kwargs,
+        )
+    )
+    cmd_metrics(
+        argparse.Namespace(
+            input=cleaned,
+            output=str(OUTPUTS_TABLES),
+            **site_kwargs,
+        )
+    )
+    cmd_plots(
+        argparse.Namespace(
+            input=cleaned,
+            output=str(OUTPUTS_FIGURES),
+            **site_kwargs,
+        )
+    )
+    cmd_analyze_uncertainty(
+        argparse.Namespace(
+            input=cleaned,
+            tables_output=str(OUTPUTS_TABLES),
+            reports_output=str(OUTPUTS_REPORTS),
+            figures_output=str(OUTPUTS_FIGURES),
+            bootstrap_samples=1000,
+            confidence=0.95,
+            random_state=args.year,
+            rainfall_column="rain_mm",
+            eto_bins=4,
+            **site_kwargs,
+        )
+    )
+
+
+def _run_compute_eto(
+    args: argparse.Namespace,
+    *,
+    include_precomputed: bool = False,
+    input_dir: str | None = None,
+    output_dir: str | None = None,
+) -> None:
+    compute_args = argparse.Namespace(
+        input=input_dir or str(DATA_CLEANED),
+        output=output_dir or str(OUTPUTS_RESULTS),
+        include_precomputed=include_precomputed,
+        **_pipeline_site_kwargs(args),
+    )
+    cmd_compute_eto(compute_args)
+
+
 def cmd_clean(args: argparse.Namespace) -> None:
     input_path = Path(args.input)
     output_dir = Path(args.output)
@@ -135,7 +201,7 @@ def cmd_aggregate(args: argparse.Namespace) -> None:
     _ensure_dir(output_dir)
 
     for site in _selected_sites(args).keys():
-        df = pd.read_csv(input_dir / cleaned_daily_filename(site), parse_dates=["date"])
+        df = read_eto_frame(site, cleaned_dir=input_dir)
         method_cols = _method_cols_present(df)
 
         rolling = aggregate.rolling_mean(df, window=7)
@@ -151,9 +217,7 @@ def cmd_metrics(args: argparse.Namespace) -> None:
     _ensure_dir(output_dir)
 
     for site in _selected_sites(args).keys():
-        computed_path = OUTPUTS_RESULTS / daily_eto_filename(site)
-        input_path = computed_path if computed_path.exists() else input_dir / cleaned_daily_filename(site)
-        df = pd.read_csv(input_path, parse_dates=["date"])
+        df = read_eto_frame(site, cleaned_dir=input_dir)
         method_cols = _method_cols_present(df)
         ref_col = REFERENCE_COLUMN
 
@@ -262,7 +326,7 @@ def cmd_plots(args: argparse.Namespace) -> None:
     _ensure_dir(figures_dir)
 
     for site in _selected_sites(args).keys():
-        df = pd.read_csv(input_dir / cleaned_daily_filename(site), parse_dates=["date"])
+        df = read_eto_frame(site, cleaned_dir=input_dir)
         method_cols = _method_cols_present(df)
         ref_col = REFERENCE_COLUMN
 
@@ -384,7 +448,7 @@ def cmd_analyze_uncertainty(args: argparse.Namespace) -> None:
     _ensure_dir(figures_dir)
 
     for site in _selected_sites(args).keys():
-        df = pd.read_csv(input_dir / cleaned_daily_filename(site), parse_dates=["date"])
+        df = read_eto_frame(site, cleaned_dir=input_dir, merge_cleaned_auxiliary=True)
         method_cols = [col for col in _method_cols_present(df) if col != REFERENCE_COLUMN]
         if REFERENCE_COLUMN not in df.columns:
             raise ValueError(f"Reference column '{REFERENCE_COLUMN}' not found for {site}")
@@ -448,50 +512,11 @@ def cmd_all(args: argparse.Namespace) -> None:
         year=args.year,
         site=args.site,
         all_sites=args.all_sites,
+        eto_source=getattr(args, "eto_source", "precomputed"),
     )
     cmd_clean(clean_args)
 
-    aggregate_args = argparse.Namespace(
-        input=str(DATA_CLEANED),
-        output=str(OUTPUTS_RESULTS),
-        year=args.year,
-        site=args.site,
-        all_sites=args.all_sites,
-    )
-    cmd_aggregate(aggregate_args)
-
-    metrics_args = argparse.Namespace(
-        input=str(DATA_CLEANED),
-        output=str(OUTPUTS_TABLES),
-        year=args.year,
-        site=args.site,
-        all_sites=args.all_sites,
-    )
-    cmd_metrics(metrics_args)
-
-    plots_args = argparse.Namespace(
-        input=str(DATA_CLEANED),
-        output=str(OUTPUTS_FIGURES),
-        year=args.year,
-        site=args.site,
-        all_sites=args.all_sites,
-    )
-    cmd_plots(plots_args)
-
-    uncertainty_args = argparse.Namespace(
-        input=str(DATA_CLEANED),
-        tables_output=str(OUTPUTS_TABLES),
-        reports_output=str(OUTPUTS_REPORTS),
-        figures_output=str(OUTPUTS_FIGURES),
-        site=args.site,
-        all_sites=args.all_sites,
-        bootstrap_samples=1000,
-        confidence=0.95,
-        random_state=args.year,
-        rainfall_column="rain_mm",
-        eto_bins=4,
-    )
-    cmd_analyze_uncertainty(uncertainty_args)
+    _run_downstream_analysis(args)
 
 
 def cmd_summarize(args: argparse.Namespace) -> None:
@@ -508,23 +533,8 @@ def cmd_summarize(args: argparse.Namespace) -> None:
 
 def cmd_reproduce_paper(args: argparse.Namespace) -> None:
     cmd_all(args)
-    compute_args = argparse.Namespace(
-        input=str(DATA_CLEANED),
-        output=str(OUTPUTS_RESULTS),
-        year=args.year,
-        site=args.site,
-        all_sites=args.all_sites,
-        include_precomputed=True,
-    )
-    cmd_compute_eto(compute_args)
-    metrics_args = argparse.Namespace(
-        input=str(DATA_CLEANED),
-        output=str(OUTPUTS_TABLES),
-        year=args.year,
-        site=args.site,
-        all_sites=args.all_sites,
-    )
-    cmd_metrics(metrics_args)
+    _run_compute_eto(args, include_precomputed=True)
+    _run_downstream_analysis(args)
     validate_args = argparse.Namespace(
         input=args.input,
         output=str(OUTPUTS_REPORTS),
@@ -768,7 +778,10 @@ def build_parser() -> argparse.ArgumentParser:
     _add_site_selection(summarize_parser)
     summarize_parser.set_defaults(func=cmd_summarize)
 
-    all_parser = subparsers.add_parser("all", help="Run full pipeline")
+    all_parser = subparsers.add_parser(
+        "all",
+        help="Run full pipeline (clean, aggregate, metrics, plots, uncertainty; use --compute-eto to calculate ET0)",
+    )
     all_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
     all_parser.add_argument("--input", default=str(DATA_RAW / "Evapo.xlsx"))
     all_parser.add_argument("--output", default=str(DATA_CLEANED))
