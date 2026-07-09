@@ -97,7 +97,18 @@ def test_scientific_cli_commands_are_available() -> None:
     assert analyze.tables_output.endswith("outputs/tables")
     assert analyze.reports_output.endswith("outputs/reports")
     assert analyze.figures_output.endswith("outputs/figures")
+    assert analyze.bootstrap_samples is None
+    assert analyze.confidence is None
+    assert analyze.random_state is None
+    assert analyze.rainfall_column is None
+    assert analyze.eto_bins is None
     assert analyze_with_year.year == 2024
+
+    analyze_override = parser.parse_args(
+        ["analyze-uncertainty", "--bootstrap-samples", "42", "--eto-bins", "3"]
+    )
+    assert analyze_override.bootstrap_samples == 42
+    assert analyze_override.eto_bins == 3
 
     summarize = parser.parse_args(["summarize"])
     assert summarize.input.endswith("outputs/tables")
@@ -174,6 +185,68 @@ def test_scientific_cli_commands_are_available() -> None:
     assert calibrate.method == "hargreaves_samani"
     assert calibrate.results_input is None
     assert calibrate.train_start == "2024-01-01"
+
+
+def test_pipeline_uncertainty_kwargs_honor_pipeline_yml_when_flags_unset(
+    tmp_path, monkeypatch
+) -> None:
+    from scripts.cli import _pipeline_uncertainty_kwargs
+    from scripts.config import load_pipeline_config
+
+    config_path = tmp_path / "pipeline.yml"
+    config_path.write_text(
+        """
+calibration:
+  train_fraction: 0.7
+sensitivity:
+  perturbation_min_pct: -50
+  perturbation_max_pct: 50
+  perturbation_step_pct: 10
+uncertainty:
+  bootstrap_samples: 42
+  confidence: 0.9
+  eto_bins: 3
+  rainfall_column: precip_mm
+cleaning:
+  max_gap_days: 7
+""".strip()
+    )
+    monkeypatch.setattr(cli, "PIPELINE", load_pipeline_config(config_path))
+
+    unset = argparse.Namespace(year=2024)
+    resolved = _pipeline_uncertainty_kwargs(unset)
+    assert resolved == {
+        "bootstrap_samples": 42,
+        "confidence": 0.9,
+        "random_state": 2024,
+        "rainfall_column": "precip_mm",
+        "eto_bins": 3,
+    }
+
+    overridden = argparse.Namespace(
+        year=2024,
+        bootstrap_samples=7,
+        confidence=0.8,
+        random_state=99,
+        rainfall_column="rain_mm",
+        eto_bins=5,
+    )
+    assert _pipeline_uncertainty_kwargs(overridden) == {
+        "bootstrap_samples": 7,
+        "confidence": 0.8,
+        "random_state": 99,
+        "rainfall_column": "rain_mm",
+        "eto_bins": 5,
+    }
+
+    # Standalone analyze-uncertainty argparse defaults are None → YAML fallback.
+    parsed = build_parser().parse_args(["analyze-uncertainty", "--year", "2023"])
+    from_parser = _pipeline_uncertainty_kwargs(parsed)
+    assert from_parser["bootstrap_samples"] == 42
+    assert from_parser["confidence"] == 0.9
+    assert from_parser["random_state"] == 2023
+    assert from_parser["rainfall_column"] == "precip_mm"
+    assert from_parser["eto_bins"] == 3
 
 
 def test_cmd_all_skips_compute_in_precomputed_mode(monkeypatch) -> None:
