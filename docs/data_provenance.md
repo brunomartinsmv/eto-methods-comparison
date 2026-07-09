@@ -29,9 +29,12 @@ python -m scripts.cli all --year 2024 --input data/raw/Evapo.xlsx --use-precompu
 
 `--use-precomputed-eto` e o modo padrao atual por compatibilidade. A flag
 torna explicita a dependencia transitoria de colunas de ETo ja calculadas na
-planilha. A flag preparatoria `--compute-eto` ja existe nos comandos `clean`,
-`validate-data`, `all` e `reproduce-paper`, mas interrompe a execucao com erro
-claro porque o calculo integral ainda nao foi validado e integrado.
+planilha. A flag `--compute-eto` nos comandos `clean` e `all` calcula ET0 a
+partir das variaveis meteorologicas padronizadas apos a limpeza e escreve
+`outputs/results/{site}_daily_eto.csv`. O comando dedicado `compute-eto` e o
+passo `compute-eto` de `run-site` / `reproduce-paper` fazem o mesmo calculo de
+forma explicita. Metodos com `status: precomputed_only` continuam dependentes
+das colunas historicas da planilha.
 
 ## Localidades analisadas
 
@@ -150,5 +153,6 @@ Os relatatorios sao gravados em `outputs/reports/`.
 - A planilha `Evapo.xlsx` inclui colunas de ETo e colunas auxiliares ja
   calculadas; o procedimento historico que produziu essas colunas deve ser
   documentado ou substituido por calculo totalmente scriptado em entrega futura.
-- O modo `--compute-eto` ainda nao calcula ETo; ele existe para reservar a
-  interface e impedir uso acidental antes da validacao cientifica.
+- Metodos `precomputed_only` (Thornthwaite, Thornthwaite-Camargo e
+  Hargreaves-Samani corrigido) ainda dependem de colunas historicas da
+  planilha e nao sao recalculados por `compute-eto`.

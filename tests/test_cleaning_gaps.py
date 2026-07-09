@@ -29,4 +29,7 @@ def test_pipeline_config_loads_defaults() -> None:
     assert pipeline.calibration_train_fraction == pytest.approx(0.7)
     assert pipeline.sensitivity_perturbation_min_pct == -50
     assert pipeline.uncertainty_bootstrap_samples == 1000
+    assert pipeline.uncertainty_confidence == pytest.approx(0.95)
+    assert pipeline.uncertainty_eto_bins == 4
+    assert pipeline.uncertainty_rainfall_column == "rain_mm"
     assert pipeline.cleaning_max_gap_days == 7

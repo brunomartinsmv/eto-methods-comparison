@@ -10,7 +10,7 @@ All notable changes to this project are documented in this file.
 - Added ranking columns for Pearson `r` and confidence `c` in summary rankings.
 - Added configuration metadata for 15 ET0 estimation methods plus Penman-Monteith FAO-56 as the reference.
 - Added optional configured-site metadata for biome, climate class, region, country, and state.
-- Marked not-yet-implemented method outputs as `configured_not_computed` in `configs/methods.yml`.
+- Marked spreadsheet-dependent method outputs as `precomputed_only` in `configs/methods.yml`.
 - Added `CONTRIBUTING.md` with reproducibility, scientific-change, and pull request expectations.
 - Added `CODE_OF_CONDUCT.md` for respectful academic and open-source participation.
 - Added README badges for DOI, CI, license, citation metadata, Python version, results, and contact.
@@ -41,6 +41,8 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- Fixed `analyze-uncertainty` so unset CLI flags fall back to `configs/pipeline.yml` (matching `clean --max-gap`, `calibrate --train-fraction`, and `sensitivity --perturbations`).
+- Corrected stale provenance docs that claimed `--compute-eto` did not calculate ET0.
 - Fixed calibration reporting so original and calibrated variants are evaluated against the same method form before comparing performance.
 - Fixed explicit --results-input handling to fail when the selected site's computed ET0 file is missing instead of silently falling back to cleaned inputs.
 - Fixed calibration validation to require finite train/test reference-method pairs before writing metrics.

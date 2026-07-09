@@ -111,13 +111,33 @@ def _pipeline_site_kwargs(args: argparse.Namespace) -> dict[str, int | str | boo
 
 
 def _pipeline_uncertainty_kwargs(args: argparse.Namespace) -> dict[str, int | float | str]:
+    """Resolve uncertainty settings from CLI args, falling back to configs/pipeline.yml.
+
+    Argparse defaults for the standalone ``analyze-uncertainty`` command are ``None``
+    so that edits to ``pipeline.yml`` are honored unless the user passes an explicit flag.
+    Nested callers (``all``, ``run-site``) may omit attributes entirely; ``getattr`` then
+    also falls back to ``PIPELINE``.
+    """
     pipeline = PIPELINE
+    bootstrap_samples = getattr(args, "bootstrap_samples", None)
+    confidence = getattr(args, "confidence", None)
+    random_state = getattr(args, "random_state", None)
+    rainfall_column = getattr(args, "rainfall_column", None)
+    eto_bins = getattr(args, "eto_bins", None)
     return {
-        "bootstrap_samples": getattr(args, "bootstrap_samples", pipeline.uncertainty_bootstrap_samples),
-        "confidence": getattr(args, "confidence", pipeline.uncertainty_confidence),
-        "random_state": getattr(args, "random_state", args.year),
-        "rainfall_column": getattr(args, "rainfall_column", pipeline.uncertainty_rainfall_column),
-        "eto_bins": getattr(args, "eto_bins", pipeline.uncertainty_eto_bins),
+        "bootstrap_samples": (
+            pipeline.uncertainty_bootstrap_samples
+            if bootstrap_samples is None
+            else bootstrap_samples
+        ),
+        "confidence": pipeline.uncertainty_confidence if confidence is None else confidence,
+        "random_state": args.year if random_state is None else random_state,
+        "rainfall_column": (
+            pipeline.uncertainty_rainfall_column
+            if rainfall_column is None
+            else rainfall_column
+        ),
+        "eto_bins": pipeline.uncertainty_eto_bins if eto_bins is None else eto_bins,
     }
 
 
@@ -497,6 +517,7 @@ def cmd_analyze_uncertainty(args: argparse.Namespace) -> None:
     _ensure_dir(tables_dir)
     _ensure_dir(reports_dir)
     _ensure_dir(figures_dir)
+    uncertainty_kwargs = _pipeline_uncertainty_kwargs(args)
 
     for site in _selected_sites(args).keys():
         df = read_eto_frame(site, cleaned_dir=input_dir, merge_cleaned_auxiliary=True)
@@ -508,21 +529,21 @@ def cmd_analyze_uncertainty(args: argparse.Namespace) -> None:
             df,
             REFERENCE_COLUMN,
             method_cols,
-            n_boot=args.bootstrap_samples,
-            confidence=args.confidence,
-            random_state=args.random_state,
+            n_boot=int(uncertainty_kwargs["bootstrap_samples"]),
+            confidence=float(uncertainty_kwargs["confidence"]),
+            random_state=int(uncertainty_kwargs["random_state"]),
         )
         seasonal = uncertainty.seasonal_error_metrics(
             df,
             REFERENCE_COLUMN,
             method_cols,
-            rainfall_col=args.rainfall_column,
+            rainfall_col=str(uncertainty_kwargs["rainfall_column"]),
         )
         bias_bins = uncertainty.bias_by_eto_bin(
             df,
             REFERENCE_COLUMN,
             method_cols,
-            n_bins=args.eto_bins,
+            n_bins=int(uncertainty_kwargs["eto_bins"]),
         )
 
         bootstrap.to_csv(tables_dir / bootstrap_filename(site), index=False)
@@ -1065,11 +1086,35 @@ def build_parser() -> argparse.ArgumentParser:
     uncertainty_parser.add_argument("--tables-output", default=str(OUTPUTS_TABLES))
     uncertainty_parser.add_argument("--reports-output", default=str(OUTPUTS_REPORTS))
     uncertainty_parser.add_argument("--figures-output", default=str(OUTPUTS_FIGURES))
-    uncertainty_parser.add_argument("--bootstrap-samples", type=int, default=1000)
-    uncertainty_parser.add_argument("--confidence", type=float, default=0.95)
-    uncertainty_parser.add_argument("--random-state", type=int, default=DEFAULT_YEAR)
-    uncertainty_parser.add_argument("--rainfall-column", default="rain_mm")
-    uncertainty_parser.add_argument("--eto-bins", type=int, default=4)
+    uncertainty_parser.add_argument(
+        "--bootstrap-samples",
+        type=int,
+        default=None,
+        help="Bootstrap resamples (default: configs/pipeline.yml)",
+    )
+    uncertainty_parser.add_argument(
+        "--confidence",
+        type=float,
+        default=None,
+        help="Confidence level for bootstrap intervals (default: configs/pipeline.yml)",
+    )
+    uncertainty_parser.add_argument(
+        "--random-state",
+        type=int,
+        default=None,
+        help="RNG seed for bootstrap resampling (default: --year)",
+    )
+    uncertainty_parser.add_argument(
+        "--rainfall-column",
+        default=None,
+        help="Rainfall column for seasonal splits (default: configs/pipeline.yml)",
+    )
+    uncertainty_parser.add_argument(
+        "--eto-bins",
+        type=int,
+        default=None,
+        help="Number of Penman-Monteith ETo bins (default: configs/pipeline.yml)",
+    )
     _add_site_selection(uncertainty_parser)
     uncertainty_parser.set_defaults(func=cmd_analyze_uncertainty)
 
