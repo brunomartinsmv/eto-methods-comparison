@@ -1,0 +1,24 @@
+{
+  "title": "Reference Evapotranspiration (ETo) Methods Comparison",
+  "description": "Reproducible Python pipeline comparing empirical and semi-empirical reference evapotranspiration estimation methods against Penman-Monteith FAO-56.",
+  "upload_type": "software",
+  "publication_date": "2026-07-12",
+  "creators": [
+    {
+      "name": "Vieira, Bruno Martins M.",
+      "affiliation": "Universidade Federal do Mato Grosso",
+      "orcid": ""
+    }
+  ],
+  "keywords": [
+    "evapotranspiration",
+    "reference evapotranspiration",
+    "Penman-Monteith",
+    "FAO-56",
+    "reproducible research",
+    "scientific computing"
+  ],
+  "license": "mit",
+  "access_right": "open",
+  "communities": []
+}

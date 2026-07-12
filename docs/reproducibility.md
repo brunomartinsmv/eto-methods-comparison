@@ -143,8 +143,12 @@ O CI executa lint, testes e o pipeline principal quando `data/raw/Evapo.xlsx` es
 **PT**
 Use `CITATION.cff` ou a secao "How to Cite" do `README.md` para citar o repositorio. O DOI de versao arquivado no Zenodo e `10.5281/zenodo.18615164`; o DOI conceitual para todas as versoes e `10.5281/zenodo.18615049`.
 
+Novas versoes GitHub sao publicadas no Zenodo pelo workflow `.github/workflows/zenodo-publish.yml` (requer o secret `ZENODO_ACCESS_TOKEN`) ou manualmente com `python -m scripts.publish_zenodo_release --tag vX.Y.Z`. Apos publicar, atualize o DOI de versao em `README.md`, `CITATION.cff` e esta secao.
+
 **EN**
 Use `CITATION.cff` or the "How to Cite" section in `README.md` to cite the repository. The archived Zenodo version DOI is `10.5281/zenodo.18615164`; the concept DOI for all versions is `10.5281/zenodo.18615049`.
+
+New GitHub releases are archived on Zenodo via `.github/workflows/zenodo-publish.yml` (requires the `ZENODO_ACCESS_TOKEN` secret) or manually with `python -m scripts.publish_zenodo_release --tag vX.Y.Z`. After publishing, update the version DOI in `README.md`, `CITATION.cff`, and this section.
 
 ## Padrao de nomes / Naming standard
 - Resultados diarios: `data/cleaned/{site}_daily.csv`
