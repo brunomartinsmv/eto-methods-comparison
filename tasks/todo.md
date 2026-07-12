@@ -21,8 +21,6 @@
 - [x] Cleaning gap limits and long-gap warnings (`clean --max-gap`)
 - [x] Full LaTeX equation derivations per method (`docs/equations/`)
 
-- [x] Expand equation documentation with full LaTeX derivations per method (`docs/equations/`)
-
 ## Deferred
 
 - Implement Thornthwaite-family methods in Python (currently `precomputed_only`)

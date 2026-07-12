@@ -174,7 +174,7 @@ Mesma forma do Hargreaves-Samani original, com coeficiente \(c_{local}\) ajustad
 
 $$\mathrm{ET_0} = c_{local} \cdot \frac{R_a}{\lambda} \cdot (T_{max} - T_{min})^{0{,}5} \cdot (T_{mean} + 17{,}8)$$
 
-### Calibracao
+### Calibração
 
 O valor de \(c_{local}\) provém da planilha legada e não é refitado pelo comando `calibrate` (que opera sobre `et_hargreaves_samani`, não sobre a coluna corrigida). Ver [`../methodological_assumptions.md`](../methodological_assumptions.md).
 
@@ -360,7 +360,9 @@ com \(C_T = 0{,}025\) e \(T_x = 3\) °C (padrões).
 
 ### Derivação
 
-Forma linear em \(T\) condicionada a \(R_s\): a evapotranspiração só responde quando \(T_{mean} > T_x\), refletindo limiar de atividade evaporativa.
+Forma linear em \(T\) condicionada a \(R_s\), com limiar \(T_x\) de atividade evaporativa.
+
+**Nota de implementação:** a função `jensen_heise` em `scripts/eto_methods.py` avalia \((T_{mean} - T_x)\) sem clamp; valores negativos de ET₀ são possíveis quando \(T_{mean} < T_x\). A formula acima descreve a forma empírica, não um truncamento no código.
 
 ---
 
