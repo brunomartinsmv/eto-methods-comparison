@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import tempfile
 import urllib.error
@@ -22,7 +23,8 @@ from pathlib import Path
 
 ZENODO_API = "https://zenodo.org/api"
 GITHUB_REPO = "brunomartinsmv/eto-methods-comparison"
-CHANGELOG_ANCHOR = "200---2026-07-12"
+REPO_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_CHANGELOG = REPO_ROOT / "CHANGELOG.md"
 
 
 class ZenodoError(RuntimeError):
@@ -60,9 +62,23 @@ def _delete_inherited_files(deposition: dict, token: str) -> None:
         _request("DELETE", file_info["links"]["self"], token=token)
 
 
-def _build_metadata(tag: str) -> dict:
+def _changelog_section_anchor(tag: str, changelog_path: Path = DEFAULT_CHANGELOG) -> str:
+    version = tag.lstrip("v")
+    pattern = re.compile(
+        rf"^## \[{re.escape(version)}\] - (\d{{4}}-\d{{2}}-\d{{2}})",
+        re.MULTILINE,
+    )
+    text = changelog_path.read_text(encoding="utf-8")
+    match = pattern.search(text)
+    if not match:
+        raise ZenodoError(f"No CHANGELOG section found for version {version}")
+    return f"{version.replace('.', '')}---{match.group(1)}"
+
+
+def _build_metadata(tag: str, changelog_path: Path = DEFAULT_CHANGELOG) -> dict:
     changelog_url = (
-        f"https://github.com/{GITHUB_REPO}/blob/{tag}/CHANGELOG.md#{CHANGELOG_ANCHOR}"
+        f"https://github.com/{GITHUB_REPO}/blob/{tag}/CHANGELOG.md"
+        f"#{_changelog_section_anchor(tag, changelog_path)}"
     )
     return {
         "metadata": {
@@ -104,7 +120,13 @@ def _build_metadata(tag: str) -> dict:
     }
 
 
-def publish_release(*, tag: str, deposition_id: str, token: str) -> dict:
+def publish_release(
+    *,
+    tag: str,
+    deposition_id: str,
+    token: str,
+    changelog_path: Path = DEFAULT_CHANGELOG,
+) -> dict:
     new_version = _request(
         "POST",
         f"{ZENODO_API}/deposit/depositions/{deposition_id}/actions/newversion",
@@ -135,7 +157,7 @@ def publish_release(*, tag: str, deposition_id: str, token: str) -> dict:
         "PUT",
         f"{ZENODO_API}/deposit/depositions/{draft_id}",
         token=token,
-        data=json.dumps(_build_metadata(tag)).encode("utf-8"),
+        data=json.dumps(_build_metadata(tag, changelog_path)).encode("utf-8"),
         headers={"Content-Type": "application/json"},
     )
 

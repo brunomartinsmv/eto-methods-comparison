@@ -18,12 +18,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || github.event.inputs.tag }}
+          fetch-depth: 0
+
+      - name: Require Zenodo token
+        env:
+          ZENODO_ACCESS_TOKEN: ${{ secrets.ZENODO_ACCESS_TOKEN }}
+        run: |
+          if [ -z "$ZENODO_ACCESS_TOKEN" ]; then
+            echo "::error::Missing repository secret ZENODO_ACCESS_TOKEN"
+            exit 1
+          fi
 
       - name: Publish release archive to Zenodo
         env:
           ZENODO_ACCESS_TOKEN: ${{ secrets.ZENODO_ACCESS_TOKEN }}
         run: |
-          TAG="${{ github.event.release.tag_name || inputs.tag }}"
+          TAG="${{ github.event.release.tag_name || github.event.inputs.tag }}"
           python -m scripts.publish_zenodo_release \
             --tag "$TAG" \
             --deposition-id 18615164
