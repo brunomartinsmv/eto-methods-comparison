@@ -528,7 +528,7 @@ The repository also includes [`CITATION.cff`](CITATION.cff), which GitHub can us
 
 ## Methods Overview
 
-The repository configuration targets **18 alternative ET0 estimation methods** plus **Penman-Monteith FAO-56** as the reference. The `compute-eto` command calculates those methods from standardized meteorological variables and writes daily calculated series to `outputs/results/{site}_daily_eto.csv`.
+The repository configuration targets **18 alternative ET0 estimation methods** plus **Penman-Monteith FAO-56** as the reference. The `compute-eto` command calculates the **15 methods with `status: computed`** from standardized meteorological variables and writes daily calculated series to `outputs/results/{site}_daily_eto.csv`.
 
 **Reference standard:**
 - **Penman-Monteith (FAO-56)** — Energy balance + aerodynamic approach, requires full met data
