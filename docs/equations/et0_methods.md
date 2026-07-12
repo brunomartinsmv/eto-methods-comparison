@@ -174,7 +174,7 @@ Mesma forma do Hargreaves-Samani original, com coeficiente \(c_{local}\) ajustad
 
 $$\mathrm{ET_0} = c_{local} \cdot \frac{R_a}{\lambda} \cdot (T_{max} - T_{min})^{0{,}5} \cdot (T_{mean} + 17{,}8)$$
 
-### Calibracao
+### Calibração
 
 O valor de \(c_{local}\) provém da planilha legada e não é refitado pelo comando `calibrate` (que opera sobre `et_hargreaves_samani`, não sobre a coluna corrigida). Ver [`../methodological_assumptions.md`](../methodological_assumptions.md).
 
@@ -360,7 +360,7 @@ com \(C_T = 0{,}025\) e \(T_x = 3\) °C (padrões).
 
 ### Derivação
 
-Forma linear em \(T\) condicionada a \(R_s\): a evapotranspiração só responde quando \(T_{mean} > T_x\), refletindo limiar de atividade evaporativa.
+Forma linear em \(T\) condicionada a \(R_s\): o deslocamento \(T_x\) modela um limiar de atividade evaporativa. **Nota:** o código não aplica `max(T_mean - T_x, 0)` — valores negativos são possíveis quando \(T_{mean} < T_x\).
 
 ---
 
