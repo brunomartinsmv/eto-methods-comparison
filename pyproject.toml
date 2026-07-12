@@ -44,7 +44,7 @@ eto-pipeline = "scripts.cli:main"
 
 [project.optional-dependencies]
 dev = [
-  "pytest>=8,<9",
+  "pytest>=8,<10",
   "ruff>=0.8,<0.14",
   "nbformat>=5.10,<6",
   "nbclient>=0.10,<0.11",
