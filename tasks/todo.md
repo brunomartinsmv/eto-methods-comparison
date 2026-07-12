@@ -19,10 +19,12 @@
 - [x] Derived meteorological variables module (`scripts/derived_meteo.py`)
 - [x] Configurable pipeline defaults (`configs/pipeline.yml`)
 - [x] Cleaning gap limits and long-gap warnings (`clean --max-gap`)
+- [x] Full LaTeX equation derivations per method (`docs/equations/`)
+
+- [x] Expand equation documentation with full LaTeX derivations per method (`docs/equations/`)
 
 ## Deferred
 
-- Expand equation documentation with full LaTeX derivations per method
 - Implement Thornthwaite-family methods in Python (currently `precomputed_only`)
 - Resolve Garcia-Lopez legacy scale mismatch with spreadsheet baseline
 - Packaged GUI / web application distribution

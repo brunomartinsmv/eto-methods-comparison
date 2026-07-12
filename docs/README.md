@@ -9,6 +9,7 @@ Academic documentation. Use `methodology.md` for methods, `reproducibility.md` f
 ## Mapa rapido / Quick map
 
 - [`methodology.md`](methodology.md): equacoes, requisitos de dados, recomendacao climatica e limitacoes dos metodos de ETo.
+- [`equations/README.md`](equations/README.md): derivações LaTeX completas por método e variáveis meteorológicas derivadas.
 - [`reproducibility.md`](reproducibility.md): ambiente, instalacao, comandos de reproducao, checagens e saidas esperadas.
 - [`data_provenance.md`](data_provenance.md): origem e rastreabilidade dos dados usados no estudo.
 - [`roadmap_raw_to_eto.md`](roadmap_raw_to_eto.md): plano tecnico para migrar de colunas ETo pre-calculadas para calculo a partir de variaveis meteorologicas.

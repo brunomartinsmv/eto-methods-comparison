@@ -493,7 +493,7 @@ The default `evapo_legacy` format keeps compatibility with `Evapo.xlsx` (sheet n
 Files under `outputs/**/legacy/` are historical notebook-era outputs, not the
 official preprint result set. See [`docs/legacy.md`](docs/legacy.md).
 
-For a documentation map, start with [`docs/README.md`](docs/README.md). For exact reproduction commands, see [`docs/reproducibility.md`](docs/reproducibility.md). For contribution expectations, see [`CONTRIBUTING.md`](CONTRIBUTING.md). Participants are also covered by the project [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
+For a documentation map, start with [`docs/README.md`](docs/README.md). For version history, see [`CHANGELOG.md`](CHANGELOG.md). For exact reproduction commands, see [`docs/reproducibility.md`](docs/reproducibility.md). For contribution expectations, see [`CONTRIBUTING.md`](CONTRIBUTING.md). Participants are also covered by the project [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
 
 ---
 
@@ -501,7 +501,7 @@ For a documentation map, start with [`docs/README.md`](docs/README.md). For exac
 
 If you use this repository or its outputs in academic work, please cite:
 
-> Vieira, B. M. M. (2026). *Reference Evapotranspiration (ETo) Methods Comparison* (Version 1.0.2) [Software]. Universidade Federal do Mato Grosso. https://doi.org/10.5281/zenodo.18615164
+> Vieira, B. M. M. (2026). *Reference Evapotranspiration (ETo) Methods Comparison* (Version 2.0.0) [Software]. Universidade Federal do Mato Grosso. https://doi.org/10.5281/zenodo.18615164
 
 **Version DOI:** https://doi.org/10.5281/zenodo.18615164
 
@@ -515,7 +515,7 @@ The repository also includes [`CITATION.cff`](CITATION.cff), which GitHub can us
   author = {Vieira, Bruno Martins M.},
   title = {Reference Evapotranspiration (ETo) Methods Comparison},
   year = {2026},
-  version = {1.0.2},
+  version = {2.0.0},
   howpublished = {Software and analysis outputs},
   institution = {Universidade Federal do Mato Grosso},
   doi = {10.5281/zenodo.18615164},
