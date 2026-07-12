@@ -8,13 +8,13 @@
 [![Results](https://img.shields.io/badge/results-summary_rankings.csv-informational.svg)](outputs/tables/summary_rankings.csv)
 [![Contact](https://img.shields.io/badge/contact-GitHub%20Issues-lightgrey.svg)](https://github.com/brunomartinsmv/eto-methods-comparison/issues)
 
-**A reproducible analysis framework for comparing up to 15 empirical and semi-empirical ET0 estimation methods against Penman-Monteith (FAO-56).**
+**A reproducible analysis framework for comparing up to 18 empirical and semi-empirical ET0 estimation methods against Penman-Monteith (FAO-56).**
 
 This repository is organized as an open, citable research compendium. The current stage includes the executable ETo pipeline, method rankings, uncertainty/sensitivity diagnostics, data-quality reports, optional PCA of meteorological drivers, tests, citation metadata, licensing, contribution guidance, and documentation for reproducing the analysis.
 
 ## Key Findings
 
-This repository now configures **15 alternative ET0 methods plus Penman-Monteith FAO-56 as reference**. The current demonstration workflow runs end to end for two contrasting Brazilian climates:
+This repository now configures **18 alternative ET0 methods plus Penman-Monteith FAO-56 as reference**. The current demonstration workflow runs end to end for two contrasting Brazilian climates:
 - **Piracicaba, SP** (Cwa — humid subtropical with dry winter)
 - **Manaus, AM** (Af — tropical rainforest)
 
@@ -352,7 +352,7 @@ The pipeline is designed for **any location** with meteorological data. Here's h
 
 ### Required Meteorological Variables
 
-To compute the full configured set of 15 ET0 methods, you generally need daily data for:
+To compute the full configured set of 18 alternative ET0 methods, you generally need daily data for:
 
 **Minimum requirements (for basic methods):**
 - Date
@@ -528,7 +528,7 @@ The repository also includes [`CITATION.cff`](CITATION.cff), which GitHub can us
 
 ## Methods Overview
 
-The repository configuration targets **15 alternative ET0 estimation methods** plus **Penman-Monteith FAO-56** as the reference. The `compute-eto` command calculates those methods from standardized meteorological variables and writes daily calculated series to `outputs/results/{site}_daily_eto.csv`.
+The repository configuration targets **18 alternative ET0 estimation methods** plus **Penman-Monteith FAO-56** as the reference. The `compute-eto` command calculates the **15 methods with `status: computed`** from standardized meteorological variables and writes daily calculated series to `outputs/results/{site}_daily_eto.csv`.
 
 **Reference standard:**
 - **Penman-Monteith (FAO-56)** — Energy balance + aerodynamic approach, requires full met data
