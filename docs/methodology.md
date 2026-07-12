@@ -4,6 +4,8 @@ Para uma auditoria das decisoes implementacionais sensiveis, veja tambem [`metho
 
 Este capitulo apresenta, de forma detalhada, os metodos usados para estimar a evapotranspiracao de referencia (ETo/ET0), incluindo equacoes, hipoteses, requisitos de dados, limitacoes e recomendacao de clima/regiao. As referencias bibliograficas aparecem ao final.
 
+Para **derivações LaTeX completas** de cada método e das variáveis meteorológicas derivadas, consulte [`equations/README.md`](equations/README.md) — em particular [`equations/et0_methods.md`](equations/et0_methods.md) e [`equations/derived_meteorology.md`](equations/derived_meteorology.md).
+
 ## Escopo configurado dos metodos
 
 O repositorio agora configura 15 metodos alternativos de ET0 e usa Penman-Monteith FAO-56 como referencia. Manaus e Piracicaba sao localidades demonstrativas configuradas em `configs/sites.yml`; o projeto nao esta limitado a essas cidades. Novas localidades podem ser adicionadas por configuracao e por dados de entrada compatíveis.
@@ -32,7 +34,7 @@ O comando `compute-eto` calcula os metodos com `status: computed` a partir de va
 | Hicks-Hess | `et_hicks_hess` | computed |
 | Penman-Monteith FAO-56 | `et_penman_monteith` | reference |
 
-Metodos `precomputed_only` dependem de colunas historicas da planilha `Evapo.xlsx` e nao sao recalculados pelo pipeline. Thornthwaite e Thornthwaite-Camargo usam desagregacao diaria legada nao documentada no codigo; Hargreaves-Samani corrigido usa coeficientes locais calibrados fora do pipeline (ver `methodological_assumptions.md`). O comando `compute-eto --include-precomputed` registra comparacoes automaticas entre series calculadas e colunas pre-calculadas quando ambas estao disponiveis.
+Metodos `precomputed_only` dependem de colunas historicas da planilha `Evapo.xlsx` e nao sao recalculados pelo pipeline. Thornthwaite e Thornthwaite-Camargo usam desagregacao diaria legada documentada em [`equations/et0_methods.md`](equations/et0_methods.md); Hargreaves-Samani corrigido usa coeficientes locais calibrados fora do pipeline (ver `methodological_assumptions.md`). O comando `compute-eto --include-precomputed` registra comparacoes automaticas entre series calculadas e colunas pre-calculadas quando ambas estao disponiveis.
 
 ## Metricas de avaliacao
 
@@ -124,8 +126,12 @@ Nao considera vento, umidade e radiacao, podendo gerar vies significativo em reg
 **PT — Descricao**
 Metodo brasileiro derivado de Thornthwaite, com ajustes empiricos para climas tropicais. Busca reduzir a subestimativa comum do Thornthwaite em regioes equatoriais.
 
+**Equacao (implementada em `compute-eto`)**
+
+$$\mathrm{ETo} = c\,\frac{R_a}{\lambda}\,T_{mean}, \qquad c = 0{,}01,\ \lambda = 2{,}45\ \mathrm{MJ\ kg^{-1}}$$
+
 **Requisitos de dados**
-Temperatura media e latitude (similar ao Thornthwaite), com coeficientes empiricos ajustados.
+Temperatura media e radiacao extraterrestre \(R_a\) (calculada via latitude e dia do ano).
 
 **Referencia**
 Metodo originalmente proposto por Camargo (1971) na literatura brasileira. A referencia original nao esta amplamente disponivel em formato digital; quando necessario, cite fontes secundarias que descrevem o metodo e explicite a limitacao.
@@ -142,6 +148,12 @@ Continua fortemente dependente da temperatura, podendo falhar em locais com vari
 
 **PT — Descricao**
 Metodo hibrido que combina o racional de Thornthwaite com os ajustes do Camargo, tentando equilibrar desempenho em diferentes climas brasileiros.
+
+**Equacao (legado; `precomputed_only`)**
+
+$$\mathrm{ET_{m,THC}} = \mathrm{ET_{m,Thorn}} \cdot \frac{N}{12}$$
+
+onde \(N\) e o fotoperiodo medio mensal (horas de luz). A desagregacao diaria usa a regra legada da planilha; ver [`equations/et0_methods.md`](equations/et0_methods.md#4-thornthwaite-camargo-precomputed_only).
 
 **Requisitos de dados**
 Temperatura media e latitude.
@@ -179,6 +191,12 @@ Nao considera umidade e vento, podendo degradar em regioes umidas.
 **PT — Descricao**
 Versao ajustada do metodo original, com coeficientes calibrados para reduzir vies local. Essa correcao pode aumentar a acuracia em climas especificos.
 
+**Equacao (legado; `precomputed_only`)**
+
+$$\mathrm{ETo} = c_{local}\,\frac{R_a}{\lambda}\,(T_{max} - T_{min})^{0{,}5}\,(T_{mean} + 17{,}8)$$
+
+com \(c_{local}\) calibrado localmente fora do pipeline.
+
 **Clima/regiao recomendada**
 Regioes onde ha calibracao local (ex.: Piracicaba). Em geral, a calibracao torna o metodo mais robusto para a localidade estudada, mas perde transferibilidade para outras regioes.
 
@@ -204,6 +222,143 @@ Climas umidos e superficies bem irrigadas (ex.: Amazonia e areas irrigadas do Su
 
 **Limitacoes**
 Pode subestimar em climas secos ou quando a superficie nao esta em condicoes de energia limitada.
+
+---
+
+## 8. Garcia-Lopez
+
+**Equacao**
+
+$$\mathrm{ETo} = 0{,}01\,(T_{mean} + 21)\,\left(1 - \frac{RH}{100}\right)\,(1 + u_2)\,\frac{R_s}{\lambda}$$
+
+**Requisitos de dados**
+Temperatura media, umidade relativa, vento a 2 m e radiacao global.
+
+**Limitacoes**
+Valores computados diferem da coluna legada da planilha; ver [`equations/et0_methods.md`](equations/et0_methods.md#8-garcia-lopez-computed).
+
+---
+
+## 9. Makkink
+
+**Equacao**
+
+$$\mathrm{ETo} = 0{,}61\,\frac{\Delta}{\Delta + \gamma}\,\frac{R_s}{\lambda} - 0{,}12$$
+
+**Requisitos de dados**
+Radiacao global, temperatura (para \(\Delta\) e \(\gamma\)).
+
+---
+
+## 10. McCloud
+
+**Equacao**
+
+$$\mathrm{ETo} = 0{,}254\,\max(T_{mean},\, 0)^{1{,}8}$$
+
+**Requisitos de dados**
+Temperatura media.
+
+---
+
+## 11. Turc
+
+**Equacao**
+
+$$\mathrm{ETo} = 0{,}013\,\frac{T_{mean}}{T_{mean} + 15}\,(R_{s,\mathrm{cal}} + 50)$$
+
+com correcao de umidade quando \(RH < 50\%\). Ver derivacao completa em [`equations/et0_methods.md`](equations/et0_methods.md#11-turc-computed).
+
+**Requisitos de dados**
+Temperatura media, radiacao global; umidade relativa opcional.
+
+---
+
+## 12. Global Radiation
+
+**Equacao**
+
+$$\mathrm{ETo} = 0{,}53\,\frac{R_s}{\lambda}$$
+
+**Requisitos de dados**
+Radiacao global.
+
+---
+
+## 13. Ivanov
+
+**Equacao**
+
+$$\mathrm{ETo} = 0{,}0018\,(T_{mean} + 25)^2\,(100 - RH)$$
+
+**Requisitos de dados**
+Temperatura media e umidade relativa.
+
+---
+
+## 14. Jensen-Heise
+
+**Equacao**
+
+$$\mathrm{ETo} = \frac{R_s}{\lambda}\,0{,}025\,(T_{mean} - 3)$$
+
+**Requisitos de dados**
+Temperatura media e radiacao global.
+
+---
+
+## 15. Net Radiation
+
+**Equacao**
+
+$$\mathrm{ETo} = 0{,}408\,R_n$$
+
+**Requisitos de dados**
+Radiacao liquida.
+
+---
+
+## 16. Radiation-Temperature
+
+**Equacao**
+
+$$\mathrm{ETo} = 0{,}01\,\frac{R_s}{\lambda}\,(T_{mean} + 15)$$
+
+**Requisitos de dados**
+Temperatura media e radiacao global.
+
+---
+
+## 17. Lungeon
+
+**Equacao**
+
+$$\mathrm{ETo} = 0{,}001\,(T_{mean} + 20)^2\,\left(1 - \frac{RH}{100}\right)$$
+
+**Requisitos de dados**
+Temperatura media e umidade relativa.
+
+---
+
+## 18. Stephens-Stewart
+
+**Equacao**
+
+$$\mathrm{ETo} = 0{,}01476\,(T_{mean} + 5)\,\frac{R_s}{\lambda}$$
+
+**Requisitos de dados**
+Temperatura media e radiacao global.
+
+---
+
+## 19. Hicks-Hess
+
+**Equacao**
+
+$$\mathrm{ETo} = 0{,}0055\,\frac{R_s}{\lambda}\,(T_{mean} + 17{,}8)\,(1 + u_2)$$
+
+**Requisitos de dados**
+Temperatura media, radiacao global e vento a 2 m.
 
 ---
 
