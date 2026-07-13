@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Corrected the Zenodo version DOI to `10.5281/zenodo.21327869` (was pointing at an older fisicambiental record).
+- Updated the Zenodo publish workflow and script defaults to use deposition ID `21327869`.
+
+### Changed
+
+- Generalized `scripts/publish_zenodo_release.py` to load metadata from `.zenodo.json`, derive publication date and changelog anchors from `CHANGELOG.md`, support `--dry-run` and HTTP timeouts, and fail clearly on download errors.
+- Zenodo publish workflow now checks out the release tag and fails early when `ZENODO_ACCESS_TOKEN` is missing.
+
 ## [2.0.0] - 2026-07-12
 
 ### Added
