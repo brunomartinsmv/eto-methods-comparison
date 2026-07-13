@@ -9,13 +9,6 @@ authors:
 repository-code: "https://github.com/brunomartinsmv/eto-methods-comparison"
 url: "https://github.com/brunomartinsmv/eto-methods-comparison"
 doi: 10.5281/zenodo.21327869
-identifiers:
-  - type: doi
-    value: 10.5281/zenodo.21327869
-    description: Version DOI archived on Zenodo.
-  - type: doi
-    value: 10.5281/zenodo.18615049
-    description: Zenodo concept DOI for all versions.
 version: "2.0.0"
 date-released: "2026-07-12"
 license: MIT

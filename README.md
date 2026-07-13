@@ -503,9 +503,7 @@ If you use this repository or its outputs in academic work, please cite:
 
 > Vieira, B. M. M. (2026). *Reference Evapotranspiration (ETo) Methods Comparison* (Version 2.0.0) [Software]. Universidade Federal do Mato Grosso. https://doi.org/10.5281/zenodo.21327869
 
-**Version DOI:** https://doi.org/10.5281/zenodo.21327869
-
-**Concept DOI (all versions):** https://doi.org/10.5281/zenodo.18615049
+**DOI:** https://doi.org/10.5281/zenodo.21327869
 
 The repository also includes [`CITATION.cff`](CITATION.cff), which GitHub can use to generate citation formats automatically. Add the arXiv DOI to `CITATION.cff` and this section after the preprint is available.
 
@@ -519,7 +517,6 @@ The repository also includes [`CITATION.cff`](CITATION.cff), which GitHub can us
   howpublished = {Software and analysis outputs},
   institution = {Universidade Federal do Mato Grosso},
   doi = {10.5281/zenodo.21327869},
-  doi_concept = {10.5281/zenodo.18615049},
   url = {https://github.com/brunomartinsmv/eto-methods-comparison}
 }
 ```

@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Removed the Zenodo concept DOI from citation metadata; cite `10.5281/zenodo.21327869` only.
 - Generalized `scripts/publish_zenodo_release.py` to load metadata from `.zenodo.json`, derive publication date and changelog anchors from `CHANGELOG.md`, support `--dry-run` and HTTP timeouts, and fail clearly on download errors.
 - Zenodo publish workflow now checks out the release tag and fails early when `ZENODO_ACCESS_TOKEN` is missing.
 
