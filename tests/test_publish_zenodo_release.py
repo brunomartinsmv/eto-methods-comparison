@@ -96,7 +96,7 @@ def test_publish_release_dry_run_skips_publish(monkeypatch: pytest.MonkeyPatch, 
 
     result = zenodo.publish_release(
         tag="v1.0.0",
-        deposition_id="21327869",
+        deposition_id="21341983",
         token="token",
         dry_run=True,
         zenodo_path=zenodo_json,

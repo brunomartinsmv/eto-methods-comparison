@@ -1,6 +1,6 @@
 # Reference Evapotranspiration (ETo) Methods Comparison
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21327869.svg)](https://doi.org/10.5281/zenodo.21327869)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21341983-blue)](https://doi.org/10.5281/zenodo.21341983)
 [![CI](https://github.com/brunomartinsmv/eto-methods-comparison/actions/workflows/reproduce.yml/badge.svg)](https://github.com/brunomartinsmv/eto-methods-comparison/actions/workflows/reproduce.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Cite this repository](https://img.shields.io/badge/citation-CITATION.cff-blue.svg)](CITATION.cff)
@@ -496,9 +496,9 @@ For a documentation map, start with [`docs/README.md`](docs/README.md). For vers
 
 If you use this repository or its outputs in academic work, please cite:
 
-> Vieira, B. M. M. (2026). *Reference Evapotranspiration (ETo) Methods Comparison* (Version 2.1.0) [Software]. Universidade Federal do Mato Grosso. https://doi.org/10.5281/zenodo.21327869
+> Vieira, B. M. M. (2026). *Reference Evapotranspiration (ETo) Methods Comparison* (Version 2.1.0) [Software]. Universidade Federal do Mato Grosso. https://doi.org/10.5281/zenodo.21341983
 
-**DOI:** https://doi.org/10.5281/zenodo.21327869
+**DOI:** https://doi.org/10.5281/zenodo.21341983
 
 The repository also includes [`CITATION.cff`](CITATION.cff), which GitHub can use to generate citation formats automatically. Add the arXiv DOI to `CITATION.cff` and this section after the preprint is available.
 
@@ -511,7 +511,7 @@ The repository also includes [`CITATION.cff`](CITATION.cff), which GitHub can us
   version = {2.1.0},
   howpublished = {Software and analysis outputs},
   institution = {Universidade Federal do Mato Grosso},
-  doi = {10.5281/zenodo.21327869},
+  doi = {10.5281/zenodo.21341983},
   url = {https://github.com/brunomartinsmv/eto-methods-comparison}
 }
 ```

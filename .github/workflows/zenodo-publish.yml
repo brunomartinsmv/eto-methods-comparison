@@ -38,4 +38,4 @@ jobs:
           TAG="${{ github.event.release.tag_name || github.event.inputs.tag }}"
           python -m scripts.publish_zenodo_release \
             --tag "$TAG" \
-            --deposition-id 21327869
+            --deposition-id 21341983

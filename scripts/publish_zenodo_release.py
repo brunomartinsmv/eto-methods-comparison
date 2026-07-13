@@ -5,7 +5,7 @@ scopes. Set ZENODO_ACCESS_TOKEN in the environment or pass --token.
 
 Example:
     ZENODO_ACCESS_TOKEN=... python -m scripts.publish_zenodo_release \
-        --tag v2.0.0 --deposition-id 21327869
+        --tag v2.0.0 --deposition-id 21341983
 """
 
 from __future__ import annotations
@@ -189,7 +189,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--tag", required=True, help="Git tag to publish, e.g. v2.0.0")
     parser.add_argument(
         "--deposition-id",
-        default="21327869",
+        default="21341983",
         help="Zenodo deposition ID of the latest published version",
     )
     parser.add_argument(

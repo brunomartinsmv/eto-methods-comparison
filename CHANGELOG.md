@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Pointed the README DOI badge at the current Zenodo version DOI (`10.5281/zenodo.21341983`) via shields.io so GitHub renders it reliably.
+
 ## [2.1.0] - 2026-07-13
 
 ### Added
