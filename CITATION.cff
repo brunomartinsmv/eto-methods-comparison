@@ -8,10 +8,10 @@ authors:
     affiliation: Universidade Federal do Mato Grosso
 repository-code: "https://github.com/brunomartinsmv/eto-methods-comparison"
 url: "https://github.com/brunomartinsmv/eto-methods-comparison"
-doi: 10.5281/zenodo.18615164
+doi: 10.5281/zenodo.21327869
 identifiers:
   - type: doi
-    value: 10.5281/zenodo.18615164
+    value: 10.5281/zenodo.21327869
     description: Version DOI archived on Zenodo.
   - type: doi
     value: 10.5281/zenodo.18615049
@@ -37,7 +37,7 @@ preferred-citation:
     - family-names: Martins Mendes Vieira
       given-names: Bruno.
       affiliation: Universidade Federal do Mato Grosso
-  doi: 10.5281/zenodo.18615164
+  doi: 10.5281/zenodo.21327869
   repository-code: "https://github.com/brunomartinsmv/eto-methods-comparison"
   url: "https://github.com/brunomartinsmv/eto-methods-comparison"
   date-released: "2026-07-12"
