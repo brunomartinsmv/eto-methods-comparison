@@ -1,0 +1,20 @@
+method_name,status,required_columns,missing_columns,valid_day_fraction,reason
+Thornthwaite,precomputed_only,spreadsheet column,,1.0,attached from input
+Thornthwaite-Camargo,precomputed_only,spreadsheet column,,1.0,attached from input
+Camargo,computable,"tmed_c, ra_extraterrestre_mj_m2_d",,1.0,computed successfully in dry-run
+Hargreaves-Samani,computable,"tmin_c, tmax_c, tmed_c, ra_extraterrestre_mj_m2_d",,1.0,computed successfully in dry-run
+Hargreaves-Samani corrected,precomputed_only,spreadsheet column,,1.0,attached from input
+Priestley-Taylor,computable,"tmed_c, rad_net_mj_m2_d",,1.0,computed successfully in dry-run
+Penman-Monteith FAO-56,computable,"tmed_c, rad_net_mj_m2_d, wind_mean_ms",,1.0,computed successfully in dry-run
+Garcia-Lopez,computable,"tmed_c, rad_global_mj_m2_d, rh_mean_pct, wind_mean_ms",,1.0,computed successfully in dry-run
+Makkink,computable,"tmed_c, rad_global_mj_m2_d",,1.0,computed successfully in dry-run
+McCloud,computable,tmed_c,,1.0,computed successfully in dry-run
+Turc,computable,"tmed_c, rad_global_mj_m2_d",,1.0,computed successfully in dry-run
+Global Radiation,computable,rad_global_mj_m2_d,,1.0,computed successfully in dry-run
+Ivanov,computable,"tmed_c, rh_mean_pct",,1.0,computed successfully in dry-run
+Jensen-Heise,computable,"tmed_c, rad_global_mj_m2_d",,1.0,computed successfully in dry-run
+Net Radiation,computable,rad_net_mj_m2_d,,1.0,computed successfully in dry-run
+Radiation-Temperature,computable,"tmed_c, rad_global_mj_m2_d",,1.0,computed successfully in dry-run
+Lungeon,computable,"tmed_c, rh_mean_pct",,1.0,computed successfully in dry-run
+Stephens-Stewart,computable,"tmed_c, rad_global_mj_m2_d",,1.0,computed successfully in dry-run
+Hicks-Hess,computable,"tmed_c, rad_global_mj_m2_d, wind_mean_ms",,1.0,computed successfully in dry-run

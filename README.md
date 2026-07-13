@@ -94,9 +94,9 @@ cd eto-methods-comparison
 **2. Verify data is present**
 ```bash
 ls data/raw/
-# You should see: Evapo.xlsx
 ```
-This file contains the raw meteorological data for Piracicaba and Manaus (2024).
+
+You should see `Evapo.xlsx` among the files. It contains the raw meteorological data for Piracicaba and Manaus (2024).
 
 **3. Create a virtual environment** (recommended to avoid dependency conflicts)
 ```bash
@@ -131,15 +131,21 @@ pip install -e ".[dev]"
 
 ### Recommended workflow
 
-For a first run, use the onboarding command. It reproduces the paper-facing outputs,
-writes feasibility reports, builds per-site HTML reports, exports a supplement package,
-and generates a navigation index:
+For a first run (and for full regeneration), use:
 
 ```bash
-python -m scripts.cli quickstart --year 2024
+MPLCONFIGDIR=/tmp/matplotlib-cache python -m scripts.cli quickstart --year 2024
 ```
 
-Then open `outputs/index.html` in a browser to browse tables, figures, and reports.
+This command:
+
+1. Checks that `data/raw/Evapo.xlsx` is present (fails early with a clear message if not)
+2. Cleans data, computes ET₀, metrics, figures, validation, and rankings
+3. Writes feasibility + site HTML reports
+4. Exports the supplement package
+5. Builds `outputs/index.html` for browsing results
+
+Then open `outputs/index.html` in a browser.
 
 For a single configured site:
 
@@ -162,19 +168,7 @@ To compute only one method plus the Penman-Monteith reference:
 python -m scripts.cli run-method --site manaus --method hs
 ```
 
-**6. Run the paper-facing reproduction workflow**
-```bash
-python -m scripts.cli reproduce-paper --year 2024
-```
-
-The command runs without interactive prompts and updates the core generated files in
-`data/cleaned/`, `outputs/results/`, `outputs/tables/`, `outputs/figures/`, and
-`outputs/reports/`.
-
-For a faster core run without the data-quality and summary regeneration steps, use
-`python -m scripts.cli all --year 2024`.
-
-**7. Check your results**
+**6. Check your results**
 ```bash
 ls outputs/tables/
 # Should show: piracicaba_daily_metrics.csv, piracicaba_monthly_metrics.csv
@@ -187,6 +181,8 @@ ls outputs/figures/piracicaba/
 
 ls outputs/reports/
 # Should show: data-quality reports, summary reports, and uncertainty narratives
+
+open outputs/index.html
 ```
 
 ### Output Naming Standard
@@ -233,8 +229,7 @@ python -m scripts.cli validate-data  # Audit dates, missing values, interpolatio
 python -m scripts.cli summarize      # Rank methods with the default composite rule
 python -m scripts.cli summarize --ranking rmse       # Rank by lowest RMSE
 python -m scripts.cli summarize --ranking composite  # Rank by the documented multi-metric rule
-python -m scripts.cli reproduce-paper --year 2024  # Regenerate paper-facing outputs
-python -m scripts.cli quickstart --year 2024       # Onboarding: reproduce + reports + index + supplement
+python -m scripts.cli quickstart --year 2024       # Full pipeline + reports + index + supplement
 python -m scripts.cli inspect --site manaus        # Pre-flight method feasibility report
 python -m scripts.cli run-site --site manaus       # Full single-site pipeline wrapper
 python -m scripts.cli run-method --site manaus --method hs  # Compute one method + PM reference
@@ -501,7 +496,7 @@ For a documentation map, start with [`docs/README.md`](docs/README.md). For vers
 
 If you use this repository or its outputs in academic work, please cite:
 
-> Vieira, B. M. M. (2026). *Reference Evapotranspiration (ETo) Methods Comparison* (Version 2.0.0) [Software]. Universidade Federal do Mato Grosso. https://doi.org/10.5281/zenodo.21327869
+> Vieira, B. M. M. (2026). *Reference Evapotranspiration (ETo) Methods Comparison* (Version 2.1.0) [Software]. Universidade Federal do Mato Grosso. https://doi.org/10.5281/zenodo.21327869
 
 **DOI:** https://doi.org/10.5281/zenodo.21327869
 
@@ -513,7 +508,7 @@ The repository also includes [`CITATION.cff`](CITATION.cff), which GitHub can us
   author = {Vieira, Bruno Martins M.},
   title = {Reference Evapotranspiration (ETo) Methods Comparison},
   year = {2026},
-  version = {2.0.0},
+  version = {2.1.0},
   howpublished = {Software and analysis outputs},
   institution = {Universidade Federal do Mato Grosso},
   doi = {10.5281/zenodo.21327869},

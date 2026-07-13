@@ -7,16 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-07-13
+
+### Added
+
+- Added styled HTML pages for method feasibility and summary rankings, matching the results index design.
+- Added per-site figure gallery pages under `outputs/figures/<site>/index.html`.
+- Added early validation in `quickstart` that fails clearly when `data/raw/Evapo.xlsx` is missing.
+
+### Changed
+
+- Redesigned `outputs/index.html` and site report HTML with a shared Anthropic-inspired layout.
+- Fixed results-index links so daily metrics and figures resolve correctly under `outputs/`.
+- Made `quickstart` the single recommended entry point for full reproduction (CI and docs).
+- Deprecated `reproduce-paper` as an alias of `quickstart` to reduce onboarding friction.
+- Rankings and metrics sections now list monthly scale before daily.
+- Improved Markdown site reports, feasibility reports, and rankings for clearer navigation and formatting.
+- Removed the Zenodo concept DOI from citation metadata; cite `10.5281/zenodo.21327869` only.
+- Generalized `scripts/publish_zenodo_release.py` to load metadata from `.zenodo.json`, derive publication date and changelog anchors from `CHANGELOG.md`, support `--dry-run` and HTTP timeouts, and fail clearly on download errors.
+- Zenodo publish workflow now checks out the release tag and fails early when `ZENODO_ACCESS_TOKEN` is missing.
+
 ### Fixed
 
 - Corrected the Zenodo version DOI to `10.5281/zenodo.21327869` (was pointing at an older fisicambiental record).
 - Updated the Zenodo publish workflow and script defaults to use deposition ID `21327869`.
-
-### Changed
-
-- Removed the Zenodo concept DOI from citation metadata; cite `10.5281/zenodo.21327869` only.
-- Generalized `scripts/publish_zenodo_release.py` to load metadata from `.zenodo.json`, derive publication date and changelog anchors from `CHANGELOG.md`, support `--dry-run` and HTTP timeouts, and fail clearly on download errors.
-- Zenodo publish workflow now checks out the release tag and fails early when `ZENODO_ACCESS_TOKEN` is missing.
 
 ## [2.0.0] - 2026-07-12
 
@@ -100,7 +114,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Standardized output naming conventions.
 - Moved historical notebook-era outputs under legacy directories.
 
-[Unreleased]: https://github.com/brunomartinsmv/eto-methods-comparison/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/brunomartinsmv/eto-methods-comparison/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/brunomartinsmv/eto-methods-comparison/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/brunomartinsmv/eto-methods-comparison/compare/v1.0.2...v2.0.0
 [1.0.2]: https://github.com/brunomartinsmv/eto-methods-comparison/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/brunomartinsmv/eto-methods-comparison/compare/v1.0.0...v1.0.1

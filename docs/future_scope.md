@@ -8,7 +8,7 @@ deferred from the current reproducible pipeline.
 - `inspect`: pre-flight feasibility report for which ET0 methods can be computed from available data.
 - `run-site`: single-site wrapper over the core pipeline steps.
 - `run-method`: compute one ET0 method plus the Penman-Monteith reference.
-- `quickstart`: onboarding workflow (`reproduce-paper` + supplement export + index).
+- `quickstart`: full pipeline (`analysis` + reports + supplement + `outputs/index.html`).
 - `report-site` and `build-index`: consolidated Markdown/HTML reports.
 - `clean-outputs`: remove regenerable artifacts under `outputs/`.
 - Flexible site readers via optional `reader` blocks in `configs/sites.yml`.

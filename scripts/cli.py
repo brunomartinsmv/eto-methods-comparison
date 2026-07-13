@@ -618,7 +618,19 @@ def cmd_summarize(args: argparse.Namespace) -> None:
     logger.info("wrote summary and rankings to %s", reports_dir)
 
 
-def cmd_reproduce_paper(args: argparse.Namespace) -> None:
+def _require_input_workbook(path: Path) -> None:
+    workbook = Path(path)
+    if workbook.exists():
+        return
+    raise FileNotFoundError(
+        f"Raw data file not found: {workbook}\n"
+        "Place Evapo.xlsx under data/raw/ (see data/raw/README.md), then re-run:\n"
+        "  python -m scripts.cli quickstart --year 2024"
+    )
+
+
+def cmd_reproduce_core(args: argparse.Namespace) -> None:
+    """Regenerate cleaned data, ET0, metrics, figures, validation, and rankings."""
     cmd_all(args)
     _run_compute_eto(args, include_precomputed=True)
     _run_downstream_analysis(args)
@@ -638,7 +650,11 @@ def cmd_reproduce_paper(args: argparse.Namespace) -> None:
         ranking=summary.DEFAULT_RANKING,
     )
     cmd_summarize(summarize_args)
-    logger.info("completed paper reproduction for year %s", args.year)
+
+
+def cmd_reproduce_paper(args: argparse.Namespace) -> None:
+    logger.warning("`reproduce-paper` is deprecated; use `quickstart` instead.")
+    cmd_quickstart(args)
 
 
 def cmd_inspect(args: argparse.Namespace) -> None:
@@ -791,7 +807,8 @@ def cmd_run_site(args: argparse.Namespace) -> None:
 
 
 def cmd_quickstart(args: argparse.Namespace) -> None:
-    cmd_reproduce_paper(args)
+    _require_input_workbook(Path(args.input))
+    cmd_reproduce_core(args)
     for site in _selected_sites(args).keys():
         cmd_inspect(
             argparse.Namespace(
@@ -801,6 +818,7 @@ def cmd_quickstart(args: argparse.Namespace) -> None:
                 use_cleaned=True,
                 site=site,
                 all_sites=False,
+                year=getattr(args, "year", DEFAULT_YEAR),
             )
         )
         cmd_report_site(argparse.Namespace(output=str(OUTPUTS_REPORTS), site=site, all_sites=False))
@@ -884,7 +902,9 @@ def cmd_export_supplement(args: argparse.Namespace) -> None:
                 continue
             site_dest = figures_dest / site_dir.name
             _ensure_dir(site_dest)
-            for source_path in sorted(site_dir.glob("*.png")):
+            for source_path in sorted(site_dir.glob("*")):
+                if not source_path.is_file() or source_path.suffix.lower() not in {".png", ".html"}:
+                    continue
                 destination_path = site_dest / source_path.name
                 shutil.copy2(source_path, destination_path)
                 rel = str(destination_path.relative_to(output_dir))
@@ -1171,7 +1191,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     reproduce_parser = subparsers.add_parser(
         "reproduce-paper",
-        help="Regenerate paper tables, figures, data-quality reports, and summary",
+        help="Deprecated alias for quickstart (kept for compatibility)",
     )
     reproduce_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
     reproduce_parser.add_argument("--input", default=str(DATA_RAW / "Evapo.xlsx"))
@@ -1263,7 +1283,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     quickstart_parser = subparsers.add_parser(
         "quickstart",
-        help="Reproduce paper outputs, reports, supplement, and navigation index",
+        help="Full pipeline: analysis outputs, reports, supplement, and outputs/index.html",
     )
     quickstart_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
     quickstart_parser.add_argument("--input", default=str(DATA_RAW / "Evapo.xlsx"))

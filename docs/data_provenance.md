@@ -32,7 +32,7 @@ torna explicita a dependencia transitoria de colunas de ETo ja calculadas na
 planilha. A flag `--compute-eto` nos comandos `clean` e `all` calcula ET0 a
 partir das variaveis meteorologicas padronizadas apos a limpeza e escreve
 `outputs/results/{site}_daily_eto.csv`. O comando dedicado `compute-eto` e o
-passo `compute-eto` de `run-site` / `reproduce-paper` fazem o mesmo calculo de
+passo `compute-eto` de `run-site` / `quickstart` fazem o mesmo calculo de
 forma explicita. Metodos com `status: precomputed_only` continuam dependentes
 das colunas historicas da planilha.
 

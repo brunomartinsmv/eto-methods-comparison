@@ -33,16 +33,8 @@ python -m pip install -r requirements.txt
 
 ## Reproducing the analysis
 
-The compatibility command is:
-
 ```bash
-python -m scripts.cli all --year 2024
-```
-
-For paper-facing outputs and reports, run:
-
-```bash
-python -m scripts.cli reproduce-paper --year 2024
+MPLCONFIGDIR=/tmp/matplotlib-cache python -m scripts.cli quickstart --year 2024
 ```
 
 Generated outputs should go to the existing `outputs/` subdirectories. Do not place current preprint-facing results under `outputs/**/legacy/`.
@@ -54,7 +46,7 @@ Before opening a pull request, run:
 ```bash
 python -m ruff check .
 python -m pytest
-python -m scripts.cli all --year 2024
+MPLCONFIGDIR=/tmp/matplotlib-cache python -m scripts.cli quickstart --year 2024
 ```
 
 If raw data are unavailable in your checkout, note that limitation in the pull request and still run lint and tests.

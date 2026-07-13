@@ -311,31 +311,33 @@ def test_cmd_all_skips_duplicate_compute_when_compute_eto_flag_set(monkeypatch) 
     assert calls == ["clean", "downstream"]
 
 
-def test_reproduce_paper_reruns_downstream_after_validation_compute(monkeypatch) -> None:
-    from scripts.cli import cmd_reproduce_paper
+def test_quickstart_reruns_full_onboarding_pipeline(monkeypatch) -> None:
+    from scripts.cli import cmd_quickstart
 
     calls: list[str] = []
 
-    def fake_all(args: argparse.Namespace) -> None:
-        calls.append("all")
+    def fake_core(args: argparse.Namespace) -> None:
+        calls.append("core")
 
-    def fake_compute(args: argparse.Namespace, **kwargs: object) -> None:
-        calls.append(f"compute:{kwargs.get('include_precomputed', False)}")
+    def fake_inspect(args: argparse.Namespace) -> None:
+        calls.append(f"inspect:{args.site}")
 
-    def fake_downstream(args: argparse.Namespace, **kwargs: object) -> None:
-        calls.append("downstream")
+    def fake_report(args: argparse.Namespace) -> None:
+        calls.append(f"report:{args.site}")
 
-    def fake_validate(args: argparse.Namespace) -> None:
-        calls.append("validate")
+    def fake_supplement(args: argparse.Namespace) -> None:
+        calls.append("supplement")
 
-    def fake_summarize(args: argparse.Namespace) -> None:
-        calls.append("summarize")
+    def fake_index(args: argparse.Namespace) -> None:
+        calls.append("index")
 
-    monkeypatch.setattr(cli, "cmd_all", fake_all)
-    monkeypatch.setattr(cli, "_run_compute_eto", fake_compute)
-    monkeypatch.setattr(cli, "_run_downstream_analysis", fake_downstream)
-    monkeypatch.setattr(cli, "cmd_validate_data", fake_validate)
-    monkeypatch.setattr(cli, "cmd_summarize", fake_summarize)
+    monkeypatch.setattr(cli, "cmd_reproduce_core", fake_core)
+    monkeypatch.setattr(cli, "cmd_inspect", fake_inspect)
+    monkeypatch.setattr(cli, "cmd_report_site", fake_report)
+    monkeypatch.setattr(cli, "cmd_export_supplement", fake_supplement)
+    monkeypatch.setattr(cli, "cmd_build_index", fake_index)
+    monkeypatch.setattr(cli, "_require_input_workbook", lambda path: None)
+    monkeypatch.setattr(cli, "_selected_sites", lambda args: {"manaus": {}, "piracicaba": {}})
 
     args = argparse.Namespace(
         input="data/raw/Evapo.xlsx",
@@ -345,9 +347,42 @@ def test_reproduce_paper_reruns_downstream_after_validation_compute(monkeypatch)
         all_sites=True,
         eto_source="precomputed",
     )
-    cmd_reproduce_paper(args)
+    cmd_quickstart(args)
 
-    assert calls == ["all", "compute:True", "downstream", "validate", "summarize"]
+    assert calls == [
+        "core",
+        "inspect:manaus",
+        "report:manaus",
+        "inspect:piracicaba",
+        "report:piracicaba",
+        "supplement",
+        "index",
+    ]
+
+
+def test_reproduce_paper_is_deprecated_alias_for_quickstart(monkeypatch) -> None:
+    from scripts.cli import cmd_reproduce_paper
+
+    called: list[str] = []
+
+    def fake_quickstart(args: argparse.Namespace) -> None:
+        called.append("quickstart")
+
+    monkeypatch.setattr(cli, "cmd_quickstart", fake_quickstart)
+    cmd_reproduce_paper(argparse.Namespace(input="data/raw/Evapo.xlsx"))
+    assert called == ["quickstart"]
+
+
+def test_require_input_workbook_raises_clear_error(tmp_path) -> None:
+    from scripts.cli import _require_input_workbook
+
+    missing = tmp_path / "missing.xlsx"
+    try:
+        _require_input_workbook(missing)
+        raise AssertionError("expected FileNotFoundError")
+    except FileNotFoundError as exc:
+        assert "Raw data file not found" in str(exc)
+        assert "quickstart" in str(exc)
 
 
 def test_aggregate_command_writes_standardized_result_filenames(tmp_path) -> None:

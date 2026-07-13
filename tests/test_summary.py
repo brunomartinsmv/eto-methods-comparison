@@ -250,9 +250,12 @@ def test_write_rankings_creates_csv_and_markdown(tmp_path: Path) -> None:
 
     assert csv_path == tmp_path / "tables" / "summary_rankings.csv"
     assert markdown_path == tmp_path / "reports" / "summary_rankings.md"
-    assert "et_hargreaves_samani_corr" in markdown_path.read_text()
-    assert "Manaus" in markdown_path.read_text()
-    assert "composite" in markdown_path.read_text()
+    text = markdown_path.read_text()
+    assert "Hargreaves Samani Corr" in text
+    assert "Manaus" in text
+    assert "composite" in text
+    assert "Monthly scale is listed before daily" in text
+    assert (tmp_path / "reports" / "summary_rankings.html").exists()
 
 
 def test_write_summary_creates_csv_and_markdown(tmp_path: Path) -> None:

@@ -15,8 +15,8 @@ CLI commands via `python -m scripts.cli <command>`.
 
 ### Non-obvious gotchas
 - Always set `MPLCONFIGDIR=/tmp/matplotlib-cache` before commands that generate figures
-  (`plots`, `all`, `reproduce-paper`), matching CI. Without a writable matplotlib config
-  dir, figure generation can warn or fail.
+ (`plots`, `all`, `quickstart`), matching CI. Without a writable matplotlib config
+ dir, figure generation can warn or fail.
 - The `all` / pipeline commands print nothing on success — verify by checking regenerated
   files under `outputs/` and `data/cleaned/` instead of relying on stdout.
 - Generated outputs under `outputs/` and `data/cleaned/` are tracked in git. Running the
@@ -28,4 +28,4 @@ CLI commands via `python -m scripts.cli <command>`.
 ### Common commands (run from repo root with `.venv` active)
 - Lint: `python -m ruff check .`
 - Tests: `python -m pytest`
-- Full pipeline: `MPLCONFIGDIR=/tmp/matplotlib-cache python -m scripts.cli all --year 2024`
+- Full pipeline: `MPLCONFIGDIR=/tmp/matplotlib-cache python -m scripts.cli quickstart --year 2024`

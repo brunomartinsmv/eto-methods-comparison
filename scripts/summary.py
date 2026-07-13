@@ -206,9 +206,16 @@ def write_summary(summary: pd.DataFrame, output_dir: Path) -> tuple[Path, Path]:
     return csv_path, markdown_path
 
 
+def _pretty_method(name: object) -> str:
+    text = str(name)
+    if text.startswith("et_"):
+        text = text[3:]
+    return text.replace("_", " ").title()
+
+
 def _format_metric(value: object, digits: int = 4) -> str:
     if pd.isna(value):
-        return ""
+        return "—"
     if isinstance(value, float):
         return f"{value:.{digits}f}"
     return str(value)
@@ -228,6 +235,20 @@ def write_rankings(
 
     rule = rankings["selection_rule"].iloc[0] if "selection_rule" in rankings.columns and not rankings.empty else DEFAULT_RANKING
     rule_description = SELECTION_RULE_DESCRIPTIONS.get(str(rule), str(rule))
+    display_columns = [
+        "rank",
+        "method",
+        "rmse",
+        "mae",
+        "mbe",
+        "r",
+        "r2",
+        "willmott_d",
+        "c",
+        "classification",
+    ]
+    scale_order = ("monthly", "daily")
+
     lines = [
         "# Method rankings",
         "",
@@ -235,29 +256,52 @@ def write_rankings(
         f"Overall `rank` follows `{rule}` ({rule_description}); per-metric ranks use their own metric criterion",
         "(MBE ranks by absolute bias; r, R², Willmott d, and confidence c favor higher values).",
         "",
+        "Monthly scale is listed before daily.",
+        "",
+        "[← Results index](../index.md) · [HTML version](summary_rankings.html)",
+        "",
     ]
     if rankings.empty:
         lines.append("No metrics tables were available.")
     else:
-        for (site, scale), group in rankings.groupby(["site", "scale"], sort=False):
-            lines.extend(
-                [
-                    f"## {site.title()} — {scale}",
-                    "",
-                    f"Best overall: **{group.iloc[0]['method']}** by `{rule}`.",
-                    "",
-                ]
-            )
-            columns = [column for column in RANKING_COLUMNS if column in group.columns]
-            lines.append("| " + " | ".join(columns) + " |")
-            lines.append("| " + " | ".join(["---"] * len(columns)) + " |")
-            for row in group[columns].itertuples(index=False, name=None):
-                formatted = [
-                    _format_metric(value) if isinstance(value, float) else str(value)
-                    for value in row
-                ]
-                lines.append("| " + " | ".join(formatted) + " |")
-            lines.append("")
+        sites = list(dict.fromkeys(rankings["site"].astype(str).tolist()))
+        for site in sites:
+            site_df = rankings[rankings["site"].astype(str) == site]
+            for scale in scale_order:
+                group = site_df[site_df["scale"].astype(str) == scale]
+                if group.empty:
+                    continue
+                ordered = group.sort_values("rank") if "rank" in group.columns else group
+                best_method = _pretty_method(ordered.iloc[0]["method"])
+                lines.extend(
+                    [
+                        f"## {site.title()} — {scale}",
+                        "",
+                        f"Best overall: **{best_method}** by `{rule}`.",
+                        "",
+                    ]
+                )
+                columns = [column for column in display_columns if column in ordered.columns]
+                lines.append("| " + " | ".join(columns) + " |")
+                lines.append("| " + " | ".join(["---"] * len(columns)) + " |")
+                for row in ordered[columns].itertuples(index=False, name=None):
+                    formatted = []
+                    for column, value in zip(columns, row, strict=True):
+                        if column == "method":
+                            formatted.append(_pretty_method(value))
+                        elif isinstance(value, float):
+                            formatted.append(_format_metric(value))
+                        elif value is None or (isinstance(value, float) and pd.isna(value)) or str(value) == "nan":
+                            formatted.append("—")
+                        else:
+                            formatted.append(str(value))
+                    lines.append("| " + " | ".join(formatted) + " |")
+                lines.append("")
 
     markdown_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+
+    from . import report_builder
+
+    sites = list(dict.fromkeys(rankings["site"].astype(str).tolist())) if not rankings.empty else None
+    report_builder.write_rankings_html(reports_dir=reports_dir, tables_dir=tables_dir, sites=sites)
     return csv_path, markdown_path

@@ -9,8 +9,8 @@ authors:
 repository-code: "https://github.com/brunomartinsmv/eto-methods-comparison"
 url: "https://github.com/brunomartinsmv/eto-methods-comparison"
 doi: 10.5281/zenodo.21327869
-version: "2.0.0"
-date-released: "2026-07-12"
+version: "2.1.0"
+date-released: "2026-07-13"
 license: MIT
 abstract: >
   Reproducible Python pipeline comparing empirical and semi-empirical reference
@@ -33,6 +33,6 @@ preferred-citation:
   doi: 10.5281/zenodo.21327869
   repository-code: "https://github.com/brunomartinsmv/eto-methods-comparison"
   url: "https://github.com/brunomartinsmv/eto-methods-comparison"
-  date-released: "2026-07-12"
+  date-released: "2026-07-13"
   year: 2026
   notes: "Add the arXiv DOI here after the preprint is available."

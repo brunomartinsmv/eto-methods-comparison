@@ -55,3 +55,7 @@ def test_write_feasibility_reports_creates_files(tmp_path) -> None:
     assert input_csv.exists()
     assert input_md.exists()
     assert "Method feasibility" in md_path.read_text(encoding="utf-8")
+    assert "## Summary" in md_path.read_text(encoding="utf-8")
+    assert "Computable" in md_path.read_text(encoding="utf-8")
+    assert (tmp_path / "manaus_method_feasibility.html").exists()
+    assert "Newsreader" in (tmp_path / "manaus_method_feasibility.html").read_text(encoding="utf-8")

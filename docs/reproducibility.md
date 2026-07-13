@@ -9,22 +9,22 @@ This document describes the environment, dependencies, and minimum steps to repr
 ## Escopo / Scope
 
 **PT**
-O comando principal preservado para compatibilidade e:
+O comando principal para reproduzir o estudo e:
 
 ```bash
-python -m scripts.cli all --year 2024
+python -m scripts.cli quickstart --year 2024
 ```
 
-Ele regenera dados limpos, agregacoes, metricas e figuras principais para Manaus e Piracicaba. Para a colecao mais completa usada em revisao academica, incluindo relatorios de qualidade e sumarios, use `reproduce-paper`.
+Ele regenera dados limpos, ET₀, metricas, figuras, relatorios de qualidade, rankings, feasibility, site reports HTML, supplement e `outputs/index.html` para Manaus e Piracicaba. Se `data/raw/Evapo.xlsx` estiver ausente, o comando falha cedo com uma mensagem clara.
 
 **EN**
-The compatibility command is:
+The main command to reproduce the study is:
 
 ```bash
-python -m scripts.cli all --year 2024
+python -m scripts.cli quickstart --year 2024
 ```
 
-It regenerates cleaned data, aggregations, metrics, and main figures for Manaus and Piracicaba. For the fuller review-facing collection, including data-quality reports and summaries, use `reproduce-paper`.
+It regenerates cleaned data, ET₀, metrics, figures, data-quality reports, rankings, feasibility, HTML site reports, the supplement package, and `outputs/index.html` for Manaus and Piracicaba. If `data/raw/Evapo.xlsx` is missing, it fails early with a clear message.
 
 ## Ambiente / Environment
 Recomendado para novas instalacoes:
@@ -59,19 +59,14 @@ export MPLCONFIGDIR=/tmp/mpl-cache
 
 ## Pipeline
 ```bash
-python -m scripts.cli all --year 2024
-```
-
-Para reproduzir a colecao completa esperada para revisao do preprint:
-```bash
-python -m scripts.cli reproduce-paper --year 2024
+python -m scripts.cli quickstart --year 2024
 ```
 
 Para reproduzir apenas uma localidade configurada:
 ```bash
-python -m scripts.cli all --year 2024 --site manaus
-python -m scripts.cli all --year 2024 --site piracicaba
-python -m scripts.cli all --year 2024 --all-sites
+python -m scripts.cli quickstart --year 2024 --site manaus
+python -m scripts.cli quickstart --year 2024 --site piracicaba
+python -m scripts.cli quickstart --year 2024 --all-sites
 ```
 
 As localidades ficam em `configs/sites.yml`; os metodos e nomes de colunas ficam em `configs/methods.yml`.

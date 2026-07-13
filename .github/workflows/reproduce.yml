@@ -40,7 +40,7 @@ jobs:
       - name: Run paper reproduction when raw data is available
         run: |
           if [ -f data/raw/Evapo.xlsx ]; then
-            python -m scripts.cli reproduce-paper --year 2024
+            python -m scripts.cli quickstart --year 2024
           else
-            echo "Skipping paper reproduction: data/raw/Evapo.xlsx is not available in this checkout."
+            echo "Skipping quickstart: data/raw/Evapo.xlsx is not available in this checkout."
           fi

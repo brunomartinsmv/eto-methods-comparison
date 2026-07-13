@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Method rankings</title>
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap");
+
+:root {
+  --bg: #f7f4ef;
+  --bg-accent: #efe8dc;
+  --surface: #fffcf7;
+  --ink: #1a1915;
+  --muted: #6b6560;
+  --line: #e4ddd2;
+  --accent: #c96442;
+  --accent-soft: #f3e4dc;
+  --link: #9a3412;
+  --excellent: #1f6b4a;
+  --excellent-bg: #e4f2eb;
+  --very-good: #2f6f5e;
+  --very-good-bg: #e7f1ed;
+  --good: #3d6b8c;
+  --good-bg: #e6eef4;
+  --average: #8a6d3b;
+  --average-bg: #f5eedf;
+  --poor: #9a5230;
+  --poor-bg: #f6e8e0;
+  --bad: #8b3a3a;
+  --bad-bg: #f5e4e4;
+  --very-poor: #6b2e2e;
+  --very-poor-bg: #f0dfdf;
+  --shadow: 0 1px 2px rgba(26, 25, 21, 0.04), 0 8px 24px rgba(26, 25, 21, 0.04);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 500px at 10% -10%, #f3e4dc 0%, transparent 55%),
+    radial-gradient(900px 420px at 100% 0%, #efe8dc 0%, transparent 50%),
+    var(--bg);
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-optical-sizing: auto;
+  line-height: 1.55;
+  font-size: 15px;
+}
+a { color: var(--link); text-decoration-thickness: 1px; text-underline-offset: 0.18em; }
+a:hover { color: var(--accent); }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+.hero {
+  padding: 0.5rem 0 1.75rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 2rem;
+}
+.eyebrow {
+  display: inline-block;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+}
+h1, h2, h3 {
+  font-family: "Newsreader", Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--ink);
+}
+h1 { font-size: clamp(2rem, 4vw, 2.75rem); margin: 0 0 0.6rem; }
+h2 { font-size: 1.45rem; margin: 0 0 0.75rem; }
+h3 { font-size: 1.15rem; margin: 0 0 0.5rem; }
+.lede { color: var(--muted); max-width: 42rem; margin: 0; font-size: 1.02rem; }
+.site-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.25rem 1.35rem;
+  box-shadow: var(--shadow);
+}
+.card h2 { margin-bottom: 0.25rem; }
+.meta { color: var(--muted); font-size: 0.88rem; margin: 0 0 1rem; }
+.links { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.45rem; }
+.links a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid transparent;
+  text-decoration: none;
+  color: var(--ink);
+  font-weight: 500;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.links a:hover {
+  border-color: var(--line);
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+.links a span.hint { color: var(--muted); font-size: 0.78rem; font-weight: 400; }
+.section { margin: 2.5rem 0; }
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1rem;
+}
+.section-head p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+.rank-block {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.1rem 1.1rem 0.4rem;
+  box-shadow: var(--shadow);
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+.rank-block-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  margin-bottom: 0.85rem;
+  padding: 0 0.15rem;
+}
+.best {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.best strong { color: var(--ink); font-weight: 600; }
+.table-scroll { overflow-x: auto; margin: 0 -0.15rem 0.75rem; }
+table, .data-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.86rem;
+  min-width: 720px;
+}
+th, td {
+  padding: 0.55rem 0.65rem;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--bg-accent);
+  position: sticky;
+  top: 0;
+}
+tbody tr:hover td { background: rgba(201, 100, 66, 0.04); }
+td.num { font-variant-numeric: tabular-nums; text-align: right; }
+td.rank {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+td.method { font-weight: 500; }
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.badge-excellent { color: var(--excellent); background: var(--excellent-bg); }
+.badge-very-good { color: var(--very-good); background: var(--very-good-bg); }
+.badge-good { color: var(--good); background: var(--good-bg); }
+.badge-average { color: var(--average); background: var(--average-bg); }
+.badge-poor { color: var(--poor); background: var(--poor-bg); }
+.badge-bad { color: var(--bad); background: var(--bad-bg); }
+.badge-very-poor { color: var(--very-poor); background: var(--very-poor-bg); }
+.badge-computable { color: var(--excellent); background: var(--excellent-bg); }
+.badge-precomputed-only { color: var(--good); background: var(--good-bg); }
+.badge-not-computable { color: var(--bad); background: var(--bad-bg); }
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.meta-grid li {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem;
+}
+.meta-grid .label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+.meta-grid .value { font-weight: 500; font-variant-numeric: tabular-nums; }
+.toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 1.25rem 0 0;
+}
+.toc a {
+  text-decoration: none;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+.toc a:hover { background: var(--accent-soft); border-color: transparent; color: var(--ink); }
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.1rem;
+  box-shadow: var(--shadow);
+}
+.panel + .panel { margin-top: 1rem; }
+.figure-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+figure {
+  margin: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+figcaption {
+  padding: 0.65rem 0.8rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+}
+img { display: block; max-width: 100%; height: auto; }
+.back { margin-bottom: 1.25rem; font-size: 0.9rem; }
+.footer-note {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+pre {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1rem;
+  overflow: auto;
+}
+ul { padding-left: 1.2rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<p class="back"><a href="../index.html">← Back to results index</a></p>
+<div class="hero">
+<p class="eyebrow">Global summary</p>
+<h1>Method rankings</h1>
+<p class="lede">Composite ranks within each site and temporal scale. Monthly scale is listed before daily.</p>
+</div>
+<div class="section">
+<div class="rank-block">
+<div class="rank-block-head">
+<h3>Manaus — monthly</h3>
+<p class="best">Best overall: <strong>Lungeon</strong> (composite rank)</p>
+</div>
+<div class="table-scroll"><table><thead><tr><th>rank</th><th>method</th><th>rmse</th><th>mae</th><th>mbe</th><th>r</th><th>r2</th><th>willmott_d</th><th>c</th><th>classification</th></tr></thead><tbody><tr><td class="rank">1</td><td class="method">Lungeon</td><td class="num">20.5217</td><td class="num">19.2526</td><td class="num">-19.2526</td><td class="num">0.9779</td><td class="num">0.9563</td><td class="num">0.5795</td><td class="num">0.5667</td><td><span class="badge badge-poor">Poor</span></td></tr><tr><td class="rank">2</td><td class="method">Hargreaves Samani</td><td class="num">26.0025</td><td class="num">24.3521</td><td class="num">24.3521</td><td class="num">0.9031</td><td class="num">0.8155</td><td class="num">0.5198</td><td class="num">0.4694</td><td><span class="badge badge-bad">Bad</span></td></tr><tr><td class="rank">3</td><td class="method">Camargo</td><td class="num">24.1782</td><td class="num">21.8935</td><td class="num">21.2765</td><td class="num">0.8796</td><td class="num">0.7737</td><td class="num">0.4976</td><td class="num">0.4376</td><td><span class="badge badge-bad">Bad</span></td></tr><tr><td class="rank">4</td><td class="method">Garcia Lopez</td><td class="num">38.3370</td><td class="num">36.1689</td><td class="num">-36.1689</td><td class="num">0.9537</td><td class="num">0.9095</td><td class="num">0.3669</td><td class="num">0.3500</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">5</td><td class="method">Turc</td><td class="num">25.8510</td><td class="num">22.1849</td><td class="num">-22.1849</td><td class="num">0.7553</td><td class="num">0.5705</td><td class="num">0.4385</td><td class="num">0.3312</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">6</td><td class="method">Hicks Hess</td><td class="num">36.6677</td><td class="num">34.2514</td><td class="num">-34.2514</td><td class="num">0.7531</td><td class="num">0.5671</td><td class="num">0.3742</td><td class="num">0.2818</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">7</td><td class="method">Jensen Heise</td><td class="num">36.6042</td><td class="num">34.1506</td><td class="num">-34.1506</td><td class="num">0.7424</td><td class="num">0.5512</td><td class="num">0.3737</td><td class="num">0.2775</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">8</td><td class="method">Stephens Stewart</td><td class="num">37.6545</td><td class="num">35.2000</td><td class="num">-35.2000</td><td class="num">0.7199</td><td class="num">0.5182</td><td class="num">0.3660</td><td class="num">0.2635</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">9</td><td class="method">Radiation Temperature</td><td class="num">38.0957</td><td class="num">35.6390</td><td class="num">-35.6390</td><td class="num">0.7012</td><td class="num">0.4917</td><td class="num">0.3629</td><td class="num">0.2545</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">10</td><td class="method">Priestley Taylor</td><td class="num">38.0575</td><td class="num">35.5843</td><td class="num">-35.5843</td><td class="num">0.6635</td><td class="num">0.4402</td><td class="num">0.3628</td><td class="num">0.2407</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">11</td><td class="method">Global Radiation</td><td class="num">37.5385</td><td class="num">35.0352</td><td class="num">-35.0352</td><td class="num">0.6221</td><td class="num">0.3870</td><td class="num">0.3659</td><td class="num">0.2276</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">12</td><td class="method">Makkink</td><td class="num">41.3374</td><td class="num">39.0802</td><td class="num">-39.0802</td><td class="num">0.6544</td><td class="num">0.4282</td><td class="num">0.3464</td><td class="num">0.2267</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">13</td><td class="method">Net Radiation</td><td class="num">38.0119</td><td class="num">35.5222</td><td class="num">-35.5222</td><td class="num">0.6221</td><td class="num">0.3870</td><td class="num">0.3628</td><td class="num">0.2257</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">14</td><td class="method">Mccloud</td><td class="num">3273.8507</td><td class="num">3264.0347</td><td class="num">3264.0347</td><td class="num">0.9419</td><td class="num">0.8872</td><td class="num">0.0078</td><td class="num">0.0073</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">15</td><td class="method">Ivanov</td><td class="num">4468.4163</td><td class="num">4205.1577</td><td class="num">4205.1577</td><td class="num">0.9776</td><td class="num">0.9558</td><td class="num">0.0074</td><td class="num">0.0072</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr></tbody></table></div>
+</div>
+<div class="rank-block">
+<div class="rank-block-head">
+<h3>Manaus — daily</h3>
+<p class="best">Best overall: <strong>Lungeon</strong> (composite rank)</p>
+</div>
+<div class="table-scroll"><table><thead><tr><th>rank</th><th>method</th><th>rmse</th><th>mae</th><th>mbe</th><th>r</th><th>r2</th><th>willmott_d</th><th>c</th><th>classification</th></tr></thead><tbody><tr><td class="rank">1</td><td class="method">Lungeon</td><td class="num">0.7705</td><td class="num">0.6325</td><td class="num">-0.6312</td><td class="num">0.9165</td><td class="num">0.8401</td><td class="num">0.6334</td><td class="num">0.5805</td><td><span class="badge badge-poor">Poor</span></td></tr><tr><td class="rank">2</td><td class="method">Camargo</td><td class="num">0.9182</td><td class="num">0.8270</td><td class="num">0.6976</td><td class="num">0.8776</td><td class="num">0.7701</td><td class="num">0.5303</td><td class="num">0.4653</td><td><span class="badge badge-bad">Bad</span></td></tr><tr><td class="rank">3</td><td class="method">Garcia Lopez</td><td class="num">1.3500</td><td class="num">1.1859</td><td class="num">-1.1859</td><td class="num">0.9514</td><td class="num">0.9052</td><td class="num">0.4268</td><td class="num">0.4061</td><td><span class="badge badge-bad">Bad</span></td></tr><tr><td class="rank">4</td><td class="method">Hicks Hess</td><td class="num">1.2977</td><td class="num">1.1230</td><td class="num">-1.1230</td><td class="num">0.8356</td><td class="num">0.6982</td><td class="num">0.4349</td><td class="num">0.3634</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">5</td><td class="method">Hargreaves Samani</td><td class="num">0.9739</td><td class="num">0.8925</td><td class="num">0.7984</td><td class="num">0.6516</td><td class="num">0.4246</td><td class="num">0.5506</td><td class="num">0.3588</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">6</td><td class="method">Turc</td><td class="num">0.9887</td><td class="num">0.7530</td><td class="num">-0.7274</td><td class="num">0.7720</td><td class="num">0.5960</td><td class="num">0.4637</td><td class="num">0.3580</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">7</td><td class="method">Jensen Heise</td><td class="num">1.3015</td><td class="num">1.1197</td><td class="num">-1.1197</td><td class="num">0.7546</td><td class="num">0.5695</td><td class="num">0.4308</td><td class="num">0.3251</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">8</td><td class="method">Stephens Stewart</td><td class="num">1.3370</td><td class="num">1.1541</td><td class="num">-1.1541</td><td class="num">0.7385</td><td class="num">0.5454</td><td class="num">0.4221</td><td class="num">0.3117</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">9</td><td class="method">Radiation Temperature</td><td class="num">1.3519</td><td class="num">1.1685</td><td class="num">-1.1685</td><td class="num">0.7254</td><td class="num">0.5261</td><td class="num">0.4184</td><td class="num">0.3035</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">10</td><td class="method">Priestley Taylor</td><td class="num">1.3511</td><td class="num">1.1667</td><td class="num">-1.1667</td><td class="num">0.6993</td><td class="num">0.4890</td><td class="num">0.4181</td><td class="num">0.2924</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">11</td><td class="method">Makkink</td><td class="num">1.4506</td><td class="num">1.2813</td><td class="num">-1.2813</td><td class="num">0.6993</td><td class="num">0.4890</td><td class="num">0.4061</td><td class="num">0.2840</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">12</td><td class="method">Global Radiation</td><td class="num">1.3344</td><td class="num">1.1487</td><td class="num">-1.1487</td><td class="num">0.6718</td><td class="num">0.4513</td><td class="num">0.4213</td><td class="num">0.2830</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">13</td><td class="method">Net Radiation</td><td class="num">1.3500</td><td class="num">1.1647</td><td class="num">-1.1647</td><td class="num">0.6718</td><td class="num">0.4513</td><td class="num">0.4179</td><td class="num">0.2807</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">14</td><td class="method">Mccloud</td><td class="num">107.7087</td><td class="num">107.0175</td><td class="num">107.0175</td><td class="num">0.8815</td><td class="num">0.7770</td><td class="num">0.0116</td><td class="num">0.0102</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">15</td><td class="method">Ivanov</td><td class="num">152.6745</td><td class="num">137.8740</td><td class="num">137.8740</td><td class="num">0.9164</td><td class="num">0.8397</td><td class="num">0.0109</td><td class="num">0.0100</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr></tbody></table></div>
+</div>
+<div class="rank-block">
+<div class="rank-block-head">
+<h3>Piracicaba — monthly</h3>
+<p class="best">Best overall: <strong>Makkink</strong> (composite rank)</p>
+</div>
+<div class="table-scroll"><table><thead><tr><th>rank</th><th>method</th><th>rmse</th><th>mae</th><th>mbe</th><th>r</th><th>r2</th><th>willmott_d</th><th>c</th><th>classification</th></tr></thead><tbody><tr><td class="rank">1</td><td class="method">Makkink</td><td class="num">8.5015</td><td class="num">5.8852</td><td class="num">-4.7418</td><td class="num">0.9374</td><td class="num">0.8788</td><td class="num">0.9518</td><td class="num">0.8923</td><td><span class="badge badge-excellent">Excellent</span></td></tr><tr><td class="rank">2</td><td class="method">Stephens Stewart</td><td class="num">9.8682</td><td class="num">6.9649</td><td class="num">-6.6192</td><td class="num">0.9381</td><td class="num">0.8800</td><td class="num">0.9427</td><td class="num">0.8843</td><td><span class="badge badge-excellent">Excellent</span></td></tr><tr><td class="rank">3</td><td class="method">Turc</td><td class="num">16.3449</td><td class="num">15.3342</td><td class="num">15.3342</td><td class="num">0.9622</td><td class="num">0.9258</td><td class="num">0.8591</td><td class="num">0.8266</td><td><span class="badge badge-very-good">Very Good</span></td></tr><tr><td class="rank">4</td><td class="method">Jensen Heise</td><td class="num">18.7174</td><td class="num">15.5843</td><td class="num">14.3574</td><td class="num">0.9346</td><td class="num">0.8736</td><td class="num">0.8611</td><td class="num">0.8048</td><td><span class="badge badge-very-good">Very Good</span></td></tr><tr><td class="rank">5</td><td class="method">Radiation Temperature</td><td class="num">16.3891</td><td class="num">14.7943</td><td class="num">-14.7943</td><td class="num">0.9391</td><td class="num">0.8820</td><td class="num">0.8458</td><td class="num">0.7943</td><td><span class="badge badge-very-good">Very Good</span></td></tr><tr><td class="rank">6</td><td class="method">Priestley Taylor</td><td class="num">13.4000</td><td class="num">11.8551</td><td class="num">-1.5776</td><td class="num">0.8603</td><td class="num">0.7401</td><td class="num">0.9116</td><td class="num">0.7842</td><td><span class="badge badge-very-good">Very Good</span></td></tr><tr><td class="rank">7</td><td class="method">Net Radiation</td><td class="num">14.4216</td><td class="num">12.4665</td><td class="num">6.0014</td><td class="num">0.8583</td><td class="num">0.7367</td><td class="num">0.8953</td><td class="num">0.7685</td><td><span class="badge badge-very-good">Very Good</span></td></tr><tr><td class="rank">8</td><td class="method">Global Radiation</td><td class="num">18.8716</td><td class="num">17.5325</td><td class="num">17.3142</td><td class="num">0.9293</td><td class="num">0.8636</td><td class="num">0.8062</td><td class="num">0.7492</td><td><span class="badge badge-good">Good</span></td></tr><tr><td class="rank">9</td><td class="method">Hicks Hess</td><td class="num">30.5628</td><td class="num">23.7490</td><td class="num">23.7490</td><td class="num">0.9343</td><td class="num">0.8729</td><td class="num">0.7493</td><td class="num">0.7001</td><td><span class="badge badge-good">Good</span></td></tr><tr><td class="rank">10</td><td class="method">Hargreaves Samani</td><td class="num">44.2709</td><td class="num">43.0648</td><td class="num">-43.0648</td><td class="num">0.9660</td><td class="num">0.9331</td><td class="num">0.4908</td><td class="num">0.4741</td><td><span class="badge badge-bad">Bad</span></td></tr><tr><td class="rank">11</td><td class="method">Garcia Lopez</td><td class="num">33.7056</td><td class="num">29.5440</td><td class="num">-26.3328</td><td class="num">0.7100</td><td class="num">0.5040</td><td class="num">0.6535</td><td class="num">0.4639</td><td><span class="badge badge-bad">Bad</span></td></tr><tr><td class="rank">12</td><td class="method">Camargo</td><td class="num">63.0266</td><td class="num">61.8441</td><td class="num">-61.8441</td><td class="num">0.8877</td><td class="num">0.7881</td><td class="num">0.3822</td><td class="num">0.3393</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">13</td><td class="method">Lungeon</td><td class="num">87.2594</td><td class="num">85.0839</td><td class="num">-85.0839</td><td class="num">0.3046</td><td class="num">0.0928</td><td class="num">0.2681</td><td class="num">0.0817</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">14</td><td class="method">Mccloud</td><td class="num">2160.4530</td><td class="num">2134.1598</td><td class="num">2134.1598</td><td class="num">0.8671</td><td class="num">0.7519</td><td class="num">0.0162</td><td class="num">0.0141</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">15</td><td class="method">Ivanov</td><td class="num">3700.2472</td><td class="num">3559.6517</td><td class="num">3559.6517</td><td class="num">0.2737</td><td class="num">0.0749</td><td class="num">0.0093</td><td class="num">0.0025</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr></tbody></table></div>
+</div>
+<div class="rank-block">
+<div class="rank-block-head">
+<h3>Piracicaba — daily</h3>
+<p class="best">Best overall: <strong>Stephens Stewart</strong> (composite rank)</p>
+</div>
+<div class="table-scroll"><table><thead><tr><th>rank</th><th>method</th><th>rmse</th><th>mae</th><th>mbe</th><th>r</th><th>r2</th><th>willmott_d</th><th>c</th><th>classification</th></tr></thead><tbody><tr><td class="rank">1</td><td class="method">Stephens Stewart</td><td class="num">0.4975</td><td class="num">0.3442</td><td class="num">-0.2170</td><td class="num">0.9451</td><td class="num">0.8933</td><td class="num">0.9628</td><td class="num">0.9100</td><td><span class="badge badge-excellent">Excellent</span></td></tr><tr><td class="rank">2</td><td class="method">Makkink</td><td class="num">0.5147</td><td class="num">0.3556</td><td class="num">-0.1555</td><td class="num">0.9354</td><td class="num">0.8749</td><td class="num">0.9581</td><td class="num">0.8962</td><td><span class="badge badge-excellent">Excellent</span></td></tr><tr><td class="rank">3</td><td class="method">Turc</td><td class="num">0.6576</td><td class="num">0.5699</td><td class="num">0.5028</td><td class="num">0.9503</td><td class="num">0.9030</td><td class="num">0.9388</td><td class="num">0.8921</td><td><span class="badge badge-excellent">Excellent</span></td></tr><tr><td class="rank">4</td><td class="method">Jensen Heise</td><td class="num">0.7319</td><td class="num">0.5982</td><td class="num">0.4707</td><td class="num">0.9425</td><td class="num">0.8884</td><td class="num">0.9395</td><td class="num">0.8855</td><td><span class="badge badge-excellent">Excellent</span></td></tr><tr><td class="rank">5</td><td class="method">Priestley Taylor</td><td class="num">0.5813</td><td class="num">0.4405</td><td class="num">-0.0517</td><td class="num">0.9238</td><td class="num">0.8535</td><td class="num">0.9579</td><td class="num">0.8849</td><td><span class="badge badge-excellent">Excellent</span></td></tr><tr><td class="rank">6</td><td class="method">Radiation Temperature</td><td class="num">0.6948</td><td class="num">0.5499</td><td class="num">-0.4851</td><td class="num">0.9434</td><td class="num">0.8901</td><td class="num">0.9216</td><td class="num">0.8695</td><td><span class="badge badge-excellent">Excellent</span></td></tr><tr><td class="rank">7</td><td class="method">Net Radiation</td><td class="num">0.6526</td><td class="num">0.5123</td><td class="num">0.1968</td><td class="num">0.9162</td><td class="num">0.8394</td><td class="num">0.9482</td><td class="num">0.8687</td><td><span class="badge badge-excellent">Excellent</span></td></tr><tr><td class="rank">8</td><td class="method">Global Radiation</td><td class="num">0.7929</td><td class="num">0.6827</td><td class="num">0.5677</td><td class="num">0.9144</td><td class="num">0.8361</td><td class="num">0.9132</td><td class="num">0.8350</td><td><span class="badge badge-very-good">Very Good</span></td></tr><tr><td class="rank">9</td><td class="method">Hicks Hess</td><td class="num">1.2431</td><td class="num">0.8752</td><td class="num">0.7787</td><td class="num">0.8797</td><td class="num">0.7739</td><td class="num">0.8577</td><td class="num">0.7545</td><td><span class="badge badge-very-good">Very Good</span></td></tr><tr><td class="rank">10</td><td class="method">Garcia Lopez</td><td class="num">1.3238</td><td class="num">1.1169</td><td class="num">-0.8634</td><td class="num">0.8167</td><td class="num">0.6670</td><td class="num">0.8264</td><td class="num">0.6749</td><td><span class="badge badge-good">Good</span></td></tr><tr><td class="rank">11</td><td class="method">Hargreaves Samani</td><td class="num">1.7225</td><td class="num">1.4991</td><td class="num">-1.4120</td><td class="num">0.8415</td><td class="num">0.7082</td><td class="num">0.5918</td><td class="num">0.4980</td><td><span class="badge badge-bad">Bad</span></td></tr><tr><td class="rank">12</td><td class="method">Camargo</td><td class="num">2.3417</td><td class="num">2.0996</td><td class="num">-2.0277</td><td class="num">0.6176</td><td class="num">0.3814</td><td class="num">0.4802</td><td class="num">0.2966</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">13</td><td class="method">Lungeon</td><td class="num">3.0336</td><td class="num">2.7899</td><td class="num">-2.7896</td><td class="num">0.6696</td><td class="num">0.4483</td><td class="num">0.4243</td><td class="num">0.2841</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">14</td><td class="method">Mccloud</td><td class="num">71.9653</td><td class="num">69.9725</td><td class="num">69.9725</td><td class="num">0.7020</td><td class="num">0.4927</td><td class="num">0.0354</td><td class="num">0.0248</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr><tr><td class="rank">15</td><td class="method">Ivanov</td><td class="num">131.2327</td><td class="num">116.7104</td><td class="num">116.7099</td><td class="num">0.6614</td><td class="num">0.4374</td><td class="num">0.0205</td><td class="num">0.0135</td><td><span class="badge badge-very-poor">Very Poor</span></td></tr></tbody></table></div>
+</div>
+</div>
+<p class="footer-note">Source: <a href="../tables/summary_rankings.csv">summary_rankings.csv</a> · <a href="summary_rankings.md">summary_rankings.md</a></p>
+</div>
+</body>
+</html>

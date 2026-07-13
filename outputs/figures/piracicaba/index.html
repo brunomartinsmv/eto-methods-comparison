@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Figures — piracicaba</title>
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap");
+
+:root {
+  --bg: #f7f4ef;
+  --bg-accent: #efe8dc;
+  --surface: #fffcf7;
+  --ink: #1a1915;
+  --muted: #6b6560;
+  --line: #e4ddd2;
+  --accent: #c96442;
+  --accent-soft: #f3e4dc;
+  --link: #9a3412;
+  --excellent: #1f6b4a;
+  --excellent-bg: #e4f2eb;
+  --very-good: #2f6f5e;
+  --very-good-bg: #e7f1ed;
+  --good: #3d6b8c;
+  --good-bg: #e6eef4;
+  --average: #8a6d3b;
+  --average-bg: #f5eedf;
+  --poor: #9a5230;
+  --poor-bg: #f6e8e0;
+  --bad: #8b3a3a;
+  --bad-bg: #f5e4e4;
+  --very-poor: #6b2e2e;
+  --very-poor-bg: #f0dfdf;
+  --shadow: 0 1px 2px rgba(26, 25, 21, 0.04), 0 8px 24px rgba(26, 25, 21, 0.04);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 500px at 10% -10%, #f3e4dc 0%, transparent 55%),
+    radial-gradient(900px 420px at 100% 0%, #efe8dc 0%, transparent 50%),
+    var(--bg);
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-optical-sizing: auto;
+  line-height: 1.55;
+  font-size: 15px;
+}
+a { color: var(--link); text-decoration-thickness: 1px; text-underline-offset: 0.18em; }
+a:hover { color: var(--accent); }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+.hero {
+  padding: 0.5rem 0 1.75rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 2rem;
+}
+.eyebrow {
+  display: inline-block;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+}
+h1, h2, h3 {
+  font-family: "Newsreader", Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--ink);
+}
+h1 { font-size: clamp(2rem, 4vw, 2.75rem); margin: 0 0 0.6rem; }
+h2 { font-size: 1.45rem; margin: 0 0 0.75rem; }
+h3 { font-size: 1.15rem; margin: 0 0 0.5rem; }
+.lede { color: var(--muted); max-width: 42rem; margin: 0; font-size: 1.02rem; }
+.site-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.25rem 1.35rem;
+  box-shadow: var(--shadow);
+}
+.card h2 { margin-bottom: 0.25rem; }
+.meta { color: var(--muted); font-size: 0.88rem; margin: 0 0 1rem; }
+.links { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.45rem; }
+.links a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid transparent;
+  text-decoration: none;
+  color: var(--ink);
+  font-weight: 500;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.links a:hover {
+  border-color: var(--line);
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+.links a span.hint { color: var(--muted); font-size: 0.78rem; font-weight: 400; }
+.section { margin: 2.5rem 0; }
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1rem;
+}
+.section-head p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+.rank-block {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.1rem 1.1rem 0.4rem;
+  box-shadow: var(--shadow);
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+.rank-block-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  margin-bottom: 0.85rem;
+  padding: 0 0.15rem;
+}
+.best {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.best strong { color: var(--ink); font-weight: 600; }
+.table-scroll { overflow-x: auto; margin: 0 -0.15rem 0.75rem; }
+table, .data-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.86rem;
+  min-width: 720px;
+}
+th, td {
+  padding: 0.55rem 0.65rem;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--bg-accent);
+  position: sticky;
+  top: 0;
+}
+tbody tr:hover td { background: rgba(201, 100, 66, 0.04); }
+td.num { font-variant-numeric: tabular-nums; text-align: right; }
+td.rank {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+td.method { font-weight: 500; }
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.badge-excellent { color: var(--excellent); background: var(--excellent-bg); }
+.badge-very-good { color: var(--very-good); background: var(--very-good-bg); }
+.badge-good { color: var(--good); background: var(--good-bg); }
+.badge-average { color: var(--average); background: var(--average-bg); }
+.badge-poor { color: var(--poor); background: var(--poor-bg); }
+.badge-bad { color: var(--bad); background: var(--bad-bg); }
+.badge-very-poor { color: var(--very-poor); background: var(--very-poor-bg); }
+.badge-computable { color: var(--excellent); background: var(--excellent-bg); }
+.badge-precomputed-only { color: var(--good); background: var(--good-bg); }
+.badge-not-computable { color: var(--bad); background: var(--bad-bg); }
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.meta-grid li {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem;
+}
+.meta-grid .label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+.meta-grid .value { font-weight: 500; font-variant-numeric: tabular-nums; }
+.toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 1.25rem 0 0;
+}
+.toc a {
+  text-decoration: none;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+.toc a:hover { background: var(--accent-soft); border-color: transparent; color: var(--ink); }
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.1rem;
+  box-shadow: var(--shadow);
+}
+.panel + .panel { margin-top: 1rem; }
+.figure-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+figure {
+  margin: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+figcaption {
+  padding: 0.65rem 0.8rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+}
+img { display: block; max-width: 100%; height: auto; }
+.back { margin-bottom: 1.25rem; font-size: 0.9rem; }
+.footer-note {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+pre {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1rem;
+  overflow: auto;
+}
+ul { padding-left: 1.2rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<p class="back"><a href="../../index.html">← Back to results index</a></p>
+<p class="eyebrow">Figures</p>
+<h1>Piracicaba</h1>
+<p class="lede">Generated comparison plots for piracicaba (18 figures).</p>
+<div class="figure-grid" style="margin-top:1.75rem">
+<figure><figcaption>daily_taylor</figcaption><img src="piracicaba_daily_taylor.png" alt="daily_taylor" loading="lazy"></figure>
+<figure><figcaption>monthly_taylor</figcaption><img src="piracicaba_monthly_taylor.png" alt="monthly_taylor" loading="lazy"></figure>
+<figure><figcaption>monthly_totals</figcaption><img src="piracicaba_monthly_totals.png" alt="monthly_totals" loading="lazy"></figure>
+<figure><figcaption>bias_by_eto_bin</figcaption><img src="piracicaba_bias_by_eto_bin.png" alt="bias_by_eto_bin" loading="lazy"></figure>
+<figure><figcaption>daily_scatter_camargo_vs_pm</figcaption><img src="piracicaba_daily_scatter_camargo_vs_pm.png" alt="daily_scatter_camargo_vs_pm" loading="lazy"></figure>
+<figure><figcaption>daily_scatter_gl_vs_pm</figcaption><img src="piracicaba_daily_scatter_gl_vs_pm.png" alt="daily_scatter_gl_vs_pm" loading="lazy"></figure>
+<figure><figcaption>daily_scatter_hs_corr_vs_pm</figcaption><img src="piracicaba_daily_scatter_hs_corr_vs_pm.png" alt="daily_scatter_hs_corr_vs_pm" loading="lazy"></figure>
+<figure><figcaption>daily_scatter_hs_vs_pm</figcaption><img src="piracicaba_daily_scatter_hs_vs_pm.png" alt="daily_scatter_hs_vs_pm" loading="lazy"></figure>
+<figure><figcaption>daily_scatter_pt_vs_pm</figcaption><img src="piracicaba_daily_scatter_pt_vs_pm.png" alt="daily_scatter_pt_vs_pm" loading="lazy"></figure>
+<figure><figcaption>daily_scatter_thorn_camargo_vs_pm</figcaption><img src="piracicaba_daily_scatter_thorn_camargo_vs_pm.png" alt="daily_scatter_thorn_camargo_vs_pm" loading="lazy"></figure>
+<figure><figcaption>daily_scatter_thorn_vs_pm</figcaption><img src="piracicaba_daily_scatter_thorn_vs_pm.png" alt="daily_scatter_thorn_vs_pm" loading="lazy"></figure>
+<figure><figcaption>daily_series_camargo_vs_pm</figcaption><img src="piracicaba_daily_series_camargo_vs_pm.png" alt="daily_series_camargo_vs_pm" loading="lazy"></figure>
+<figure><figcaption>daily_series_gl_vs_pm</figcaption><img src="piracicaba_daily_series_gl_vs_pm.png" alt="daily_series_gl_vs_pm" loading="lazy"></figure>
+<figure><figcaption>daily_series_hs_corr_vs_pm</figcaption><img src="piracicaba_daily_series_hs_corr_vs_pm.png" alt="daily_series_hs_corr_vs_pm" loading="lazy"></figure>
+<figure><figcaption>daily_series_hs_vs_pm</figcaption><img src="piracicaba_daily_series_hs_vs_pm.png" alt="daily_series_hs_vs_pm" loading="lazy"></figure>
+<figure><figcaption>daily_series_pt_vs_pm</figcaption><img src="piracicaba_daily_series_pt_vs_pm.png" alt="daily_series_pt_vs_pm" loading="lazy"></figure>
+<figure><figcaption>daily_series_thorn_camargo_vs_pm</figcaption><img src="piracicaba_daily_series_thorn_camargo_vs_pm.png" alt="daily_series_thorn_camargo_vs_pm" loading="lazy"></figure>
+<figure><figcaption>daily_series_thorn_vs_pm</figcaption><img src="piracicaba_daily_series_thorn_vs_pm.png" alt="daily_series_thorn_vs_pm" loading="lazy"></figure>
+</div>
+</div>
+</body>
+</html>
