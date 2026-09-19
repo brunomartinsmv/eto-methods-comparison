@@ -92,10 +92,10 @@ def plot_taylor(df: pd.DataFrame, ref_col: str, method_cols: list[str], output_p
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     ref = df[ref_col].to_numpy()
-    ref = ref[np.isfinite(ref)]
-    if ref.size < 2:
+    finite_ref = ref[np.isfinite(ref)]
+    if finite_ref.size < 2:
         return
-    ref_std = np.std(ref, ddof=1)
+    ref_std = np.std(finite_ref, ddof=1)
 
     fig = plt.figure(figsize=(7, 6))
     ax = fig.add_subplot(111, polar=True)
