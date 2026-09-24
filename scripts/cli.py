@@ -237,9 +237,11 @@ def cmd_validate_data(args: argparse.Namespace) -> None:
         canonical_df = io.select_cleaned_columns(raw_df)
         cleaned_df, audit = cleaning.clean_daily_with_audit(canonical_df, max_gap=max_gap)
         calculated_path = OUTPUTS_RESULTS / daily_eto_filename(site)
+        default_input = (DATA_RAW / "Evapo.xlsx").resolve()
+        include_calculated = getattr(args, "use_calculated_results", input_path.resolve() == default_input)
         calculated_df = (
             pd.read_csv(calculated_path, parse_dates=["date"])
-            if calculated_path.exists()
+            if include_calculated and calculated_path.exists()
             else None
         )
         if calculated_df is not None:
@@ -764,8 +766,11 @@ def cmd_run_site(args: argparse.Namespace) -> None:
             argparse.Namespace(
                 input=args.input,
                 output=str(OUTPUTS_REPORTS),
-                year=args.year,
                 eto_source=getattr(args, "eto_source", "precomputed"),
+                use_calculated_results=(
+                    "compute-eto" in steps
+                    or Path(args.input).resolve() == (DATA_RAW / "Evapo.xlsx").resolve()
+                ),
                 **site_kwargs,
             )
         )
