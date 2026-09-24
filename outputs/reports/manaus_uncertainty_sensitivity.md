@@ -7,82 +7,82 @@ Wet/dry grouping is data-driven from the median monthly rainfall within the anal
 
 | method | metric | estimate | ci_lower | ci_upper | n | n_boot | confidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| et_thornthwaite | rmse | 2.6762 | 2.6300 | 2.7229 | 366 | 1000 | 0.9500 |
-| et_thornthwaite | mae | 2.6345 | 2.5879 | 2.6819 | 366 | 1000 | 0.9500 |
-| et_thornthwaite | mbe | 2.6345 | 2.5879 | 2.6819 | 366 | 1000 | 0.9500 |
-| et_thornthwaite_camargo | rmse | 2.5779 | 2.5125 | 2.6430 | 366 | 1000 | 0.9500 |
-| et_thornthwaite_camargo | mae | 2.4958 | 2.4309 | 2.5579 | 366 | 1000 | 0.9500 |
-| et_thornthwaite_camargo | mbe | 2.4958 | 2.4309 | 2.5579 | 366 | 1000 | 0.9500 |
-| et_camargo | rmse | 2.5997 | 2.5333 | 2.6664 | 366 | 1000 | 0.9500 |
-| et_camargo | mae | 2.5135 | 2.4463 | 2.5850 | 366 | 1000 | 0.9500 |
-| et_camargo | mbe | -2.4027 | -2.5066 | -2.2971 | 366 | 1000 | 0.9500 |
-| et_hargreaves_samani | rmse | 2.5547 | 2.5199 | 2.5908 | 366 | 1000 | 0.9500 |
-| et_hargreaves_samani | mae | 2.5304 | 2.4957 | 2.5682 | 366 | 1000 | 0.9500 |
-| et_hargreaves_samani | mbe | 2.5304 | 2.4957 | 2.5682 | 366 | 1000 | 0.9500 |
-| et_hargreaves_samani_corr | rmse | 0.3588 | 0.3309 | 0.3865 | 366 | 1000 | 0.9500 |
-| et_hargreaves_samani_corr | mae | 0.2885 | 0.2677 | 0.3093 | 366 | 1000 | 0.9500 |
-| et_hargreaves_samani_corr | mbe | 0.0000 | -0.0376 | 0.0371 | 366 | 1000 | 0.9500 |
-| et_priestley_taylor | rmse | 2.3966 | 2.3388 | 2.4601 | 366 | 1000 | 0.9500 |
-| et_priestley_taylor | mae | 2.3241 | 2.2651 | 2.3873 | 366 | 1000 | 0.9500 |
-| et_priestley_taylor | mbe | -2.3241 | -2.3873 | -2.2651 | 366 | 1000 | 0.9500 |
-| et_garcia_lopez | rmse | 35.0926 | 35.0215 | 35.1580 | 366 | 1000 | 0.9500 |
-| et_garcia_lopez | mae | 35.0868 | 35.0150 | 35.1519 | 366 | 1000 | 0.9500 |
+| et_thornthwaite | rmse | 4.1902 | 4.1570 | 4.2246 | 366 | 1000 | 0.9500 |
+| et_thornthwaite | mae | 4.1763 | 4.1422 | 4.2124 | 366 | 1000 | 0.9500 |
+| et_thornthwaite | mbe | 4.1763 | 4.1422 | 4.2124 | 366 | 1000 | 0.9500 |
+| et_thornthwaite_camargo | rmse | 4.0750 | 4.0214 | 4.1256 | 366 | 1000 | 0.9500 |
+| et_thornthwaite_camargo | mae | 4.0376 | 3.9794 | 4.0917 | 366 | 1000 | 0.9500 |
+| et_thornthwaite_camargo | mbe | 4.0376 | 3.9794 | 4.0917 | 366 | 1000 | 0.9500 |
+| et_camargo | rmse | 1.0691 | 1.0350 | 1.1010 | 366 | 1000 | 0.9500 |
+| et_camargo | mae | 0.9969 | 0.9555 | 1.0366 | 366 | 1000 | 0.9500 |
+| et_camargo | mbe | 0.9732 | 0.9250 | 1.0187 | 366 | 1000 | 0.9500 |
+| et_hargreaves_samani | rmse | 1.1537 | 1.1202 | 1.1853 | 366 | 1000 | 0.9500 |
+| et_hargreaves_samani | mae | 1.0857 | 1.0443 | 1.1261 | 366 | 1000 | 0.9500 |
+| et_hargreaves_samani | mbe | 1.0741 | 1.0294 | 1.1162 | 366 | 1000 | 0.9500 |
+| et_hargreaves_samani_corr | rmse | 1.5976 | 1.5622 | 1.6362 | 366 | 1000 | 0.9500 |
+| et_hargreaves_samani_corr | mae | 1.5418 | 1.5005 | 1.5855 | 366 | 1000 | 0.9500 |
+| et_hargreaves_samani_corr | mbe | 1.5418 | 1.5005 | 1.5855 | 366 | 1000 | 0.9500 |
+| et_priestley_taylor | rmse | 1.0344 | 0.9709 | 1.1002 | 366 | 1000 | 0.9500 |
+| et_priestley_taylor | mae | 0.8910 | 0.8356 | 0.9460 | 366 | 1000 | 0.9500 |
+| et_priestley_taylor | mbe | -0.8910 | -0.9460 | -0.8356 | 366 | 1000 | 0.9500 |
+| et_garcia_lopez | rmse | 1.0496 | 0.9871 | 1.1157 | 366 | 1000 | 0.9500 |
+| et_garcia_lopez | mae | 0.9230 | 0.8686 | 0.9780 | 366 | 1000 | 0.9500 |
 
-Showing first 20 of 21 rows. See CSV outputs for complete tables.
+Showing first 20 of 54 rows. See CSV outputs for complete tables.
 
 ## Monthly and rainfall-season errors
 
 | period_type | period | method | n | rain_mm | rmse | mae | mbe |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| month | 2024-01 | et_thornthwaite | 31 | 137.0000 | 2.5969 | 2.5451 | 2.5451 |
-| month | 2024-01 | et_thornthwaite_camargo | 31 | 137.0000 | 2.5969 | 2.5451 | 2.5451 |
-| month | 2024-01 | et_camargo | 31 | 137.0000 | 2.3286 | 2.2272 | -0.9183 |
-| month | 2024-01 | et_hargreaves_samani | 31 | 137.0000 | 2.3579 | 2.3389 | 2.3389 |
-| month | 2024-01 | et_hargreaves_samani_corr | 31 | 137.0000 | 0.2979 | 0.2633 | -0.0712 |
-| month | 2024-01 | et_priestley_taylor | 31 | 137.0000 | 2.3008 | 2.2547 | -2.2547 |
-| month | 2024-01 | et_garcia_lopez | 31 | 137.0000 | 35.1368 | 35.1331 | 35.1331 |
-| month | 2024-02 | et_thornthwaite | 29 | 324.4000 | 2.5390 | 2.4544 | 2.4544 |
-| month | 2024-02 | et_thornthwaite_camargo | 29 | 324.4000 | 2.4640 | 2.3767 | 2.3767 |
-| month | 2024-02 | et_camargo | 29 | 324.4000 | 2.7329 | 2.6545 | -2.6545 |
-| month | 2024-02 | et_hargreaves_samani | 29 | 324.4000 | 2.3376 | 2.3190 | 2.3190 |
-| month | 2024-02 | et_hargreaves_samani_corr | 29 | 324.4000 | 0.3948 | 0.3447 | -0.1653 |
-| month | 2024-02 | et_priestley_taylor | 29 | 324.4000 | 2.4685 | 2.4024 | -2.4024 |
-| month | 2024-02 | et_garcia_lopez | 29 | 324.4000 | 34.9715 | 34.9656 | 34.9656 |
-| month | 2024-03 | et_thornthwaite | 31 | 419.8000 | 2.7685 | 2.7043 | 2.7043 |
-| month | 2024-03 | et_thornthwaite_camargo | 31 | 419.8000 | 2.8768 | 2.8150 | 2.8150 |
-| month | 2024-03 | et_camargo | 31 | 419.8000 | 2.2942 | 2.2162 | -2.2162 |
-| month | 2024-03 | et_hargreaves_samani | 31 | 419.8000 | 2.4049 | 2.3905 | 2.3905 |
-| month | 2024-03 | et_hargreaves_samani_corr | 31 | 419.8000 | 0.2856 | 0.2412 | 0.0894 |
-| month | 2024-03 | et_priestley_taylor | 31 | 419.8000 | 2.0759 | 2.0111 | -2.0111 |
+| month | 2024-01 | et_thornthwaite | 31 | 137.0000 | 4.1577 | 4.1470 | 4.1470 |
+| month | 2024-01 | et_thornthwaite_camargo | 31 | 137.0000 | 4.1577 | 4.1470 | 4.1470 |
+| month | 2024-01 | et_camargo | 31 | 137.0000 | 1.0617 | 1.0343 | 1.0343 |
+| month | 2024-01 | et_hargreaves_samani | 31 | 137.0000 | 1.1211 | 1.0852 | 1.0852 |
+| month | 2024-01 | et_hargreaves_samani_corr | 31 | 137.0000 | 1.5613 | 1.5307 | 1.5307 |
+| month | 2024-01 | et_priestley_taylor | 31 | 137.0000 | 0.8184 | 0.7717 | -0.7717 |
+| month | 2024-01 | et_garcia_lopez | 31 | 137.0000 | 0.8623 | 0.8201 | -0.8201 |
+| month | 2024-01 | et_makkink | 31 | 137.0000 | 0.9263 | 0.8858 | -0.8858 |
+| month | 2024-01 | et_mccloud | 31 | 137.0000 | 7.0698 | 7.0186 | 7.0186 |
+| month | 2024-01 | et_turc | 31 | 137.0000 | 0.4269 | 0.3450 | -0.3348 |
+| month | 2024-01 | et_global_radiation | 31 | 137.0000 | 0.7974 | 0.7506 | -0.7506 |
+| month | 2024-01 | et_ivanov | 31 | 137.0000 | 115.9922 | 112.5488 | 112.5488 |
+| month | 2024-01 | et_jensen_heise | 31 | 137.0000 | 0.7690 | 0.7241 | -0.7241 |
+| month | 2024-01 | et_net_radiation | 31 | 137.0000 | 0.8153 | 0.7683 | -0.7683 |
+| month | 2024-01 | et_radiation_temperature | 31 | 137.0000 | 0.8212 | 0.7748 | -0.7748 |
+| month | 2024-01 | et_lungeon | 31 | 137.0000 | 0.4157 | 0.3665 | -0.3665 |
+| month | 2024-01 | et_stephens_stewart | 31 | 137.0000 | 0.8058 | 0.7599 | -0.7599 |
+| month | 2024-01 | et_hicks_hess | 31 | 137.0000 | 0.7848 | 0.7435 | -0.7435 |
+| month | 2024-02 | et_thornthwaite | 29 | 324.4000 | 4.1194 | 4.0859 | 4.0859 |
+| month | 2024-02 | et_thornthwaite_camargo | 29 | 324.4000 | 4.0424 | 4.0083 | 4.0083 |
 
-Showing first 20 of 98 rows. See CSV outputs for complete tables.
+Showing first 20 of 252 rows. See CSV outputs for complete tables.
 
 ## Bias by reference ETo range
 
 | method | eto_bin | eto_min | eto_max | n | mean_ref_eto | mean_bias | median_bias |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| et_thornthwaite | 1 | 0.7094 | 2.1340 | 92 | 1.7085 | 3.1181 | 3.0855 |
-| et_thornthwaite | 2 | 2.1415 | 2.5667 | 91 | 2.3677 | 2.6877 | 2.6797 |
-| et_thornthwaite | 3 | 2.5695 | 2.9186 | 91 | 2.7330 | 2.5226 | 2.4301 |
-| et_thornthwaite | 4 | 2.9224 | 4.5540 | 92 | 3.3331 | 2.2090 | 2.2134 |
-| et_thornthwaite_camargo | 1 | 0.7094 | 2.1340 | 92 | 1.7085 | 3.3228 | 3.2283 |
-| et_thornthwaite_camargo | 2 | 2.1415 | 2.5667 | 91 | 2.3677 | 2.6636 | 2.6528 |
-| et_thornthwaite_camargo | 3 | 2.5695 | 2.9186 | 91 | 2.7330 | 2.2983 | 2.2973 |
-| et_thornthwaite_camargo | 4 | 2.9224 | 4.5540 | 92 | 3.3331 | 1.6982 | 1.7817 |
-| et_camargo | 1 | 0.7094 | 2.1340 | 92 | 1.7085 | -1.5361 | -1.7957 |
-| et_camargo | 2 | 2.1415 | 2.5667 | 91 | 2.3677 | -2.1895 | -2.3785 |
-| et_camargo | 3 | 2.5695 | 2.9186 | 91 | 2.7330 | -2.6406 | -2.7269 |
-| et_camargo | 4 | 2.9224 | 4.5540 | 92 | 3.3331 | -3.2448 | -3.2496 |
-| et_hargreaves_samani | 1 | 0.7094 | 2.1340 | 92 | 1.7085 | 2.4212 | 2.3883 |
-| et_hargreaves_samani | 2 | 2.1415 | 2.5667 | 91 | 2.3677 | 2.6497 | 2.6451 |
-| et_hargreaves_samani | 3 | 2.5695 | 2.9186 | 91 | 2.7330 | 2.5903 | 2.5555 |
-| et_hargreaves_samani | 4 | 2.9224 | 4.5540 | 92 | 3.3331 | 2.4624 | 2.4530 |
-| et_hargreaves_samani_corr | 1 | 0.7094 | 2.1340 | 92 | 1.7085 | 0.3584 | 0.3491 |
-| et_hargreaves_samani_corr | 2 | 2.1415 | 2.5667 | 91 | 2.3677 | 0.1435 | 0.1444 |
-| et_hargreaves_samani_corr | 3 | 2.5695 | 2.9186 | 91 | 2.7330 | -0.0687 | -0.1027 |
-| et_hargreaves_samani_corr | 4 | 2.9224 | 4.5540 | 92 | 3.3331 | -0.4324 | -0.3868 |
+| et_thornthwaite | 1 | 0.0777 | 0.5944 | 92 | 0.4025 | 4.3967 | 4.4522 |
+| et_thornthwaite | 2 | 0.5987 | 0.8982 | 91 | 0.7475 | 4.2656 | 4.2901 |
+| et_thornthwaite | 3 | 0.8991 | 1.2751 | 91 | 1.0720 | 4.1745 | 4.1554 |
+| et_thornthwaite | 4 | 1.2777 | 3.0744 | 92 | 1.7507 | 3.8695 | 3.8944 |
+| et_thornthwaite_camargo | 1 | 0.0777 | 0.5944 | 92 | 0.4025 | 4.6288 | 4.6134 |
+| et_thornthwaite_camargo | 2 | 0.5987 | 0.8982 | 91 | 0.7475 | 4.2838 | 4.2792 |
+| et_thornthwaite_camargo | 3 | 0.8991 | 1.2751 | 91 | 1.0720 | 3.9592 | 3.9750 |
+| et_thornthwaite_camargo | 4 | 1.2777 | 3.0744 | 92 | 1.7507 | 3.2806 | 3.4023 |
+| et_camargo | 1 | 0.0777 | 0.5944 | 92 | 0.4025 | 1.4250 | 1.4144 |
+| et_camargo | 2 | 0.5987 | 0.8982 | 91 | 0.7475 | 1.1711 | 1.1735 |
+| et_camargo | 3 | 0.8991 | 1.2751 | 91 | 1.0720 | 0.9271 | 0.9316 |
+| et_camargo | 4 | 1.2777 | 3.0744 | 92 | 1.7507 | 0.3714 | 0.5073 |
+| et_hargreaves_samani | 1 | 0.0777 | 0.5944 | 92 | 0.4025 | 1.3394 | 1.3524 |
+| et_hargreaves_samani | 2 | 0.5987 | 0.8982 | 91 | 0.7475 | 1.2916 | 1.3251 |
+| et_hargreaves_samani | 3 | 0.8991 | 1.2751 | 91 | 1.0720 | 1.1028 | 1.1005 |
+| et_hargreaves_samani | 4 | 1.2777 | 3.0744 | 92 | 1.7507 | 0.5652 | 0.6679 |
+| et_hargreaves_samani_corr | 1 | 0.0777 | 0.5944 | 92 | 0.4025 | 1.7335 | 1.7747 |
+| et_hargreaves_samani_corr | 2 | 0.5987 | 0.8982 | 91 | 0.7475 | 1.7529 | 1.7909 |
+| et_hargreaves_samani_corr | 3 | 0.8991 | 1.2751 | 91 | 1.0720 | 1.5948 | 1.5757 |
+| et_hargreaves_samani_corr | 4 | 1.2777 | 3.0744 | 92 | 1.7507 | 1.0891 | 1.1417 |
 
-Showing first 20 of 28 rows. See CSV outputs for complete tables.
+Showing first 20 of 72 rows. See CSV outputs for complete tables.
 
 ## Limitations
 
