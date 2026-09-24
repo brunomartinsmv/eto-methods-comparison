@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from scripts import calibration, cli
-from scripts.cli import build_parser, cmd_aggregate, cmd_calibrate
+from scripts.cli import RUN_SITE_STEPS, build_parser, cmd_aggregate, cmd_calibrate
 from scripts.config import DEFAULT_YEAR
 from scripts.pca_analysis import prepare_pca_data, slugify_label
 
@@ -35,6 +35,10 @@ def test_validate_data_command_defaults_to_raw_input_and_reports_output() -> Non
     assert args.input.endswith("data/raw/Evapo.xlsx")
     assert args.output.endswith("outputs/reports")
     assert args.eto_source == "precomputed"
+
+
+def test_run_site_computes_eto_before_validating_calculated_series() -> None:
+    assert RUN_SITE_STEPS.index("compute-eto") < RUN_SITE_STEPS.index("validate-data")
 
 
 def test_clean_command_accepts_compute_eto_flag() -> None:
