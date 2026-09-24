@@ -83,6 +83,7 @@ python -m scripts.cli export-supplement
 
 - `compute-eto` le `data/cleaned/{site}_daily.csv` e escreve `outputs/results/{site}_daily_eto.csv` com ET0 calculada a partir de variaveis meteorologicas padronizadas.
 - `validate-data` escreve relatorios CSV em `outputs/reports/`.
+- O relatorio de qualidade separa variaveis meteorologicas (`input`), series ET₀ da planilha (`precomputed_et0`) e series ET₀ calculadas (`computed_et0`). Para cada metodo configurado, informa valores finitos, dias validos distintos, cobertura do calendario e violacoes dos limites fisicos. Metodos ausentes no arquivo calculado recebem `not_available`; sem arquivo calculado, a etapa recebe `not_run`.
 - `pca` escreve `outputs/tables/{site}_pca_loadings.csv`, `outputs/tables/{site}_pca_explained_variance.csv` e `outputs/figures/{site}/{site}_pca_biplot.png` quando ha variaveis e linhas suficientes.
 - `summarize` escreve `outputs/reports/summary.csv`, `outputs/reports/summary.md` e `outputs/tables/summary_rankings.csv` com `rank` e `selection_rule`. A regra padrao `composite` ordena por maior `c`, menor `rmse`, menor `mae`, maior `willmott_d` e menor modulo de `mbe`; tambem e possivel escolher `rmse`, `mae`, `c` ou `willmott_d`.
 - `export-supplement` cria `outputs/supplement/` com CSVs atuais de `outputs/tables/`, `outputs/results/` e `outputs/reports/`, deixando outputs legados fora do pacote suplementar.
@@ -108,6 +109,7 @@ After running the pipeline, start with:
 - `outputs/tables/{site}_daily_metrics.csv`, for daily metrics;
 - `outputs/figures/{site}/{site}_daily_taylor.png`, for visual comparison;
 - `outputs/reports/{site}_data_quality.csv`, for data-quality auditing.
+- The quality report separates weather inputs (`input`), spreadsheet ET₀ series (`precomputed_et0`), and calculated ET₀ series (`computed_et0`). For each configured method, it reports finite values, distinct valid days, calendar coverage, and physical-limit violations. Methods absent from an existing calculated file are marked `not_available`; without a calculated file, the stage is marked `not_run`.
 
 ## Checagens de desenvolvimento / Development checks
 ```bash
