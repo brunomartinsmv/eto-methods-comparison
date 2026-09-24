@@ -49,6 +49,29 @@ def test_monthly_sum_preserves_empty_months_and_reports_partial_coverage() -> No
     assert compute_metrics(monthly, "ref", ["method"])["rmse"].isna().all()
 
 
+def test_monthly_sum_inserts_calendar_months_with_no_input_rows() -> None:
+    df = pd.DataFrame(
+        {
+            "date": pd.to_datetime(["2024-01-15", "2024-03-15"]),
+            "ref": [1.0, 3.0],
+        }
+    )
+
+    monthly = monthly_sum(df, ["ref"])
+
+    assert monthly["month"].tolist() == list(pd.to_datetime(["2024-01-01", "2024-02-01", "2024-03-01"]))
+    assert monthly["ref"].iloc[1] != monthly["ref"].iloc[1]
+    assert monthly["ref_valid_days"].tolist() == [1, 0, 1]
+    assert monthly["ref_valid_fraction"].iloc[1] == 0
+
+
+def test_monthly_sum_normalizes_existing_date_and_integer_month_labels() -> None:
+    text_month = monthly_sum(pd.DataFrame({"month": ["2024-02", "2024-03"], "ref": [2.0, 3.0]}), ["ref"])
+    numeric_month = monthly_sum(pd.DataFrame({"month": [202402, 202403], "ref": [2.0, 3.0]}), ["ref"])
+
+    pd.testing.assert_frame_equal(text_month, numeric_month)
+
+
 def test_rolling_mean_computes_seven_day_trailing_mean_after_sorting_dates() -> None:
     df = pd.DataFrame(
         {
