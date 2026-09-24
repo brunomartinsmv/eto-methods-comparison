@@ -2,7 +2,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
+
+from .config import METHODS
+
+METHOD_COLUMNS = set(METHODS.columns.values())
 
 PHYSICAL_LIMITS: dict[str, tuple[float | None, float | None]] = {
     "tmed_c": (-50.0, 60.0),
@@ -26,6 +31,7 @@ PHYSICAL_LIMITS: dict[str, tuple[float | None, float | None]] = {
     "et_penman_monteith": (0.0, 30.0),
     "et_garcia_lopez": (0.0, 30.0),
 }
+PHYSICAL_LIMITS.update({column: (0.0, 30.0) for column in METHOD_COLUMNS})
 
 
 def _format_dates(dates: pd.Series | pd.DatetimeIndex) -> str:
@@ -48,12 +54,69 @@ def _physical_limit_violations(series: pd.Series, variable: str) -> int:
     return int(mask.sum())
 
 
+def _quality_row(
+    *,
+    site: str,
+    stage: str,
+    variable: str,
+    values: pd.Series | None,
+    dates: pd.Series,
+    expected_dates: pd.DatetimeIndex,
+    row_count: int,
+    interpolated_values: int = 0,
+    status: str = "available",
+) -> dict[str, object]:
+    parsed_dates = pd.to_datetime(dates, errors="coerce")
+    present_dates = pd.DatetimeIndex(parsed_dates.dropna().dt.normalize().unique())
+    finite_days = 0
+    finite_values = 0
+    non_finite_values: int | None = None
+    missing_values: int | None = None
+    physical_violations = 0
+
+    if values is not None:
+        numeric = pd.to_numeric(values, errors="coerce")
+        finite = pd.Series(
+            np.isfinite(numeric.to_numpy(dtype=float, na_value=np.nan)), index=numeric.index
+        )
+        finite_values = int(finite.sum())
+        non_finite_values = int((~finite).sum())
+        missing_values = int(values.isna().sum())
+        valid_dates = parsed_dates.loc[finite.to_numpy()].dropna().dt.normalize().unique()
+        finite_days = len(valid_dates)
+        physical_violations = _physical_limit_violations(values, variable)
+
+    expected_days = len(expected_dates)
+    valid_fraction = finite_days / expected_days if expected_days else float("nan")
+    return {
+        "site": site,
+        "stage": stage,
+        "variable": variable,
+        "status": status,
+        "source_present": values is not None,
+        "row_count": row_count,
+        "expected_days": expected_days,
+        "valid_days": finite_days,
+        "valid_fraction": valid_fraction,
+        "finite_values": finite_values,
+        "non_finite_values": non_finite_values,
+        "start_date": parsed_dates.min().strftime("%Y-%m-%d") if parsed_dates.notna().any() else "",
+        "end_date": parsed_dates.max().strftime("%Y-%m-%d") if parsed_dates.notna().any() else "",
+        "missing_dates": _format_dates(expected_dates.difference(present_dates)),
+        "duplicate_dates": _format_dates(parsed_dates[parsed_dates.duplicated(keep=False)]),
+        "missing_values": missing_values,
+        "interpolated_values": interpolated_values,
+        "physical_limit_violations": physical_violations,
+    }
+
+
 def build_quality_report(
     site: str,
     raw_df: pd.DataFrame,
     cleaned_df: pd.DataFrame,
     year: int,
     interpolated_by_variable: dict[str, int] | None = None,
+    calculated_df: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     interpolated_by_variable = interpolated_by_variable or {}
 
@@ -69,36 +132,51 @@ def build_quality_report(
         expected_start = pd.Timestamp(f"{year}-01-01")
         expected_end = pd.Timestamp(f"{year}-12-31")
     expected_dates = pd.date_range(expected_start, expected_end, freq="D")
-    present_dates = pd.DatetimeIndex(cleaned_dates.dropna().dt.normalize().unique())
-    missing_dates = expected_dates.difference(present_dates)
-    duplicate_dates = raw_dates[raw_dates.duplicated(keep=False)]
-
     variables = [
         column
         for column in raw_df.columns
         if column != "date" and (column in cleaned_df.columns or column in interpolated_by_variable)
     ]
 
-    rows = []
+    rows: list[dict[str, object]] = []
     for variable in variables:
+        stage = "precomputed_et0" if variable in METHOD_COLUMNS else "input"
         rows.append(
-            {
-                "site": site,
-                "variable": variable,
-                "row_count": int(len(cleaned_df)),
-                "expected_days": int(len(expected_dates)),
-                "start_date": cleaned_dates.min().strftime("%Y-%m-%d")
-                if cleaned_dates.notna().any()
-                else "",
-                "end_date": cleaned_dates.max().strftime("%Y-%m-%d")
-                if cleaned_dates.notna().any()
-                else "",
-                "missing_dates": _format_dates(missing_dates),
-                "duplicate_dates": _format_dates(duplicate_dates),
-                "missing_values": int(raw_df[variable].isna().sum()),
-                "interpolated_values": int(interpolated_by_variable.get(variable, 0)),
-                "physical_limit_violations": _physical_limit_violations(raw_df[variable], variable),
-            }
+            _quality_row(
+                site=site,
+                stage=stage,
+                variable=variable,
+                values=raw_df[variable],
+                dates=raw_dates,
+                expected_dates=expected_dates,
+                row_count=len(cleaned_df),
+                interpolated_values=int(interpolated_by_variable.get(variable, 0)),
+            )
+        )
+
+    for variable in sorted(METHOD_COLUMNS):
+        source_present = calculated_df is not None and variable in calculated_df.columns
+        if calculated_df is None:
+            status = "not_run"
+            calculated_dates = pd.Series(dtype="datetime64[ns]")
+            values = None
+            row_count = 0
+        else:
+            calculated_dates = pd.to_datetime(calculated_df["date"], errors="coerce")
+            values = calculated_df[variable] if source_present else None
+            status = "available" if source_present else "not_available"
+            row_count = len(calculated_df)
+        rows.append(
+            _quality_row(
+                site=site,
+                stage="computed_et0",
+                variable=variable,
+                values=values,
+                dates=calculated_dates,
+                expected_dates=expected_dates,
+                row_count=row_count,
+                status=status,
+            )
         )
 
     return pd.DataFrame(rows)
