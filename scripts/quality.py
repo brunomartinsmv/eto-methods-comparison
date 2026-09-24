@@ -67,7 +67,9 @@ def _quality_row(
     status: str = "available",
 ) -> dict[str, object]:
     parsed_dates = pd.to_datetime(dates, errors="coerce")
-    present_dates = pd.DatetimeIndex(parsed_dates.dropna().dt.normalize().unique())
+    normalized_dates = parsed_dates.dt.normalize()
+    in_expected_range = normalized_dates.isin(expected_dates)
+    present_dates = pd.DatetimeIndex(normalized_dates.loc[in_expected_range].dropna().unique())
     finite_days = 0
     finite_values = 0
     non_finite_values: int | None = None
@@ -82,7 +84,7 @@ def _quality_row(
         finite_values = int(finite.sum())
         non_finite_values = int((~finite).sum())
         missing_values = int(values.isna().sum())
-        valid_dates = parsed_dates.loc[finite.to_numpy()].dropna().dt.normalize().unique()
+        valid_dates = normalized_dates.loc[finite.to_numpy() & in_expected_range].dropna().unique()
         finite_days = len(valid_dates)
         physical_violations = _physical_limit_violations(values, variable)
 
@@ -100,10 +102,10 @@ def _quality_row(
         "valid_fraction": valid_fraction,
         "finite_values": finite_values,
         "non_finite_values": non_finite_values,
-        "start_date": parsed_dates.min().strftime("%Y-%m-%d") if parsed_dates.notna().any() else "",
-        "end_date": parsed_dates.max().strftime("%Y-%m-%d") if parsed_dates.notna().any() else "",
+        "start_date": normalized_dates.loc[in_expected_range].min().strftime("%Y-%m-%d") if in_expected_range.any() else "",
+        "end_date": normalized_dates.loc[in_expected_range].max().strftime("%Y-%m-%d") if in_expected_range.any() else "",
         "missing_dates": _format_dates(expected_dates.difference(present_dates)),
-        "duplicate_dates": _format_dates(parsed_dates[parsed_dates.duplicated(keep=False)]),
+        "duplicate_dates": _format_dates(parsed_dates.loc[in_expected_range & parsed_dates.duplicated(keep=False)]),
         "missing_values": missing_values,
         "interpolated_values": interpolated_values,
         "physical_limit_violations": physical_violations,
