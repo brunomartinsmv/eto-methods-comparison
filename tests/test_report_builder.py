@@ -36,10 +36,34 @@ def test_build_site_report_markdown_includes_rankings(tmp_path, monkeypatch) -> 
     monkeypatch.setattr(report_builder, "OUTPUTS_FIGURES", figures)
     monkeypatch.setattr(report_builder, "SITES", {"manaus": {"lat": -3.1, "country": "Brazil"}})
 
-    text = report_builder.build_site_report_markdown("manaus")
+    text = report_builder.build_site_report_markdown(
+        "manaus", reports_dir=reports, tables_dir=tables, figures_dir=figures
+    )
     assert "ET₀ site report" in text
     assert "Method rankings" in text
     assert "Latitude" in text
+
+
+def test_build_site_report_markdown_includes_all_quality_rows(tmp_path, monkeypatch) -> None:
+    reports = tmp_path / "reports"
+    tables = tmp_path / "tables"
+    figures = tmp_path / "figures"
+    reports.mkdir()
+    tables.mkdir()
+    figures.mkdir()
+    variables = [f"method_{index}" for index in range(35)]
+    pd.DataFrame({"variable": variables, "stage": ["computed_et0"] * len(variables)}).to_csv(
+        reports / "manaus_data_quality.csv", index=False
+    )
+    monkeypatch.setattr(report_builder, "OUTPUTS_REPORTS", reports)
+    monkeypatch.setattr(report_builder, "OUTPUTS_TABLES", tables)
+    monkeypatch.setattr(report_builder, "OUTPUTS_FIGURES", figures)
+
+    text = report_builder.build_site_report_markdown(
+        "manaus", reports_dir=reports, tables_dir=tables, figures_dir=figures
+    )
+
+    assert all(variable in text for variable in variables)
 
 
 def test_write_index_creates_markdown_and_html(tmp_path, monkeypatch) -> None:
