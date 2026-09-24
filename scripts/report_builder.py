@@ -669,7 +669,7 @@ def build_site_report_html(
     parts.append("<div class=\"section\" id=\"quality\">")
     parts.append("<div class=\"section-head\"><h2>Data quality</h2><p>Coverage and QC flags by input variable.</p></div>")
     parts.append("<div class=\"panel\">")
-    parts.append(_df_to_html_table(quality, max_rows=30))
+    parts.append(_df_to_html_table(quality, max_rows=len(quality) if quality is not None else 40))
     parts.append("</div></div>")
 
     parts.append("<div class=\"section\" id=\"feasibility\">")
