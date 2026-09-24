@@ -19,38 +19,47 @@ Mata Atlantica · Cwa · SP · Brazil
 
 Coverage and QC flags by input variable.
 
-| site | variable | row_count | expected_days | start_date | end_date | missing_dates | duplicate_dates | missing_values | interpolated_values | physical_limit_violations |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| piracicaba | tmed_c | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | rh_mean_pct | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | wind_mean_ms | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | tmax_c | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | rh_max_pct | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | wind_max_ms | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | tmin_c | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | rh_min_pct | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | rain_mm | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | rad_global_mj_m2_d | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | rad_net_mj_m2_d | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | et_thornthwaite | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | et_thornthwaite_camargo | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | et_camargo | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | et_hargreaves_samani | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | et_hargreaves_samani_corr | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | et_priestley_taylor | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | et_penman_monteith | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | et_garcia_lopez | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 39 |
-| piracicaba | T_med | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 354 | 354 | 0 |
-| piracicaba | I | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 354 | 354 | 0 |
-| piracicaba | I_Anual | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 365 | 365 | 0 |
-| piracicaba | a | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 365 | 365 | 0 |
-| piracicaba | et | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 353 | 353 | 0 |
-| piracicaba | T | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | UR | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | es_max | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | es_min | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | es | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | s | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| site | stage | variable | status | source_present | row_count | expected_days | valid_days | valid_fraction | finite_values | non_finite_values | start_date | end_date | missing_dates | duplicate_dates | missing_values | interpolated_values | physical_limit_violations |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| piracicaba | input | tmed_c | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | input | rh_mean_pct | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | input | wind_mean_ms | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | input | tmax_c | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | input | rh_max_pct | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | input | wind_max_ms | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | input | tmin_c | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | input | rh_min_pct | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | input | rain_mm | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | input | rad_global_mj_m2_d | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | input | rad_net_mj_m2_d | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | precomputed_et0 | et_thornthwaite | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | precomputed_et0 | et_thornthwaite_camargo | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | precomputed_et0 | et_camargo | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | precomputed_et0 | et_hargreaves_samani | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | precomputed_et0 | et_hargreaves_samani_corr | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | precomputed_et0 | et_priestley_taylor | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | precomputed_et0 | et_penman_monteith | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | precomputed_et0 | et_garcia_lopez | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 39 |
+| piracicaba | input | ra_extraterrestre_mj_m2_d | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_camargo | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_garcia_lopez | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_global_radiation | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_hargreaves_samani | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_hargreaves_samani_corr | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_hicks_hess | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_ivanov | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 347 |
+| piracicaba | computed_et0 | et_jensen_heise | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_lungeon | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_makkink | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_mccloud | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 361 |
+| piracicaba | computed_et0 | et_net_radiation | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 6 |
+| piracicaba | computed_et0 | et_penman_monteith | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 1 |
+| piracicaba | computed_et0 | et_priestley_taylor | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 6 |
+| piracicaba | computed_et0 | et_radiation_temperature | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_stephens_stewart | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_thornthwaite | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_thornthwaite_camargo | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_turc | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
 
 ## Method feasibility
 
@@ -86,25 +95,28 @@ Composite rank within this site. Monthly scale is listed before daily.
 
 ### Piracicaba — monthly
 
-Best overall: **Makkink** (composite rank).
+Best overall: **Stephens Stewart** (composite rank).
 
 | rank | method | rmse | mae | mbe | r | r2 | willmott_d | c | classification |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Makkink | 8.5015 | 5.8852 | -4.7418 | 0.9374 | 0.8788 | 0.9518 | 0.8923 | Excellent |
-| 2 | Stephens Stewart | 9.8682 | 6.9649 | -6.6192 | 0.9381 | 0.8800 | 0.9427 | 0.8843 | Excellent |
-| 3 | Turc | 16.3449 | 15.3342 | 15.3342 | 0.9622 | 0.9258 | 0.8591 | 0.8266 | Very Good |
-| 4 | Jensen Heise | 18.7174 | 15.5843 | 14.3574 | 0.9346 | 0.8736 | 0.8611 | 0.8048 | Very Good |
-| 5 | Radiation Temperature | 16.3891 | 14.7943 | -14.7943 | 0.9391 | 0.8820 | 0.8458 | 0.7943 | Very Good |
-| 6 | Priestley Taylor | 13.4000 | 11.8551 | -1.5776 | 0.8603 | 0.7401 | 0.9116 | 0.7842 | Very Good |
-| 7 | Net Radiation | 14.4216 | 12.4665 | 6.0014 | 0.8583 | 0.7367 | 0.8953 | 0.7685 | Very Good |
-| 8 | Global Radiation | 18.8716 | 17.5325 | 17.3142 | 0.9293 | 0.8636 | 0.8062 | 0.7492 | Good |
-| 9 | Hicks Hess | 30.5628 | 23.7490 | 23.7490 | 0.9343 | 0.8729 | 0.7493 | 0.7001 | Good |
-| 10 | Hargreaves Samani | 44.2709 | 43.0648 | -43.0648 | 0.9660 | 0.9331 | 0.4908 | 0.4741 | Bad |
-| 11 | Garcia Lopez | 33.7056 | 29.5440 | -26.3328 | 0.7100 | 0.5040 | 0.6535 | 0.4639 | Bad |
-| 12 | Camargo | 63.0266 | 61.8441 | -61.8441 | 0.8877 | 0.7881 | 0.3822 | 0.3393 | Very Poor |
-| 13 | Lungeon | 87.2594 | 85.0839 | -85.0839 | 0.3046 | 0.0928 | 0.2681 | 0.0817 | Very Poor |
-| 14 | Mccloud | 2160.4530 | 2134.1598 | 2134.1598 | 0.8671 | 0.7519 | 0.0162 | 0.0141 | Very Poor |
-| 15 | Ivanov | 3700.2472 | 3559.6517 | 3559.6517 | 0.2737 | 0.0749 | 0.0093 | 0.0025 | Very Poor |
+| 1 | Stephens Stewart | 5.5159 | 4.3223 | -1.5531 | 0.9683 | 0.9377 | 0.9816 | 0.9505 | Excellent |
+| 2 | Makkink | 5.1717 | 4.4327 | 0.3243 | 0.9657 | 0.9326 | 0.9818 | 0.9481 | Excellent |
+| 3 | Radiation Temperature | 10.9880 | 9.7282 | -9.7282 | 0.9686 | 0.9381 | 0.9206 | 0.8916 | Excellent |
+| 4 | Priestley Taylor | 11.6571 | 10.2603 | 3.4885 | 0.9142 | 0.8357 | 0.9327 | 0.8526 | Excellent |
+| 5 | Hicks Hess | 16.7243 | 12.3605 | 10.1405 | 0.9369 | 0.8779 | 0.8884 | 0.8323 | Very Good |
+| 6 | Net Radiation | 15.5411 | 13.0154 | 11.0675 | 0.9123 | 0.8323 | 0.8841 | 0.8066 | Very Good |
+| 7 | Thornthwaite | 15.1841 | 11.6509 | 2.4172 | 0.8832 | 0.7800 | 0.8993 | 0.7942 | Very Good |
+| 8 | Jensen Heise | 22.1735 | 19.4235 | 19.4235 | 0.9659 | 0.9330 | 0.8169 | 0.7890 | Very Good |
+| 9 | Turc | 20.8024 | 20.4003 | 20.4003 | 0.9809 | 0.9621 | 0.7908 | 0.7757 | Very Good |
+| 10 | Global Radiation | 23.1461 | 22.3804 | 22.3804 | 0.9550 | 0.9120 | 0.7382 | 0.7050 | Good |
+| 11 | Hargreaves Samani | 39.2669 | 37.9986 | -37.9986 | 0.9641 | 0.9294 | 0.5272 | 0.5082 | Poor |
+| 12 | Hargreaves Samani Corr | 53.7460 | 52.8334 | 52.8334 | 0.9641 | 0.9294 | 0.4674 | 0.4506 | Bad |
+| 13 | Camargo | 57.8432 | 56.7780 | -56.7780 | 0.9280 | 0.8612 | 0.4070 | 0.3777 | Very Poor |
+| 14 | Garcia Lopez | 38.0570 | 33.6941 | -32.5982 | 0.6241 | 0.3895 | 0.5666 | 0.3536 | Very Poor |
+| 15 | Lungeon | 82.3540 | 80.0178 | -80.0178 | 0.1937 | 0.0375 | 0.2785 | 0.0540 | Very Poor |
+| 16 | Mccloud | 2165.4252 | 2139.2259 | 2139.2259 | 0.8944 | 0.7999 | 0.0162 | 0.0145 | Very Poor |
+| 17 | Ivanov | 3705.7601 | 3564.7179 | 3564.7179 | 0.1616 | 0.0261 | 0.0087 | 0.0014 | Very Poor |
+| 18 | Thornthwaite Camargo | 98.4131 | 96.3929 | -96.3929 | — | — | 0.2427 | — | — |
 
 ### Piracicaba — daily
 
@@ -112,21 +124,24 @@ Best overall: **Stephens Stewart** (composite rank).
 
 | rank | method | rmse | mae | mbe | r | r2 | willmott_d | c | classification |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Stephens Stewart | 0.4975 | 0.3442 | -0.2170 | 0.9451 | 0.8933 | 0.9628 | 0.9100 | Excellent |
-| 2 | Makkink | 0.5147 | 0.3556 | -0.1555 | 0.9354 | 0.8749 | 0.9581 | 0.8962 | Excellent |
-| 3 | Turc | 0.6576 | 0.5699 | 0.5028 | 0.9503 | 0.9030 | 0.9388 | 0.8921 | Excellent |
-| 4 | Jensen Heise | 0.7319 | 0.5982 | 0.4707 | 0.9425 | 0.8884 | 0.9395 | 0.8855 | Excellent |
-| 5 | Priestley Taylor | 0.5813 | 0.4405 | -0.0517 | 0.9238 | 0.8535 | 0.9579 | 0.8849 | Excellent |
-| 6 | Radiation Temperature | 0.6948 | 0.5499 | -0.4851 | 0.9434 | 0.8901 | 0.9216 | 0.8695 | Excellent |
-| 7 | Net Radiation | 0.6526 | 0.5123 | 0.1968 | 0.9162 | 0.8394 | 0.9482 | 0.8687 | Excellent |
-| 8 | Global Radiation | 0.7929 | 0.6827 | 0.5677 | 0.9144 | 0.8361 | 0.9132 | 0.8350 | Very Good |
-| 9 | Hicks Hess | 1.2431 | 0.8752 | 0.7787 | 0.8797 | 0.7739 | 0.8577 | 0.7545 | Very Good |
-| 10 | Garcia Lopez | 1.3238 | 1.1169 | -0.8634 | 0.8167 | 0.6670 | 0.8264 | 0.6749 | Good |
-| 11 | Hargreaves Samani | 1.7225 | 1.4991 | -1.4120 | 0.8415 | 0.7082 | 0.5918 | 0.4980 | Bad |
-| 12 | Camargo | 2.3417 | 2.0996 | -2.0277 | 0.6176 | 0.3814 | 0.4802 | 0.2966 | Very Poor |
-| 13 | Lungeon | 3.0336 | 2.7899 | -2.7896 | 0.6696 | 0.4483 | 0.4243 | 0.2841 | Very Poor |
-| 14 | Mccloud | 71.9653 | 69.9725 | 69.9725 | 0.7020 | 0.4927 | 0.0354 | 0.0248 | Very Poor |
-| 15 | Ivanov | 131.2327 | 116.7104 | 116.7099 | 0.6614 | 0.4374 | 0.0205 | 0.0135 | Very Poor |
+| 1 | Stephens Stewart | 0.3825 | 0.2466 | -0.0509 | 0.9571 | 0.9160 | 0.9769 | 0.9350 | Excellent |
+| 2 | Priestley Taylor | 0.4982 | 0.3934 | 0.1144 | 0.9509 | 0.9042 | 0.9682 | 0.9206 | Excellent |
+| 3 | Makkink | 0.4200 | 0.2913 | 0.0106 | 0.9482 | 0.8991 | 0.9708 | 0.9206 | Excellent |
+| 4 | Radiation Temperature | 0.5295 | 0.4024 | -0.3190 | 0.9557 | 0.9134 | 0.9511 | 0.9090 | Excellent |
+| 5 | Net Radiation | 0.6440 | 0.5298 | 0.3629 | 0.9442 | 0.8915 | 0.9487 | 0.8958 | Excellent |
+| 6 | Jensen Heise | 0.8315 | 0.6996 | 0.6368 | 0.9539 | 0.9100 | 0.9213 | 0.8789 | Excellent |
+| 7 | Turc | 0.7670 | 0.7030 | 0.6689 | 0.9579 | 0.9176 | 0.9163 | 0.8777 | Excellent |
+| 8 | Global Radiation | 0.8860 | 0.7917 | 0.7338 | 0.9276 | 0.8604 | 0.8923 | 0.8276 | Very Good |
+| 9 | Hicks Hess | 0.7885 | 0.5311 | 0.3325 | 0.8936 | 0.7985 | 0.9229 | 0.8247 | Very Good |
+| 10 | Garcia Lopez | 1.4046 | 1.1946 | -1.0688 | 0.7846 | 0.6156 | 0.7739 | 0.6072 | Average |
+| 11 | Hargreaves Samani Corr | 1.8777 | 1.7409 | 1.7322 | 0.8392 | 0.7043 | 0.6547 | 0.5494 | Poor |
+| 12 | Hargreaves Samani | 1.5587 | 1.3440 | -1.2459 | 0.8392 | 0.7043 | 0.6087 | 0.5108 | Poor |
+| 13 | Camargo | 2.1678 | 1.9410 | -1.8616 | 0.6382 | 0.4073 | 0.4905 | 0.3130 | Very Poor |
+| 14 | Thornthwaite | 1.2325 | 0.9596 | 0.0793 | 0.4486 | 0.2013 | 0.6655 | 0.2986 | Very Poor |
+| 15 | Lungeon | 2.8668 | 2.6243 | -2.6235 | 0.6175 | 0.3813 | 0.4277 | 0.2641 | Very Poor |
+| 16 | Mccloud | 72.1348 | 70.1386 | 70.1386 | 0.7029 | 0.4941 | 0.0338 | 0.0238 | Very Poor |
+| 17 | Ivanov | 131.4282 | 116.8765 | 116.8760 | 0.6087 | 0.3705 | 0.0189 | 0.0115 | Very Poor |
+| 18 | Thornthwaite Camargo | 3.4196 | 3.1605 | -3.1604 | — | — | 0.3670 | — | — |
 
 
 ## Monthly metrics
@@ -135,21 +150,24 @@ Error and agreement metrics versus Penman–Monteith.
 
 | method | rmse | mae | mbe | r | r2 | willmott_d | c | classification |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Makkink | 8.5015 | 5.8852 | -4.7418 | 0.9374 | 0.8788 | 0.9518 | 0.8923 | Excellent |
-| Stephens Stewart | 9.8682 | 6.9649 | -6.6192 | 0.9381 | 0.8800 | 0.9427 | 0.8843 | Excellent |
-| Turc | 16.3449 | 15.3342 | 15.3342 | 0.9622 | 0.9258 | 0.8591 | 0.8266 | Very Good |
-| Jensen Heise | 18.7174 | 15.5843 | 14.3574 | 0.9346 | 0.8736 | 0.8611 | 0.8048 | Very Good |
-| Radiation Temperature | 16.3891 | 14.7943 | -14.7943 | 0.9391 | 0.8820 | 0.8458 | 0.7943 | Very Good |
-| Priestley Taylor | 13.4000 | 11.8551 | -1.5776 | 0.8603 | 0.7401 | 0.9116 | 0.7842 | Very Good |
-| Net Radiation | 14.4216 | 12.4665 | 6.0014 | 0.8583 | 0.7367 | 0.8953 | 0.7685 | Very Good |
-| Global Radiation | 18.8716 | 17.5325 | 17.3142 | 0.9293 | 0.8636 | 0.8062 | 0.7492 | Good |
-| Hicks Hess | 30.5628 | 23.7490 | 23.7490 | 0.9343 | 0.8729 | 0.7493 | 0.7001 | Good |
-| Hargreaves Samani | 44.2709 | 43.0648 | -43.0648 | 0.9660 | 0.9331 | 0.4908 | 0.4741 | Bad |
-| Garcia Lopez | 33.7056 | 29.5440 | -26.3328 | 0.7100 | 0.5040 | 0.6535 | 0.4639 | Bad |
-| Camargo | 63.0266 | 61.8441 | -61.8441 | 0.8877 | 0.7881 | 0.3822 | 0.3393 | Very Poor |
-| Lungeon | 87.2594 | 85.0839 | -85.0839 | 0.3046 | 0.0928 | 0.2681 | 0.0817 | Very Poor |
-| Mccloud | 2160.4530 | 2134.1598 | 2134.1598 | 0.8671 | 0.7519 | 0.0162 | 0.0141 | Very Poor |
-| Ivanov | 3700.2472 | 3559.6517 | 3559.6517 | 0.2737 | 0.0749 | 0.0093 | 0.0025 | Very Poor |
+| Stephens Stewart | 5.5159 | 4.3223 | -1.5531 | 0.9683 | 0.9377 | 0.9816 | 0.9505 | Excellent |
+| Makkink | 5.1717 | 4.4327 | 0.3243 | 0.9657 | 0.9326 | 0.9818 | 0.9481 | Excellent |
+| Radiation Temperature | 10.9880 | 9.7282 | -9.7282 | 0.9686 | 0.9381 | 0.9206 | 0.8916 | Excellent |
+| Priestley Taylor | 11.6571 | 10.2603 | 3.4885 | 0.9142 | 0.8357 | 0.9327 | 0.8526 | Excellent |
+| Hicks Hess | 16.7243 | 12.3605 | 10.1405 | 0.9369 | 0.8779 | 0.8884 | 0.8323 | Very Good |
+| Net Radiation | 15.5411 | 13.0154 | 11.0675 | 0.9123 | 0.8323 | 0.8841 | 0.8066 | Very Good |
+| Thornthwaite | 15.1841 | 11.6509 | 2.4172 | 0.8832 | 0.7800 | 0.8993 | 0.7942 | Very Good |
+| Jensen Heise | 22.1735 | 19.4235 | 19.4235 | 0.9659 | 0.9330 | 0.8169 | 0.7890 | Very Good |
+| Turc | 20.8024 | 20.4003 | 20.4003 | 0.9809 | 0.9621 | 0.7908 | 0.7757 | Very Good |
+| Global Radiation | 23.1461 | 22.3804 | 22.3804 | 0.9550 | 0.9120 | 0.7382 | 0.7050 | Good |
+| Hargreaves Samani | 39.2669 | 37.9986 | -37.9986 | 0.9641 | 0.9294 | 0.5272 | 0.5082 | Poor |
+| Hargreaves Samani Corr | 53.7460 | 52.8334 | 52.8334 | 0.9641 | 0.9294 | 0.4674 | 0.4506 | Bad |
+| Camargo | 57.8432 | 56.7780 | -56.7780 | 0.9280 | 0.8612 | 0.4070 | 0.3777 | Very Poor |
+| Garcia Lopez | 38.0570 | 33.6941 | -32.5982 | 0.6241 | 0.3895 | 0.5666 | 0.3536 | Very Poor |
+| Lungeon | 82.3540 | 80.0178 | -80.0178 | 0.1937 | 0.0375 | 0.2785 | 0.0540 | Very Poor |
+| Mccloud | 2165.4252 | 2139.2259 | 2139.2259 | 0.8944 | 0.7999 | 0.0162 | 0.0145 | Very Poor |
+| Ivanov | 3705.7601 | 3564.7179 | 3564.7179 | 0.1616 | 0.0261 | 0.0087 | 0.0014 | Very Poor |
+| Thornthwaite Camargo | 98.4131 | 96.3929 | -96.3929 | — | — | 0.2427 | — | — |
 
 ## Daily metrics
 
@@ -157,21 +175,24 @@ Error and agreement metrics versus Penman–Monteith.
 
 | method | rmse | mae | mbe | r | r2 | willmott_d | c | classification |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Stephens Stewart | 0.4975 | 0.3442 | -0.2170 | 0.9451 | 0.8933 | 0.9628 | 0.9100 | Excellent |
-| Makkink | 0.5147 | 0.3556 | -0.1555 | 0.9354 | 0.8749 | 0.9581 | 0.8962 | Excellent |
-| Turc | 0.6576 | 0.5699 | 0.5028 | 0.9503 | 0.9030 | 0.9388 | 0.8921 | Excellent |
-| Jensen Heise | 0.7319 | 0.5982 | 0.4707 | 0.9425 | 0.8884 | 0.9395 | 0.8855 | Excellent |
-| Priestley Taylor | 0.5813 | 0.4405 | -0.0517 | 0.9238 | 0.8535 | 0.9579 | 0.8849 | Excellent |
-| Radiation Temperature | 0.6948 | 0.5499 | -0.4851 | 0.9434 | 0.8901 | 0.9216 | 0.8695 | Excellent |
-| Net Radiation | 0.6526 | 0.5123 | 0.1968 | 0.9162 | 0.8394 | 0.9482 | 0.8687 | Excellent |
-| Global Radiation | 0.7929 | 0.6827 | 0.5677 | 0.9144 | 0.8361 | 0.9132 | 0.8350 | Very Good |
-| Hicks Hess | 1.2431 | 0.8752 | 0.7787 | 0.8797 | 0.7739 | 0.8577 | 0.7545 | Very Good |
-| Garcia Lopez | 1.3238 | 1.1169 | -0.8634 | 0.8167 | 0.6670 | 0.8264 | 0.6749 | Good |
-| Hargreaves Samani | 1.7225 | 1.4991 | -1.4120 | 0.8415 | 0.7082 | 0.5918 | 0.4980 | Bad |
-| Camargo | 2.3417 | 2.0996 | -2.0277 | 0.6176 | 0.3814 | 0.4802 | 0.2966 | Very Poor |
-| Lungeon | 3.0336 | 2.7899 | -2.7896 | 0.6696 | 0.4483 | 0.4243 | 0.2841 | Very Poor |
-| Mccloud | 71.9653 | 69.9725 | 69.9725 | 0.7020 | 0.4927 | 0.0354 | 0.0248 | Very Poor |
-| Ivanov | 131.2327 | 116.7104 | 116.7099 | 0.6614 | 0.4374 | 0.0205 | 0.0135 | Very Poor |
+| Stephens Stewart | 0.3825 | 0.2466 | -0.0509 | 0.9571 | 0.9160 | 0.9769 | 0.9350 | Excellent |
+| Priestley Taylor | 0.4982 | 0.3934 | 0.1144 | 0.9509 | 0.9042 | 0.9682 | 0.9206 | Excellent |
+| Makkink | 0.4200 | 0.2913 | 0.0106 | 0.9482 | 0.8991 | 0.9708 | 0.9206 | Excellent |
+| Radiation Temperature | 0.5295 | 0.4024 | -0.3190 | 0.9557 | 0.9134 | 0.9511 | 0.9090 | Excellent |
+| Net Radiation | 0.6440 | 0.5298 | 0.3629 | 0.9442 | 0.8915 | 0.9487 | 0.8958 | Excellent |
+| Jensen Heise | 0.8315 | 0.6996 | 0.6368 | 0.9539 | 0.9100 | 0.9213 | 0.8789 | Excellent |
+| Turc | 0.7670 | 0.7030 | 0.6689 | 0.9579 | 0.9176 | 0.9163 | 0.8777 | Excellent |
+| Global Radiation | 0.8860 | 0.7917 | 0.7338 | 0.9276 | 0.8604 | 0.8923 | 0.8276 | Very Good |
+| Hicks Hess | 0.7885 | 0.5311 | 0.3325 | 0.8936 | 0.7985 | 0.9229 | 0.8247 | Very Good |
+| Garcia Lopez | 1.4046 | 1.1946 | -1.0688 | 0.7846 | 0.6156 | 0.7739 | 0.6072 | Average |
+| Hargreaves Samani Corr | 1.8777 | 1.7409 | 1.7322 | 0.8392 | 0.7043 | 0.6547 | 0.5494 | Poor |
+| Hargreaves Samani | 1.5587 | 1.3440 | -1.2459 | 0.8392 | 0.7043 | 0.6087 | 0.5108 | Poor |
+| Camargo | 2.1678 | 1.9410 | -1.8616 | 0.6382 | 0.4073 | 0.4905 | 0.3130 | Very Poor |
+| Thornthwaite | 1.2325 | 0.9596 | 0.0793 | 0.4486 | 0.2013 | 0.6655 | 0.2986 | Very Poor |
+| Lungeon | 2.8668 | 2.6243 | -2.6235 | 0.6175 | 0.3813 | 0.4277 | 0.2641 | Very Poor |
+| Mccloud | 72.1348 | 70.1386 | 70.1386 | 0.7029 | 0.4941 | 0.0338 | 0.0238 | Very Poor |
+| Ivanov | 131.4282 | 116.8765 | 116.8760 | 0.6087 | 0.3705 | 0.0189 | 0.0115 | Very Poor |
+| Thornthwaite Camargo | 3.4196 | 3.1605 | -3.1604 | — | — | 0.3670 | — | — |
 
 ## Uncertainty and sensitivity
 
@@ -184,82 +205,82 @@ Wet/dry grouping is data-driven from the median monthly rainfall within the anal
 
 | method | metric | estimate | ci_lower | ci_upper | n | n_boot | confidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| et_thornthwaite | rmse | 2.2480 | 2.1304 | 2.3623 | 366 | 1000 | 0.9500 |
-| et_thornthwaite | mae | 1.9378 | 1.8210 | 2.0545 | 366 | 1000 | 0.9500 |
-| et_thornthwaite | mbe | -1.6530 | -1.8103 | -1.4972 | 366 | 1000 | 0.9500 |
-| et_thornthwaite_camargo | rmse | 5.1084 | 4.9732 | 5.2425 | 366 | 1000 | 0.9500 |
-| et_thornthwaite_camargo | mae | 4.8927 | 4.7475 | 5.0401 | 366 | 1000 | 0.9500 |
-| et_thornthwaite_camargo | mbe | -4.8927 | -5.0401 | -4.7475 | 366 | 1000 | 0.9500 |
-| et_camargo | rmse | 2.2619 | 2.1542 | 2.3762 | 366 | 1000 | 0.9500 |
-| et_camargo | mae | 1.9877 | 1.8819 | 2.0983 | 366 | 1000 | 0.9500 |
-| et_camargo | mbe | -1.7105 | -1.8613 | -1.5631 | 366 | 1000 | 0.9500 |
-| et_hargreaves_samani | rmse | 0.7821 | 0.7339 | 0.8362 | 366 | 1000 | 0.9500 |
-| et_hargreaves_samani | mae | 0.6525 | 0.6090 | 0.7013 | 366 | 1000 | 0.9500 |
-| et_hargreaves_samani | mbe | -0.2020 | -0.2786 | -0.1221 | 366 | 1000 | 0.9500 |
-| et_hargreaves_samani_corr | rmse | 0.7523 | 0.7051 | 0.8017 | 366 | 1000 | 0.9500 |
-| et_hargreaves_samani_corr | mae | 0.6181 | 0.5764 | 0.6612 | 366 | 1000 | 0.9500 |
-| et_hargreaves_samani_corr | mbe | -0.0000 | -0.0760 | 0.0779 | 366 | 1000 | 0.9500 |
-| et_priestley_taylor | rmse | 1.9575 | 1.8266 | 2.0887 | 366 | 1000 | 0.9500 |
-| et_priestley_taylor | mae | 1.5362 | 1.4212 | 1.6620 | 366 | 1000 | 0.9500 |
-| et_priestley_taylor | mbe | 1.4373 | 1.3066 | 1.5698 | 366 | 1000 | 0.9500 |
-| et_garcia_lopez | rmse | 17.4512 | 16.6491 | 18.2835 | 366 | 1000 | 0.9500 |
-| et_garcia_lopez | mae | 16.0792 | 15.3899 | 16.7950 | 366 | 1000 | 0.9500 |
+| et_thornthwaite | rmse | 1.2325 | 1.1306 | 1.3235 | 366 | 1000 | 0.9500 |
+| et_thornthwaite | mae | 0.9596 | 0.8784 | 1.0368 | 366 | 1000 | 0.9500 |
+| et_thornthwaite | mbe | 0.0793 | -0.0493 | 0.1978 | 366 | 1000 | 0.9500 |
+| et_thornthwaite_camargo | rmse | 3.4196 | 3.3032 | 3.5390 | 366 | 1000 | 0.9500 |
+| et_thornthwaite_camargo | mae | 3.1605 | 3.0320 | 3.2909 | 366 | 1000 | 0.9500 |
+| et_thornthwaite_camargo | mbe | -3.1604 | -3.2909 | -3.0319 | 366 | 1000 | 0.9500 |
+| et_camargo | rmse | 2.1678 | 2.0707 | 2.2572 | 366 | 1000 | 0.9500 |
+| et_camargo | mae | 1.9410 | 1.8436 | 2.0385 | 366 | 1000 | 0.9500 |
+| et_camargo | mbe | -1.8616 | -1.9798 | -1.7446 | 366 | 1000 | 0.9500 |
+| et_hargreaves_samani | rmse | 1.5587 | 1.4746 | 1.6409 | 366 | 1000 | 0.9500 |
+| et_hargreaves_samani | mae | 1.3440 | 1.2666 | 1.4292 | 366 | 1000 | 0.9500 |
+| et_hargreaves_samani | mbe | -1.2459 | -1.3396 | -1.1528 | 366 | 1000 | 0.9500 |
+| et_hargreaves_samani_corr | rmse | 1.8777 | 1.8025 | 1.9476 | 366 | 1000 | 0.9500 |
+| et_hargreaves_samani_corr | mae | 1.7409 | 1.6668 | 1.8121 | 366 | 1000 | 0.9500 |
+| et_hargreaves_samani_corr | mbe | 1.7322 | 1.6573 | 1.8015 | 366 | 1000 | 0.9500 |
+| et_priestley_taylor | rmse | 0.4982 | 0.4580 | 0.5393 | 366 | 1000 | 0.9500 |
+| et_priestley_taylor | mae | 0.3934 | 0.3644 | 0.4232 | 366 | 1000 | 0.9500 |
+| et_priestley_taylor | mbe | 0.1144 | 0.0625 | 0.1640 | 366 | 1000 | 0.9500 |
+| et_garcia_lopez | rmse | 1.4046 | 1.3211 | 1.4851 | 366 | 1000 | 0.9500 |
+| et_garcia_lopez | mae | 1.1946 | 1.1195 | 1.2698 | 366 | 1000 | 0.9500 |
 
-Showing first 20 of 21 rows. See CSV outputs for complete tables.
+Showing first 20 of 54 rows. See CSV outputs for complete tables.
 
 ## Monthly and rainfall-season errors
 
 | period_type | period | method | n | rain_mm | rmse | mae | mbe |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| month | 2024-01 | et_thornthwaite | 31 | 136.6800 | 2.0484 | 1.7661 | -1.5320 |
-| month | 2024-01 | et_thornthwaite_camargo | 31 | 136.6800 | 5.7245 | 5.5607 | -5.5607 |
-| month | 2024-01 | et_camargo | 31 | 136.6800 | 1.9474 | 1.6637 | -1.3941 |
-| month | 2024-01 | et_hargreaves_samani | 31 | 136.6800 | 0.5725 | 0.4581 | 0.2379 |
-| month | 2024-01 | et_hargreaves_samani_corr | 31 | 136.6800 | 0.6900 | 0.5866 | 0.4876 |
-| month | 2024-01 | et_priestley_taylor | 31 | 136.6800 | 2.7031 | 2.5236 | 2.5236 |
-| month | 2024-01 | et_garcia_lopez | 31 | 136.6800 | 20.5186 | 19.7961 | 19.7961 |
-| month | 2024-02 | et_thornthwaite | 29 | 140.9840 | 1.5463 | 1.3187 | -0.8639 |
-| month | 2024-02 | et_thornthwaite_camargo | 29 | 140.9840 | 5.1350 | 4.9723 | -4.9723 |
-| month | 2024-02 | et_camargo | 29 | 140.9840 | 1.5927 | 1.3640 | -0.9445 |
-| month | 2024-02 | et_hargreaves_samani | 29 | 140.9840 | 0.6663 | 0.5187 | 0.3612 |
-| month | 2024-02 | et_hargreaves_samani_corr | 29 | 140.9840 | 0.7944 | 0.6193 | 0.5908 |
-| month | 2024-02 | et_priestley_taylor | 29 | 140.9840 | 2.6548 | 2.4475 | 2.4475 |
-| month | 2024-02 | et_garcia_lopez | 29 | 140.9840 | 21.3371 | 20.8299 | 20.8299 |
-| month | 2024-03 | et_thornthwaite | 31 | 163.8300 | 1.7147 | 1.5231 | -0.6348 |
-| month | 2024-03 | et_thornthwaite_camargo | 31 | 163.8300 | 4.8891 | 4.6224 | -4.6224 |
-| month | 2024-03 | et_camargo | 31 | 163.8300 | 1.8921 | 1.7255 | -1.0212 |
-| month | 2024-03 | et_hargreaves_samani | 31 | 163.8300 | 0.7059 | 0.5923 | 0.0132 |
-| month | 2024-03 | et_hargreaves_samani_corr | 31 | 163.8300 | 0.7032 | 0.5554 | 0.2128 |
-| month | 2024-03 | et_priestley_taylor | 31 | 163.8300 | 2.3781 | 2.1149 | 2.1149 |
+| month | 2024-01 | et_thornthwaite | 31 | 136.6800 | 1.2413 | 0.9501 | 0.0092 |
+| month | 2024-01 | et_thornthwaite_camargo | 31 | 136.6800 | 4.2067 | 4.0194 | -4.0194 |
+| month | 2024-01 | et_camargo | 31 | 136.6800 | 2.5771 | 2.4146 | -2.3187 |
+| month | 2024-01 | et_hargreaves_samani | 31 | 136.6800 | 1.9097 | 1.7500 | -1.6526 |
+| month | 2024-01 | et_hargreaves_samani_corr | 31 | 136.6800 | 2.1397 | 2.0288 | 2.0288 |
+| month | 2024-01 | et_priestley_taylor | 31 | 136.6800 | 0.5111 | 0.4491 | 0.4121 |
+| month | 2024-01 | et_garcia_lopez | 31 | 136.6800 | 1.5879 | 1.4496 | -1.4436 |
+| month | 2024-01 | et_makkink | 31 | 136.6800 | 0.3044 | 0.2452 | 0.0659 |
+| month | 2024-01 | et_mccloud | 31 | 136.6800 | 80.6202 | 79.5934 | 79.5934 |
+| month | 2024-01 | et_turc | 31 | 136.6800 | 0.8052 | 0.7635 | 0.7635 |
+| month | 2024-01 | et_global_radiation | 31 | 136.6800 | 0.8916 | 0.8429 | 0.8429 |
+| month | 2024-01 | et_ivanov | 31 | 136.6800 | 119.0876 | 110.9760 | 110.9760 |
+| month | 2024-01 | et_jensen_heise | 31 | 136.6800 | 1.1672 | 1.0993 | 1.0993 |
+| month | 2024-01 | et_net_radiation | 31 | 136.6800 | 0.7417 | 0.6918 | 0.6504 |
+| month | 2024-01 | et_radiation_temperature | 31 | 136.6800 | 0.4707 | 0.4042 | -0.3206 |
+| month | 2024-01 | et_lungeon | 31 | 136.6800 | 3.6612 | 3.5038 | -3.5006 |
+| month | 2024-01 | et_stephens_stewart | 31 | 136.6800 | 0.2782 | 0.2141 | 0.0860 |
+| month | 2024-01 | et_hicks_hess | 31 | 136.6800 | 1.1060 | 0.9187 | 0.8885 |
+| month | 2024-02 | et_thornthwaite | 29 | 140.9840 | 1.4538 | 1.1804 | 0.4179 |
+| month | 2024-02 | et_thornthwaite_camargo | 29 | 140.9840 | 3.9444 | 3.6904 | -3.6904 |
 
-Showing first 20 of 98 rows. See CSV outputs for complete tables.
+Showing first 20 of 252 rows. See CSV outputs for complete tables.
 
 ## Bias by reference ETo range
 
 | method | eto_bin | eto_min | eto_max | n | mean_ref_eto | mean_bias | median_bias |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| et_thornthwaite | 1 | 0.5308 | 4.0391 | 92 | 2.9905 | 0.0073 | -0.0732 |
-| et_thornthwaite | 2 | 4.0513 | 4.9273 | 91 | 4.5289 | -1.6421 | -1.3809 |
-| et_thornthwaite | 3 | 4.9295 | 5.9376 | 91 | 5.3543 | -2.0000 | -1.6935 |
-| et_thornthwaite | 4 | 5.9393 | 9.5146 | 92 | 6.6980 | -2.9807 | -2.7559 |
-| et_thornthwaite_camargo | 1 | 0.5308 | 4.0391 | 92 | 2.9905 | -2.9905 | -3.1611 |
-| et_thornthwaite_camargo | 2 | 4.0513 | 4.9273 | 91 | 4.5289 | -4.5289 | -4.5662 |
-| et_thornthwaite_camargo | 3 | 4.9295 | 5.9376 | 91 | 5.3543 | -5.3543 | -5.3167 |
-| et_thornthwaite_camargo | 4 | 5.9393 | 9.5146 | 92 | 6.6980 | -6.6980 | -6.5355 |
-| et_camargo | 1 | 0.5308 | 4.0391 | 92 | 2.9905 | 0.0351 | 0.1130 |
-| et_camargo | 2 | 4.0513 | 4.9273 | 91 | 4.5289 | -1.7278 | -1.9462 |
-| et_camargo | 3 | 4.9295 | 5.9376 | 91 | 5.3543 | -2.0879 | -1.9009 |
-| et_camargo | 4 | 5.9393 | 9.5146 | 92 | 6.6980 | -3.0657 | -2.9093 |
-| et_hargreaves_samani | 1 | 0.5308 | 4.0391 | 92 | 2.9905 | 0.4863 | 0.5699 |
-| et_hargreaves_samani | 2 | 4.0513 | 4.9273 | 91 | 4.5289 | -0.3386 | -0.5381 |
-| et_hargreaves_samani | 3 | 4.9295 | 5.9376 | 91 | 5.3543 | -0.3565 | -0.4018 |
-| et_hargreaves_samani | 4 | 5.9393 | 9.5146 | 92 | 6.6980 | -0.6022 | -0.4965 |
-| et_hargreaves_samani_corr | 1 | 0.5308 | 4.0391 | 92 | 2.9905 | 0.6360 | 0.6662 |
-| et_hargreaves_samani_corr | 2 | 4.0513 | 4.9273 | 91 | 4.5289 | -0.1582 | -0.3637 |
-| et_hargreaves_samani_corr | 3 | 4.9295 | 5.9376 | 91 | 5.3543 | -0.1413 | -0.1878 |
-| et_hargreaves_samani_corr | 4 | 5.9393 | 9.5146 | 92 | 6.6980 | -0.3398 | -0.2338 |
+| et_thornthwaite | 1 | -0.0142 | 2.1969 | 92 | 1.4613 | 1.1404 | 1.1912 |
+| et_thornthwaite | 2 | 2.1991 | 3.2563 | 91 | 2.7296 | 0.2394 | 0.5986 |
+| et_thornthwaite | 3 | 3.2744 | 4.0793 | 91 | 3.6466 | -0.1145 | 0.1322 |
+| et_thornthwaite | 4 | 4.0840 | 5.8921 | 92 | 4.8048 | -0.9487 | -0.8924 |
+| et_thornthwaite_camargo | 1 | -0.0142 | 2.1969 | 92 | 1.4613 | -1.4613 | -1.6523 |
+| et_thornthwaite_camargo | 2 | 2.1991 | 3.2563 | 91 | 2.7296 | -2.7296 | -2.7267 |
+| et_thornthwaite_camargo | 3 | 3.2744 | 4.0793 | 91 | 3.6466 | -3.6466 | -3.6399 |
+| et_thornthwaite_camargo | 4 | 4.0840 | 5.8921 | 92 | 4.8048 | -4.8048 | -4.7522 |
+| et_camargo | 1 | -0.0142 | 2.1969 | 92 | 1.4613 | -0.4476 | -0.6503 |
+| et_camargo | 2 | 2.1991 | 3.2563 | 91 | 2.7296 | -1.5822 | -1.5754 |
+| et_camargo | 3 | 3.2744 | 4.0793 | 91 | 3.6466 | -2.2570 | -2.2806 |
+| et_camargo | 4 | 4.0840 | 5.8921 | 92 | 4.8048 | -3.1608 | -3.1049 |
+| et_hargreaves_samani | 1 | -0.0142 | 2.1969 | 92 | 1.4613 | -0.0883 | -0.1868 |
+| et_hargreaves_samani | 2 | 2.1991 | 3.2563 | 91 | 2.7296 | -0.9668 | -0.9614 |
+| et_hargreaves_samani | 3 | 3.2744 | 4.0793 | 91 | 3.6466 | -1.5567 | -1.5568 |
+| et_hargreaves_samani | 4 | 4.0840 | 5.8921 | 92 | 4.8048 | -2.3719 | -2.3514 |
+| et_hargreaves_samani_corr | 1 | -0.0142 | 2.1969 | 92 | 1.4613 | 2.0473 | 1.8773 |
+| et_hargreaves_samani_corr | 2 | 2.1991 | 3.2563 | 91 | 2.7296 | 1.7752 | 1.5787 |
+| et_hargreaves_samani_corr | 3 | 3.2744 | 4.0793 | 91 | 3.6466 | 1.6941 | 1.6426 |
+| et_hargreaves_samani_corr | 4 | 4.0840 | 5.8921 | 92 | 4.8048 | 1.4124 | 1.3994 |
 
-Showing first 20 of 28 rows. See CSV outputs for complete tables.
+Showing first 20 of 72 rows. See CSV outputs for complete tables.
 
 ## Limitations
 
