@@ -62,8 +62,12 @@ def test_build_site_report_markdown_includes_all_quality_rows(tmp_path, monkeypa
     text = report_builder.build_site_report_markdown(
         "manaus", reports_dir=reports, tables_dir=tables, figures_dir=figures
     )
+    html = report_builder.build_site_report_html(
+        "manaus", reports_dir=reports, tables_dir=tables, figures_dir=figures
+    )
 
     assert all(variable in text for variable in variables)
+    assert all(variable in html for variable in variables)
 
 
 def test_write_index_creates_markdown_and_html(tmp_path, monkeypatch) -> None:
