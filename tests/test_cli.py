@@ -41,6 +41,26 @@ def test_run_site_computes_eto_before_validating_calculated_series() -> None:
     assert RUN_SITE_STEPS.index("compute-eto") < RUN_SITE_STEPS.index("validate-data")
 
 
+def test_run_site_validate_data_passes_year_once(monkeypatch, tmp_path) -> None:
+    captured = []
+    monkeypatch.setattr(cli, "cmd_validate_data", captured.append)
+    args = argparse.Namespace(
+        input="custom.xlsx",
+        output=str(tmp_path),
+        year=2024,
+        site="manaus",
+        all_sites=False,
+        steps="validate-data",
+        eto_source="precomputed",
+    )
+
+    cli.cmd_run_site(args)
+
+    assert len(captured) == 1
+    assert captured[0].year == 2024
+    assert captured[0].use_calculated_results is False
+
+
 def test_clean_command_accepts_compute_eto_flag() -> None:
     args = build_parser().parse_args(["clean", "--compute-eto", "--site", "manaus"])
 
