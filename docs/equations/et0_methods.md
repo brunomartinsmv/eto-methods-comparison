@@ -335,7 +335,7 @@ Método empírico russo que combina temperatura e déficit de umidade.
 
 $$\mathrm{ET_0} = c \cdot (T_{mean} + 25)^2 \cdot (100 - RH_{mean})$$
 
-com \(c = 0{,}0018\) (padrão); \(RH\) em %; saída em mm d⁻¹.
+com \(c = 0{,}00006\) (padrão diário); \(RH\) em %; saída em mm d⁻¹. O coeficiente mensal \(0{,}0018\) corresponde a cerca de 30 dias e não pode ser aplicado a cada dia; esta implementação usa a forma diária apresentada em [Ivanov-based daily ET0 formulation](https://doi.org/10.1038/s41598-024-60952-4).
 
 ### Derivação
 
@@ -484,7 +484,7 @@ com \(c = 0{,}0055\) (padrão).
 | McCloud | \(c = 0{,}254\), \(p = 1{,}8\) |
 | Turc | \(c = 0{,}013\) |
 | Global Radiation | \(c = 0{,}53\) |
-| Ivanov | \(c = 0{,}0018\) |
+| Ivanov | \(c = 0{,}00006\) por dia |
 | Jensen-Heise | \(C_T = 0{,}025\), \(T_x = 3\) °C |
 | Net Radiation | \(c = 0{,}408\) |
 | Radiation-Temperature | \(c = 0{,}01\), \(T_0 = 15\) °C |
