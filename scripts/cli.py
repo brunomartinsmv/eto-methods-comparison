@@ -236,12 +236,23 @@ def cmd_validate_data(args: argparse.Namespace) -> None:
         raw_df = io.read_site_data(input_path, meta, year=args.year)
         canonical_df = io.select_cleaned_columns(raw_df)
         cleaned_df, audit = cleaning.clean_daily_with_audit(canonical_df, max_gap=max_gap)
+        calculated_path = OUTPUTS_RESULTS / daily_eto_filename(site)
+        default_input = (DATA_RAW / "Evapo.xlsx").resolve()
+        include_calculated = getattr(args, "use_calculated_results", input_path.resolve() == default_input)
+        calculated_df = (
+            pd.read_csv(calculated_path, parse_dates=["date"])
+            if include_calculated and calculated_path.exists()
+            else None
+        )
+        if calculated_df is not None:
+            calculated_df = calculated_df.loc[calculated_df["date"].dt.year == args.year]
         report = quality.build_quality_report(
             site=site,
             raw_df=raw_df,
             cleaned_df=cleaned_df,
             year=args.year,
             interpolated_by_variable=audit.interpolated_by_variable,
+            calculated_df=calculated_df,
         )
         quality.write_quality_report(report, output_dir, site)
         reports.append(report)
@@ -701,9 +712,9 @@ def cmd_run_method(args: argparse.Namespace) -> None:
 
 RUN_SITE_STEPS = (
     "clean",
-    "validate-data",
     "inspect",
     "compute-eto",
+    "validate-data",
     "aggregate",
     "metrics",
     "plots",
@@ -738,15 +749,6 @@ def cmd_run_site(args: argparse.Namespace) -> None:
                 **site_kwargs,
             )
         )
-    if "validate-data" in steps:
-        cmd_validate_data(
-            argparse.Namespace(
-                input=args.input,
-                output=str(OUTPUTS_REPORTS),
-                eto_source=getattr(args, "eto_source", "precomputed"),
-                **site_kwargs,
-            )
-        )
     if "inspect" in steps:
         cmd_inspect(
             argparse.Namespace(
@@ -759,8 +761,25 @@ def cmd_run_site(args: argparse.Namespace) -> None:
         )
     if "compute-eto" in steps:
         _run_compute_eto(args, include_precomputed=getattr(args, "include_precomputed", False))
+    if "validate-data" in steps:
+        cmd_validate_data(
+            argparse.Namespace(
+                input=args.input,
+                output=str(OUTPUTS_REPORTS),
+                eto_source=getattr(args, "eto_source", "precomputed"),
+                use_calculated_results=(
+                    "compute-eto" in steps
+                    or Path(args.input).resolve() == (DATA_RAW / "Evapo.xlsx").resolve()
+                ),
+                **site_kwargs,
+            )
+        )
     if any(step in steps for step in ("aggregate", "metrics", "plots", "analyze-uncertainty")):
-        downstream_steps = tuple(step for step in steps if step in RUN_SITE_STEPS[4:8])
+        downstream_steps = tuple(
+            step
+            for step in steps
+            if step in {"aggregate", "metrics", "plots", "analyze-uncertainty"}
+        )
         if downstream_steps == ("aggregate", "metrics", "plots", "analyze-uncertainty"):
             _run_downstream_analysis(args)
         else:

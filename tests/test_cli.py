@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from scripts import calibration, cli
-from scripts.cli import build_parser, cmd_aggregate, cmd_calibrate
+from scripts.cli import RUN_SITE_STEPS, build_parser, cmd_aggregate, cmd_calibrate
 from scripts.config import DEFAULT_YEAR
 from scripts.pca_analysis import prepare_pca_data, slugify_label
 
@@ -35,6 +35,30 @@ def test_validate_data_command_defaults_to_raw_input_and_reports_output() -> Non
     assert args.input.endswith("data/raw/Evapo.xlsx")
     assert args.output.endswith("outputs/reports")
     assert args.eto_source == "precomputed"
+
+
+def test_run_site_computes_eto_before_validating_calculated_series() -> None:
+    assert RUN_SITE_STEPS.index("compute-eto") < RUN_SITE_STEPS.index("validate-data")
+
+
+def test_run_site_validate_data_passes_year_once(monkeypatch, tmp_path) -> None:
+    captured = []
+    monkeypatch.setattr(cli, "cmd_validate_data", captured.append)
+    args = argparse.Namespace(
+        input="custom.xlsx",
+        output=str(tmp_path),
+        year=2024,
+        site="manaus",
+        all_sites=False,
+        steps="validate-data",
+        eto_source="precomputed",
+    )
+
+    cli.cmd_run_site(args)
+
+    assert len(captured) == 1
+    assert captured[0].year == 2024
+    assert captured[0].use_calculated_results is False
 
 
 def test_clean_command_accepts_compute_eto_flag() -> None:
