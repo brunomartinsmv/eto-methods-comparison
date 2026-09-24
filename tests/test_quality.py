@@ -1,9 +1,12 @@
+import argparse
 from pathlib import Path
 
 import pandas as pd
 
+from scripts import cli
 from scripts.cleaning import clean_daily_with_audit
-from scripts.quality import build_quality_report, write_quality_report
+from scripts.config import METHODS
+from scripts.quality import PHYSICAL_LIMITS, build_quality_report, write_quality_report
 
 
 def test_clean_daily_with_audit_counts_interpolated_numeric_values() -> None:
@@ -50,18 +53,109 @@ def test_build_quality_report_records_dates_missing_values_interpolation_and_lim
     )
 
     assert set(report["site"]) == {"manaus"}
-    assert set(report["row_count"]) == {3}
-    assert set(report["expected_days"]) == {4}
-    assert set(report["start_date"]) == {"2024-01-01"}
-    assert set(report["end_date"]) == {"2024-01-04"}
-    assert set(report["missing_dates"]) == {"2024-01-03"}
-    assert set(report["duplicate_dates"]) == {"2024-01-02"}
+    input_report = report[report["stage"] == "input"].set_index("variable")
+    assert set(input_report["row_count"]) == {3}
+    assert set(input_report["expected_days"]) == {4}
+    assert set(input_report["start_date"]) == {"2024-01-01"}
+    assert set(input_report["end_date"]) == {"2024-01-04"}
+    assert set(input_report["missing_dates"]) == {"2024-01-03"}
+    assert set(input_report["duplicate_dates"]) == {"2024-01-02"}
 
-    by_variable = report.set_index("variable")
-    assert by_variable.loc["tmax_c", "missing_values"] == 1
-    assert by_variable.loc["tmax_c", "interpolated_values"] == 1
-    assert by_variable.loc["tmax_c", "physical_limit_violations"] == 1
-    assert by_variable.loc["rh_mean_pct", "physical_limit_violations"] == 1
+    assert input_report.loc["tmax_c", "missing_values"] == 1
+    assert input_report.loc["tmax_c", "interpolated_values"] == 1
+    assert input_report.loc["tmax_c", "physical_limit_violations"] == 1
+    assert input_report.loc["rh_mean_pct", "physical_limit_violations"] == 1
+    assert input_report.loc["tmax_c", "valid_days"] == 3
+    assert input_report.loc["tmax_c", "valid_fraction"] == 0.75
+
+
+def test_quality_report_audits_precomputed_and_calculated_methods() -> None:
+    assert set(METHODS.columns.values()) <= PHYSICAL_LIMITS.keys()
+    raw = pd.DataFrame(
+        {
+            "date": pd.date_range("2024-01-01", periods=3),
+            "tmed_c": [20.0, 21.0, 22.0],
+            "et_thornthwaite": [1.0, float("inf"), None],
+        }
+    )
+    cleaned = raw[["date", "tmed_c", "et_thornthwaite"]]
+    calculated = pd.DataFrame(
+        {
+            "date": pd.to_datetime(["2024-01-01", "2024-01-03"]),
+            "et_penman_monteith": [2.0, None],
+        }
+    )
+
+    report = build_quality_report(
+        site="manaus",
+        raw_df=raw,
+        cleaned_df=cleaned,
+        year=2024,
+        calculated_df=calculated,
+    )
+
+    precomputed = report[
+        (report["stage"] == "precomputed_et0") & (report["variable"] == "et_thornthwaite")
+    ].iloc[0]
+    assert precomputed["finite_values"] == 1
+    assert precomputed["non_finite_values"] == 2
+    assert precomputed["physical_limit_violations"] == 1
+    assert precomputed["valid_fraction"] == 1 / 3
+
+    calculated_method = report[
+        (report["stage"] == "computed_et0")
+        & (report["variable"] == "et_penman_monteith")
+    ].iloc[0]
+    assert calculated_method["status"] == "available"
+    assert calculated_method["valid_days"] == 1
+    assert calculated_method["valid_fraction"] == 1 / 3
+
+    skipped_method = report[
+        (report["stage"] == "computed_et0") & (report["variable"] == "et_mccloud")
+    ].iloc[0]
+    assert skipped_method["status"] == "not_available"
+    assert skipped_method["valid_fraction"] == 0
+
+
+def test_validate_data_reads_computed_results_and_marks_source_stages(
+    tmp_path: Path, monkeypatch
+) -> None:
+    results_dir = tmp_path / "results"
+    results_dir.mkdir()
+    pd.DataFrame(
+        {
+            "date": pd.date_range("2024-01-01", periods=2),
+            "et_penman_monteith": [2.0, 2.5],
+        }
+    ).to_csv(results_dir / "manaus_daily_eto.csv", index=False)
+    raw = pd.DataFrame(
+        {
+            "date": pd.date_range("2024-01-01", periods=2),
+            "tmed_c": [20.0, 21.0],
+            "et_thornthwaite": [1.0, 1.5],
+        }
+    )
+    monkeypatch.setattr(cli, "OUTPUTS_RESULTS", results_dir)
+    monkeypatch.setattr(cli, "_selected_sites", lambda _: {"manaus": {}})
+    monkeypatch.setattr(cli.io, "read_site_data", lambda *args, **kwargs: raw)
+
+    cli.cmd_validate_data(
+        argparse.Namespace(
+            input="unused.xlsx",
+            output=str(tmp_path / "reports"),
+            year=2024,
+            site="manaus",
+            all_sites=False,
+        )
+    )
+
+    report = pd.read_csv(tmp_path / "reports" / "manaus_data_quality.csv")
+    assert {"input", "precomputed_et0", "computed_et0"} <= set(report["stage"])
+    assert report.loc[
+        (report["stage"] == "computed_et0")
+        & (report["variable"] == "et_penman_monteith"),
+        "valid_fraction",
+    ].iloc[0] == 1
 
 
 def test_write_quality_report_creates_csv(tmp_path: Path) -> None:
