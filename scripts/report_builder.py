@@ -477,7 +477,7 @@ def build_site_report_markdown(
         ]
     )
     quality = _read_csv_if_exists(reports_dir / f"{site}_data_quality.csv")
-    lines.append(_md_table(quality, max_rows=30))
+    lines.append(_md_table(quality, max_rows=len(quality) if quality is not None else 40))
 
     lines.extend(
         [
