@@ -117,6 +117,32 @@ def test_quality_report_audits_precomputed_and_calculated_methods() -> None:
     assert skipped_method["valid_fraction"] == 0
 
 
+def test_calculated_coverage_ignores_dates_outside_cleaned_calendar() -> None:
+    raw = pd.DataFrame({"date": pd.to_datetime(["2024-01-01", "2024-01-02"]), "tmed_c": [20, 21]})
+    calculated = pd.DataFrame(
+        {
+            "date": pd.to_datetime(["2024-01-01", "2024-01-02", "2024-01-03", "2024-01-03"]),
+            "et_penman_monteith": [2.0, 2.5, 9.0, 10.0],
+        }
+    )
+
+    report = build_quality_report(
+        site="manaus", raw_df=raw, cleaned_df=raw, year=2024, calculated_df=calculated
+    )
+    row = report.loc[
+        (report["stage"] == "computed_et0")
+        & (report["variable"] == "et_penman_monteith")
+    ].iloc[0]
+
+    assert row["expected_days"] == 2
+    assert row["valid_days"] == 2
+    assert row["valid_fraction"] == 1
+    assert row["start_date"] == "2024-01-01"
+    assert row["end_date"] == "2024-01-02"
+    assert row["missing_dates"] == ""
+    assert row["duplicate_dates"] == ""
+
+
 def test_validate_data_reads_computed_results_and_marks_source_stages(
     tmp_path: Path, monkeypatch
 ) -> None:
