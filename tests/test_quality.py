@@ -146,6 +146,7 @@ def test_validate_data_reads_computed_results_and_marks_source_stages(
             year=2024,
             site="manaus",
             all_sites=False,
+            use_calculated_results=True,
         )
     )
 
@@ -156,6 +157,37 @@ def test_validate_data_reads_computed_results_and_marks_source_stages(
         & (report["variable"] == "et_penman_monteith"),
         "valid_fraction",
     ].iloc[0] == 1
+
+
+def test_validate_data_does_not_mix_custom_input_with_default_calculated_results(
+    tmp_path: Path, monkeypatch
+) -> None:
+    results_dir = tmp_path / "results"
+    results_dir.mkdir()
+    pd.DataFrame(
+        {"date": pd.date_range("2024-01-01", periods=1), "et_penman_monteith": [2.0]}
+    ).to_csv(results_dir / "manaus_daily_eto.csv", index=False)
+    raw = pd.DataFrame({"date": pd.date_range("2024-01-01", periods=1), "tmed_c": [20.0]})
+    monkeypatch.setattr(cli, "OUTPUTS_RESULTS", results_dir)
+    monkeypatch.setattr(cli, "_selected_sites", lambda _: {"manaus": {}})
+    monkeypatch.setattr(cli.io, "read_site_data", lambda *args, **kwargs: raw)
+
+    cli.cmd_validate_data(
+        argparse.Namespace(
+            input="custom.xlsx",
+            output=str(tmp_path / "reports"),
+            year=2024,
+            site="manaus",
+            all_sites=False,
+        )
+    )
+
+    report = pd.read_csv(tmp_path / "reports" / "manaus_data_quality.csv")
+    reference = report.loc[
+        (report["stage"] == "computed_et0")
+        & (report["variable"] == "et_penman_monteith")
+    ].iloc[0]
+    assert reference["status"] == "not_run"
 
 
 def test_write_quality_report_creates_csv(tmp_path: Path) -> None:
