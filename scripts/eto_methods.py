@@ -280,12 +280,12 @@ def ivanov(
     *,
     t_mean_c: ArrayLike,
     rh_mean_pct: ArrayLike,
-    coefficient: float = 0.0018,
+    coefficient: float = 0.00006,
 ) -> float | np.ndarray | pd.Series:
     """Estimate ET0 with the Ivanov temperature-humidity method.
 
     Equation summary:
-        ET0 = c * (Tmean + 25)^2 * (100 - RH).
+        ET0 = c_daily * (Tmean + 25)^2 * (100 - RH).
 
     Parameters
     ----------
@@ -294,11 +294,11 @@ def ivanov(
     rh_mean_pct:
         Mean relative humidity.
     coefficient:
-        Empirical Ivanov coefficient.
+        Daily empirical Ivanov coefficient (default 0.00006).
 
     Units
     -----
-    Temperature is degrees C; relative humidity is percent; output is mm day-1.
+    Temperature is daily mean degrees C; relative humidity is percent; output is mm day-1.
 
     Returns
     -------
