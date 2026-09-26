@@ -129,11 +129,12 @@ def mccloud(
     t_mean_c: ArrayLike,
     exponent: float = 1.8,
     coefficient: float = 0.254,
+    base: float = 1.07,
 ) -> float | np.ndarray | pd.Series:
     """Estimate ET0 with a McCloud temperature-power form.
 
     Equation summary:
-        ET0 = c * max(Tmean, 0)^p.
+        ET0 = c * base^(p * Tmean).
 
     Parameters
     ----------
@@ -142,18 +143,20 @@ def mccloud(
     exponent:
         Empirical temperature exponent.
     coefficient:
-        Empirical scaling coefficient.
+        Daily scaling coefficient (default 0.254).
+    base:
+        Empirical temperature base (default 1.07).
 
     Units
     -----
-    Temperature is degrees C; output is mm day-1 under the chosen coefficients.
+    Temperature is daily mean degrees C; output is mm day-1.
 
     Returns
     -------
     float, numpy.ndarray, or pandas.Series
         ET0 in mm day-1. A pandas.Series input index/name is preserved.
     """
-    result = coefficient * np.maximum(as_array(t_mean_c), 0) ** exponent
+    result = coefficient * base ** (exponent * as_array(t_mean_c))
     return restore_from_inputs(result, t_mean_c)
 
 
