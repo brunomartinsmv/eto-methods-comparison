@@ -65,6 +65,20 @@ def test_monthly_sum_inserts_calendar_months_with_no_input_rows() -> None:
     assert monthly["ref_valid_fraction"].iloc[1] == 0
 
 
+def test_monthly_sum_preserves_empty_input_columns() -> None:
+    df = pd.DataFrame({"date": pd.to_datetime([]), "ref": pd.Series(dtype=float)})
+
+    monthly = monthly_sum(df, ["ref"])
+
+    assert monthly.empty
+    assert monthly.columns.tolist() == [
+        "month",
+        "ref",
+        "ref_valid_days",
+        "ref_valid_fraction",
+    ]
+
+
 def test_monthly_sum_normalizes_existing_date_and_integer_month_labels() -> None:
     text_month = monthly_sum(pd.DataFrame({"month": ["2024-02", "2024-03"], "ref": [2.0, 3.0]}), ["ref"])
     numeric_month = monthly_sum(pd.DataFrame({"month": [202402, 202403], "ref": [2.0, 3.0]}), ["ref"])

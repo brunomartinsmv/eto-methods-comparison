@@ -41,7 +41,11 @@ def monthly_sum(df: pd.DataFrame, value_cols: list[str]) -> pd.DataFrame:
     grouped = values.groupby(months)
     monthly = grouped.sum(min_count=1)
     valid_days = grouped.count()
-    expected_months = pd.date_range(monthly.index.min(), monthly.index.max(), freq="MS")
+    expected_months = (
+        pd.DatetimeIndex([], name="month")
+        if monthly.empty
+        else pd.date_range(monthly.index.min(), monthly.index.max(), freq="MS")
+    )
     monthly = monthly.reindex(expected_months)
     valid_days = valid_days.reindex(expected_months, fill_value=0)
     monthly.index.name = "month"
