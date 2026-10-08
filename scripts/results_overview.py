@@ -1,15 +1,23 @@
 """Print the result tables and generated figures for each configured site."""
 
-from pathlib import Path
-
 import pandas as pd
 
 from scripts.config import OUTPUTS_FIGURES, OUTPUTS_REPORTS, OUTPUTS_TABLES, SITES
 
 
 def main() -> None:
-    required_paths = [OUTPUTS_TABLES, OUTPUTS_FIGURES, OUTPUTS_REPORTS]
-    missing = [path for path in required_paths if not Path(path).exists()]
+    required_paths = [
+        path
+        for site in SITES
+        for path in (
+            OUTPUTS_TABLES / f"{site}_daily_metrics.csv",
+            OUTPUTS_TABLES / f"{site}_monthly_metrics.csv",
+            OUTPUTS_REPORTS / f"{site}_data_quality.csv",
+            OUTPUTS_FIGURES / site / f"{site}_monthly_totals.png",
+            OUTPUTS_FIGURES / site / f"{site}_daily_taylor.png",
+        )
+    ]
+    missing = [path for path in required_paths if not path.is_file()]
     if missing:
         raise FileNotFoundError(
             "Missing generated outputs. Run `python -m scripts.cli all --year 2024` "
