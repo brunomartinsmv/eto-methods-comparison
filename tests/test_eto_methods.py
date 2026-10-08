@@ -103,7 +103,7 @@ METHOD_CASES = {
             "t_mean_c": SYNTHETIC_WEATHER["t_mean_c"],
             "rh_mean_pct": SYNTHETIC_WEATHER["rh_mean_pct"],
         },
-        np.array([72.9000000000, 135.0000000000, 217.8000000000]),
+        np.array([2.4300000000, 4.5000000000, 7.2600000000]),
     ),
     "jensen_heise": (
         eto_methods.jensen_heise,

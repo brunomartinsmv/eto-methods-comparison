@@ -46,13 +46,13 @@ Coverage and QC flags by input variable.
 | piracicaba | computed_et0 | et_global_radiation | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
 | piracicaba | computed_et0 | et_hargreaves_samani | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
 | piracicaba | computed_et0 | et_hicks_hess | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | computed_et0 | et_ivanov | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 347 |
+| piracicaba | computed_et0 | et_ivanov | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
 | piracicaba | computed_et0 | et_jensen_heise | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
 | piracicaba | computed_et0 | et_lungeon | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
 | piracicaba | computed_et0 | et_makkink | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
 | piracicaba | computed_et0 | et_mccloud | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 361 |
 | piracicaba | computed_et0 | et_net_radiation | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 6 |
-| piracicaba | computed_et0 | et_penman_monteith | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_penman_monteith | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 1 |
 | piracicaba | computed_et0 | et_priestley_taylor | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 6 |
 | piracicaba | computed_et0 | et_radiation_temperature | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
 | piracicaba | computed_et0 | et_stephens_stewart | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
@@ -110,9 +110,9 @@ Best overall: **Stephens Stewart** (composite rank).
 | 12 | Hargreaves Samani Corr | 53.7460 | 52.8334 | 52.8334 | 0.9641 | 0.9294 | 0.4674 | 0.4506 | Bad |
 | 13 | Camargo | 57.8432 | 56.7780 | -56.7780 | 0.9280 | 0.8612 | 0.4070 | 0.3777 | Very Poor |
 | 14 | Garcia Lopez | 38.0570 | 33.6941 | -32.5982 | 0.6241 | 0.3895 | 0.5666 | 0.3536 | Very Poor |
-| 15 | Lungeon | 82.3540 | 80.0178 | -80.0178 | 0.1937 | 0.0375 | 0.2785 | 0.0540 | Very Poor |
-| 16 | Mccloud | 2165.4252 | 2139.2259 | 2139.2259 | 0.8944 | 0.7999 | 0.0162 | 0.0145 | Very Poor |
-| 17 | Ivanov | 3705.7601 | 3564.7179 | 3564.7179 | 0.1616 | 0.0261 | 0.0087 | 0.0014 | Very Poor |
+| 15 | Ivanov | 44.5007 | 34.2222 | 25.6442 | 0.1616 | 0.0261 | 0.3418 | 0.0552 | Very Poor |
+| 16 | Lungeon | 82.3540 | 80.0178 | -80.0178 | 0.1937 | 0.0375 | 0.2785 | 0.0540 | Very Poor |
+| 17 | Mccloud | 2165.4252 | 2139.2259 | 2139.2259 | 0.8944 | 0.7999 | 0.0162 | 0.0145 | Very Poor |
 | 18 | Thornthwaite Camargo | 98.4131 | 96.3929 | -96.3929 | — | — | 0.2427 | — | — |
 
 ### Piracicaba — daily
@@ -133,11 +133,11 @@ Best overall: **Stephens Stewart** (composite rank).
 | 10 | Garcia Lopez | 1.4046 | 1.1946 | -1.0688 | 0.7846 | 0.6156 | 0.7739 | 0.6072 | Average |
 | 11 | Hargreaves Samani Corr | 1.8777 | 1.7409 | 1.7322 | 0.8392 | 0.7043 | 0.6547 | 0.5494 | Poor |
 | 12 | Hargreaves Samani | 1.5587 | 1.3440 | -1.2459 | 0.8392 | 0.7043 | 0.6087 | 0.5108 | Poor |
-| 13 | Camargo | 2.1678 | 1.9410 | -1.8616 | 0.6382 | 0.4073 | 0.4905 | 0.3130 | Very Poor |
-| 14 | Thornthwaite | 1.2325 | 0.9596 | 0.0793 | 0.4486 | 0.2013 | 0.6655 | 0.2986 | Very Poor |
-| 15 | Lungeon | 2.8668 | 2.6243 | -2.6235 | 0.6175 | 0.3813 | 0.4277 | 0.2641 | Very Poor |
-| 16 | Mccloud | 72.1348 | 70.1386 | 70.1386 | 0.7029 | 0.4941 | 0.0338 | 0.0238 | Very Poor |
-| 17 | Ivanov | 131.4282 | 116.8765 | 116.8760 | 0.6087 | 0.3705 | 0.0189 | 0.0115 | Very Poor |
+| 13 | Ivanov | 1.8181 | 1.3161 | 0.8408 | 0.6087 | 0.3705 | 0.6853 | 0.4171 | Bad |
+| 14 | Camargo | 2.1678 | 1.9410 | -1.8616 | 0.6382 | 0.4073 | 0.4905 | 0.3130 | Very Poor |
+| 15 | Thornthwaite | 1.2325 | 0.9596 | 0.0793 | 0.4486 | 0.2013 | 0.6655 | 0.2986 | Very Poor |
+| 16 | Lungeon | 2.8668 | 2.6243 | -2.6235 | 0.6175 | 0.3813 | 0.4277 | 0.2641 | Very Poor |
+| 17 | Mccloud | 72.1348 | 70.1386 | 70.1386 | 0.7029 | 0.4941 | 0.0338 | 0.0238 | Very Poor |
 | 18 | Thornthwaite Camargo | 3.4196 | 3.1605 | -3.1604 | — | — | 0.3670 | — | — |
 
 
@@ -161,9 +161,9 @@ Error and agreement metrics versus Penman–Monteith.
 | Hargreaves Samani Corr | 53.7460 | 52.8334 | 52.8334 | 0.9641 | 0.9294 | 0.4674 | 0.4506 | Bad |
 | Camargo | 57.8432 | 56.7780 | -56.7780 | 0.9280 | 0.8612 | 0.4070 | 0.3777 | Very Poor |
 | Garcia Lopez | 38.0570 | 33.6941 | -32.5982 | 0.6241 | 0.3895 | 0.5666 | 0.3536 | Very Poor |
+| Ivanov | 44.5007 | 34.2222 | 25.6442 | 0.1616 | 0.0261 | 0.3418 | 0.0552 | Very Poor |
 | Lungeon | 82.3540 | 80.0178 | -80.0178 | 0.1937 | 0.0375 | 0.2785 | 0.0540 | Very Poor |
 | Mccloud | 2165.4252 | 2139.2259 | 2139.2259 | 0.8944 | 0.7999 | 0.0162 | 0.0145 | Very Poor |
-| Ivanov | 3705.7601 | 3564.7179 | 3564.7179 | 0.1616 | 0.0261 | 0.0087 | 0.0014 | Very Poor |
 | Thornthwaite Camargo | 98.4131 | 96.3929 | -96.3929 | — | — | 0.2427 | — | — |
 
 ## Daily metrics
@@ -184,11 +184,11 @@ Error and agreement metrics versus Penman–Monteith.
 | Garcia Lopez | 1.4046 | 1.1946 | -1.0688 | 0.7846 | 0.6156 | 0.7739 | 0.6072 | Average |
 | Hargreaves Samani Corr | 1.8777 | 1.7409 | 1.7322 | 0.8392 | 0.7043 | 0.6547 | 0.5494 | Poor |
 | Hargreaves Samani | 1.5587 | 1.3440 | -1.2459 | 0.8392 | 0.7043 | 0.6087 | 0.5108 | Poor |
+| Ivanov | 1.8181 | 1.3161 | 0.8408 | 0.6087 | 0.3705 | 0.6853 | 0.4171 | Bad |
 | Camargo | 2.1678 | 1.9410 | -1.8616 | 0.6382 | 0.4073 | 0.4905 | 0.3130 | Very Poor |
 | Thornthwaite | 1.2325 | 0.9596 | 0.0793 | 0.4486 | 0.2013 | 0.6655 | 0.2986 | Very Poor |
 | Lungeon | 2.8668 | 2.6243 | -2.6235 | 0.6175 | 0.3813 | 0.4277 | 0.2641 | Very Poor |
 | Mccloud | 72.1348 | 70.1386 | 70.1386 | 0.7029 | 0.4941 | 0.0338 | 0.0238 | Very Poor |
-| Ivanov | 131.4282 | 116.8765 | 116.8760 | 0.6087 | 0.3705 | 0.0189 | 0.0115 | Very Poor |
 | Thornthwaite Camargo | 3.4196 | 3.1605 | -3.1604 | — | — | 0.3670 | — | — |
 
 ## Uncertainty and sensitivity
@@ -240,7 +240,7 @@ Showing first 20 of 54 rows. See CSV outputs for complete tables.
 | month | 2024-01 | et_mccloud | 31 | 136.6800 | 80.6202 | 79.5934 | 79.5934 |
 | month | 2024-01 | et_turc | 31 | 136.6800 | 0.8052 | 0.7635 | 0.7635 |
 | month | 2024-01 | et_global_radiation | 31 | 136.6800 | 0.8916 | 0.8429 | 0.8429 |
-| month | 2024-01 | et_ivanov | 31 | 136.6800 | 119.0876 | 110.9760 | 110.9760 |
+| month | 2024-01 | et_ivanov | 31 | 136.6800 | 0.7842 | 0.6597 | -0.1862 |
 | month | 2024-01 | et_jensen_heise | 31 | 136.6800 | 1.1672 | 1.0993 | 1.0993 |
 | month | 2024-01 | et_net_radiation | 31 | 136.6800 | 0.7417 | 0.6918 | 0.6504 |
 | month | 2024-01 | et_radiation_temperature | 31 | 136.6800 | 0.4707 | 0.4042 | -0.3206 |
