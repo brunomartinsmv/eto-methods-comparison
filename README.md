@@ -500,7 +500,7 @@ For a documentation map, start with [`docs/README.md`](docs/README.md). For vers
 
 If you use this repository or its outputs in academic work, please cite:
 
-> Vieira, B. M. M. (2026). *Reference Evapotranspiration (ETo) Methods Comparison* (Version 2.1.0) [Software]. Universidade Federal do Mato Grosso. https://doi.org/10.5281/zenodo.21341983
+> Vieira, B. M. M. (2026). *Reference Evapotranspiration (ETo) Methods Comparison* (Version 2.2.0) [Software]. Universidade Federal do Mato Grosso. https://doi.org/10.5281/zenodo.21341983
 
 **DOI:** https://doi.org/10.5281/zenodo.21341983
 
@@ -512,7 +512,7 @@ The repository also includes [`CITATION.cff`](CITATION.cff), which GitHub can us
   author = {Vieira, Bruno Martins M.},
   title = {Reference Evapotranspiration (ETo) Methods Comparison},
   year = {2026},
-  version = {2.1.0},
+  version = {2.2.0},
   howpublished = {Software and analysis outputs},
   institution = {Universidade Federal do Mato Grosso},
   doi = {10.5281/zenodo.21341983},

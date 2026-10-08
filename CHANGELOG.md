@@ -7,9 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-10-08
+
+### Added
+
+- Added `python -m scripts.results_overview` to show generated metrics, data-quality flags, monthly totals, and daily Taylor plots without rerunning results.
+
+### Changed
+
+- Added calculated ET₀ audit results to data-quality reports and regenerated comparison outputs with the corrected daily methods.
+- Monthly aggregation now preserves missing totals and reports valid-day counts and calendar coverage.
+
 ### Fixed
 
-- Pointed the README DOI badge at the current Zenodo version DOI (`10.5281/zenodo.21341983`) via shields.io so GitHub renders it reliably.
+- Corrected the daily Ivanov coefficient to `0.00006` and documented its daily scale.
+- Corrected the daily McCloud equation to use a base of `1.07` and a temperature exponent of `1.8`.
+- Fixed Taylor plots for incomplete reference series.
+- Pointed the README DOI badge at the current Zenodo version DOI (`10.5281/zenodo.21341983`) via shields.io.
 
 ## [2.1.0] - 2026-07-13
 
@@ -118,7 +132,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Standardized output naming conventions.
 - Moved historical notebook-era outputs under legacy directories.
 
-[Unreleased]: https://github.com/brunomartinsmv/eto-methods-comparison/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/brunomartinsmv/eto-methods-comparison/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/brunomartinsmv/eto-methods-comparison/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/brunomartinsmv/eto-methods-comparison/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/brunomartinsmv/eto-methods-comparison/compare/v1.0.2...v2.0.0
 [1.0.2]: https://github.com/brunomartinsmv/eto-methods-comparison/compare/v1.0.1...v1.0.2
