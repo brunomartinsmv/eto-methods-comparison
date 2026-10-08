@@ -481,7 +481,7 @@ com \(c = 0{,}0055\) (padrão).
 | Priestley-Taylor | \(\alpha = 1{,}26\), \(G = 0\) |
 | Garcia-Lopez | \(c = 0{,}01\) |
 | Makkink | \(c = 0{,}61\), \(b = -0{,}12\) |
-| McCloud | \(c = 0{,}254\), \(p = 1{,}8\) |
+| McCloud | \(c = 0{,}254\), \(W = 1{,}07\), \(p = 1{,}8\) |
 | Turc | \(c = 0{,}013\) |
 | Global Radiation | \(c = 0{,}53\) |
 | Ivanov | \(c = 0{,}0018\) |

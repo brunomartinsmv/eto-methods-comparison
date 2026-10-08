@@ -131,7 +131,7 @@ def mccloud(
     coefficient: float = 0.254,
     base: float = 1.07,
 ) -> float | np.ndarray | pd.Series:
-    """Estimate ET0 with a McCloud temperature-power form.
+    """Estimate ET0 with the daily McCloud exponential temperature form.
 
     Equation summary:
         ET0 = c * base^(p * Tmean).

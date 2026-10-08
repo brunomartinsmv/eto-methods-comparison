@@ -1,10 +1,10 @@
 # notebooks
 
 **PT**
-O notebook principal e `eto_results_overview.ipynb`. Ele explica e inspeciona os resultados gerados pelo pipeline sem duplicar logica central de metricas, limpeza ou graficos.
+O notebook principal e `eto_results_overview.ipynb`. Ele explica e inspeciona os resultados gerados pelo pipeline sem duplicar logica central de metricas, limpeza ou graficos. A versao executavel em script esta em `scripts/results_overview.py`.
 
 **EN**
-The primary notebook is `eto_results_overview.ipynb`. It explains and inspects pipeline-generated results without duplicating core metric, cleaning, or plotting logic.
+The primary notebook is `eto_results_overview.ipynb`. It explains and inspects pipeline-generated results without duplicating core metric, cleaning, or plotting logic. Its runnable script version is `scripts/results_overview.py`.
 
 ## Como usar / How to use
 Execute primeiro, a partir da raiz do repositorio:
@@ -12,6 +12,12 @@ Execute primeiro, a partir da raiz do repositorio:
 ```bash
 python -m scripts.cli all --year 2024
 python -m scripts.cli validate-data --year 2024
+```
+
+Para imprimir tabelas de metricas, relatorios de qualidade e os caminhos das figuras:
+
+```bash
+python -m scripts.results_overview
 ```
 
 Depois abra e execute:
