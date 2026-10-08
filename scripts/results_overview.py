@@ -20,7 +20,7 @@ def main() -> None:
     missing = [path for path in required_paths if not path.is_file()]
     if missing:
         raise FileNotFoundError(
-            "Missing generated outputs. Run `python -m scripts.cli all --year 2024` "
+            "Missing generated outputs. Run `MPLCONFIGDIR=/tmp/matplotlib-cache python -m scripts.cli all --year 2024` "
             "and `python -m scripts.cli validate-data --year 2024` first. Missing: "
             + ", ".join(str(path) for path in missing)
         )
