@@ -19,28 +19,44 @@ Mata Atlantica · Cwa · SP · Brazil
 
 Coverage and QC flags by input variable.
 
-| site | variable | row_count | expected_days | start_date | end_date | missing_dates | duplicate_dates | missing_values | interpolated_values | physical_limit_violations |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| piracicaba | tmed_c | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | rh_mean_pct | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | wind_mean_ms | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | tmax_c | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | rh_max_pct | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | wind_max_ms | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | tmin_c | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | rh_min_pct | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | rain_mm | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | rad_global_mj_m2_d | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | rad_net_mj_m2_d | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | et_thornthwaite | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | et_thornthwaite_camargo | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | et_camargo | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | et_hargreaves_samani | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | et_hargreaves_samani_corr | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | et_priestley_taylor | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | et_penman_monteith | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| piracicaba | et_garcia_lopez | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 39 |
-| piracicaba | ra_extraterrestre_mj_m2_d | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| site | stage | variable | status | source_present | row_count | expected_days | valid_days | valid_fraction | finite_values | non_finite_values | start_date | end_date | missing_dates | duplicate_dates | missing_values | interpolated_values | physical_limit_violations |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| piracicaba | input | tmed_c | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | input | rh_mean_pct | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | input | wind_mean_ms | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | input | tmax_c | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | input | rh_max_pct | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | input | wind_max_ms | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | input | tmin_c | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | input | rh_min_pct | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | input | rain_mm | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | input | rad_global_mj_m2_d | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | input | rad_net_mj_m2_d | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | precomputed_et0 | et_thornthwaite | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | precomputed_et0 | et_thornthwaite_camargo | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | precomputed_et0 | et_camargo | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | precomputed_et0 | et_hargreaves_samani | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | precomputed_et0 | et_hargreaves_samani_corr | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | precomputed_et0 | et_priestley_taylor | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | precomputed_et0 | et_penman_monteith | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | precomputed_et0 | et_garcia_lopez | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 39 |
+| piracicaba | input | ra_extraterrestre_mj_m2_d | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_camargo | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_garcia_lopez | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_global_radiation | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_hargreaves_samani | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_hicks_hess | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_ivanov | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 347 |
+| piracicaba | computed_et0 | et_jensen_heise | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_lungeon | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_makkink | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_mccloud | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_net_radiation | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 6 |
+| piracicaba | computed_et0 | et_penman_monteith | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 1 |
+| piracicaba | computed_et0 | et_priestley_taylor | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 6 |
+| piracicaba | computed_et0 | et_radiation_temperature | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_stephens_stewart | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | computed_et0 | et_turc | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
 
 ## Method feasibility
 

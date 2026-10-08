@@ -19,28 +19,44 @@ Amazonia · Af · AM · Brazil
 
 Coverage and QC flags by input variable.
 
-| site | variable | row_count | expected_days | start_date | end_date | missing_dates | duplicate_dates | missing_values | interpolated_values | physical_limit_violations |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| manaus | tmed_c | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| manaus | rh_mean_pct | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| manaus | wind_mean_ms | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| manaus | tmax_c | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| manaus | rh_max_pct | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| manaus | wind_max_ms | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| manaus | tmin_c | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| manaus | rh_min_pct | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| manaus | rain_mm | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 1 | 1 | 0 |
-| manaus | rad_global_mj_m2_d | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| manaus | rad_net_mj_m2_d | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| manaus | et_thornthwaite | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| manaus | et_thornthwaite_camargo | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| manaus | et_camargo | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| manaus | et_hargreaves_samani | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| manaus | et_hargreaves_samani_corr | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| manaus | et_priestley_taylor | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| manaus | et_penman_monteith | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| manaus | et_garcia_lopez | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 366 |
-| manaus | ra_extraterrestre_mj_m2_d | 366 | 366 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| site | stage | variable | status | source_present | row_count | expected_days | valid_days | valid_fraction | finite_values | non_finite_values | start_date | end_date | missing_dates | duplicate_dates | missing_values | interpolated_values | physical_limit_violations |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| manaus | input | tmed_c | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | input | rh_mean_pct | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | input | wind_mean_ms | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | input | tmax_c | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | input | rh_max_pct | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | input | wind_max_ms | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | input | tmin_c | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | input | rh_min_pct | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | input | rain_mm | available | 1 | 366 | 366 | 365 | 0.9973 | 365 | 1 | 2024-01-01 | 2024-12-31 | — | — | 1 | 1 | 0 |
+| manaus | input | rad_global_mj_m2_d | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | input | rad_net_mj_m2_d | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | precomputed_et0 | et_thornthwaite | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | precomputed_et0 | et_thornthwaite_camargo | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | precomputed_et0 | et_camargo | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | precomputed_et0 | et_hargreaves_samani | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | precomputed_et0 | et_hargreaves_samani_corr | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | precomputed_et0 | et_priestley_taylor | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | precomputed_et0 | et_penman_monteith | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | precomputed_et0 | et_garcia_lopez | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 366 |
+| manaus | input | ra_extraterrestre_mj_m2_d | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | computed_et0 | et_camargo | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | computed_et0 | et_garcia_lopez | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | computed_et0 | et_global_radiation | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | computed_et0 | et_hargreaves_samani | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | computed_et0 | et_hicks_hess | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | computed_et0 | et_ivanov | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 365 |
+| manaus | computed_et0 | et_jensen_heise | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | computed_et0 | et_lungeon | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | computed_et0 | et_makkink | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 226 |
+| manaus | computed_et0 | et_mccloud | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | computed_et0 | et_net_radiation | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | computed_et0 | et_penman_monteith | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | computed_et0 | et_priestley_taylor | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | computed_et0 | et_radiation_temperature | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | computed_et0 | et_stephens_stewart | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | computed_et0 | et_turc | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
 
 ## Method feasibility
 
