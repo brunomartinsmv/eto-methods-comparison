@@ -263,17 +263,17 @@ com \(c = 0{,}61\) e intercepto \(b = -0{,}12\) mm d⁻¹ (padrões do código).
 
 ### Base física
 
-Relação empírica potência entre temperatura média e ET₀, útil apenas como aproximação grosseira.
+Relação empírica exponencial entre a temperatura média diária e ET₀.
 
 ### Equação final
 
-$$\mathrm{ET_0} = c \cdot \max(T_{mean},\, 0)^{p}$$
+$$\mathrm{ET_0} = c \cdot W^{p T_{mean}}$$
 
-com \(c = 0{,}254\) e \(p = 1{,}8\) (padrões).
+com \(c = 0{,}254\), \(W = 1{,}07\) e \(p = 1{,}8\) (padrões); \(T_{mean}\) é a temperatura média diária em °C e a saída é mm d⁻¹. Esta forma diária corresponde à equação publicada em [Evaluation of Five Equations for Short-Term Reference Evapotranspiration Forecasting](https://www.mdpi.com/2073-4441/14/18/2888).
 
 ### Derivação
 
-Forma adimensional de lei de potência calibrada empiricamente; não há base física completa — o expoente absorve correlações entre temperatura e demanda atmosférica em climas específicos.
+Forma empírica sem base física completa. A base e o expoente parametrizam a resposta diária à temperatura; a fórmula não eleva a própria temperatura à potência.
 
 ---
 
@@ -481,7 +481,7 @@ com \(c = 0{,}0055\) (padrão).
 | Priestley-Taylor | \(\alpha = 1{,}26\), \(G = 0\) |
 | Garcia-Lopez | \(c = 0{,}01\) |
 | Makkink | \(c = 0{,}61\), \(b = -0{,}12\) |
-| McCloud | \(c = 0{,}254\), \(p = 1{,}8\) |
+| McCloud | \(c = 0{,}254\), \(W = 1{,}07\), \(p = 1{,}8\) |
 | Turc | \(c = 0{,}013\) |
 | Global Radiation | \(c = 0{,}53\) |
 | Ivanov | \(c = 0{,}00006\) por dia |

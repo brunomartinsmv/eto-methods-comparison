@@ -42,7 +42,7 @@ Showing first 20 of 54 rows. See CSV outputs for complete tables.
 | month | 2024-01 | et_priestley_taylor | 31 | 137.0000 | 0.8184 | 0.7717 | -0.7717 |
 | month | 2024-01 | et_garcia_lopez | 31 | 137.0000 | 0.8623 | 0.8201 | -0.8201 |
 | month | 2024-01 | et_makkink | 31 | 137.0000 | 0.9263 | 0.8858 | -0.8858 |
-| month | 2024-01 | et_mccloud | 31 | 137.0000 | 102.7385 | 102.4732 | 102.4732 |
+| month | 2024-01 | et_mccloud | 31 | 137.0000 | 7.0698 | 7.0186 | 7.0186 |
 | month | 2024-01 | et_turc | 31 | 137.0000 | 0.4269 | 0.3450 | -0.3348 |
 | month | 2024-01 | et_global_radiation | 31 | 137.0000 | 0.7974 | 0.7506 | -0.7506 |
 | month | 2024-01 | et_ivanov | 31 | 137.0000 | 2.9809 | 2.8969 | 2.8969 |

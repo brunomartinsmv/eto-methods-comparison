@@ -72,7 +72,7 @@ METHOD_CASES = {
     "mccloud": (
         eto_methods.mccloud,
         {"t_mean_c": SYNTHETIC_WEATHER["t_mean_c"]},
-        np.array([55.8068756000, 83.3922577898, 115.7849133880]),
+        np.array([2.9016813159, 5.3346227467, 9.8074863335]),
     ),
     "priestley_taylor": (
         eto_methods.priestley_taylor,

@@ -254,7 +254,7 @@ Radiacao global, temperatura (para \(\Delta\) e \(\gamma\)).
 
 **Equacao**
 
-$$\mathrm{ETo} = 0{,}254\,\max(T_{mean},\, 0)^{1{,}8}$$
+$$\mathrm{ETo} = c\,W^{p\,T_{mean}}, \qquad c=0{,}254,\ W=1{,}07,\ p=1{,}8$$
 
 **Requisitos de dados**
 Temperatura media.
