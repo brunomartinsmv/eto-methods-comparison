@@ -28,6 +28,10 @@ Manaus and Piracicaba are demonstration sites, not a fixed multicity study desig
 
 **→ See [`outputs/tables/summary_rankings.csv`](outputs/tables/summary_rankings.csv) for a ranked comparison across sites and scales (also available as [`outputs/reports/summary_rankings.md`](outputs/reports/summary_rankings.md)).**
 
+![Daily RMSE for the eight methods with the lowest error at each site](outputs/figures/methods_rmse_overview.svg)
+
+*Daily RMSE (mm d⁻¹) against FAO-56 Penman–Monteith. Each panel shows the eight methods with the lowest RMSE for that site; smaller values indicate closer agreement.*
+
 Per-method metrics remain in `outputs/tables/{site}_{daily|monthly}_metrics.csv`. The reproducibility workflow now also writes data-quality reports, uncertainty/sensitivity tables, bias-by-ETo-bin figures, summary rankings, and optional PCA outputs. After running `compute-eto`, metrics use the pipeline-calculated ET0 series in `outputs/results/{site}_daily_eto.csv`; if those files are absent, the legacy precomputed columns in `data/cleaned/` remain the fallback.
 
 ---
