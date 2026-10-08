@@ -6,7 +6,15 @@ This directory stores CSV reports generated with:
 python -m scripts.cli validate-data --year 2024
 ```
 
-Each site report (`*_data_quality.csv`) contains one row per variable and records:
+Each site report (`*_data_quality.csv`) contains input and precomputed ET0 rows plus one row per calculated method.
+Methods configured as `precomputed_only` appear only in the precomputed stage.
+The report records:
+
+- `stage`: `input`, `precomputed_et0`, or `computed_et0`.
+- `status`: `available`, `not_available`, or `not_run`.
+- `source_present`: whether the source contains the series.
+- `valid_days` and `valid_fraction`: finite daily coverage within the expected calendar.
+- `finite_values` and `non_finite_values`: numeric value counts.
 
 - `row_count`: rows retained after cleaning.
 - `expected_days`: daily dates expected within the observed period.

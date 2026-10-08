@@ -156,7 +156,7 @@ def build_quality_report(
             )
         )
 
-    for variable in sorted(METHOD_COLUMNS):
+    for variable in sorted(METHOD_COLUMNS - METHODS.precomputed_only_columns):
         source_present = calculated_df is not None and variable in calculated_df.columns
         if calculated_df is None:
             status = "not_run"

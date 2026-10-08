@@ -83,6 +83,7 @@ def test_quality_report_audits_precomputed_and_calculated_methods() -> None:
         {
             "date": pd.to_datetime(["2024-01-01", "2024-01-03"]),
             "et_penman_monteith": [2.0, None],
+            "et_thornthwaite": [1.0, 3.0],
         }
     )
 
@@ -97,6 +98,9 @@ def test_quality_report_audits_precomputed_and_calculated_methods() -> None:
     precomputed = report[
         (report["stage"] == "precomputed_et0") & (report["variable"] == "et_thornthwaite")
     ].iloc[0]
+    assert not report.loc[report["stage"] == "computed_et0", "variable"].isin(
+        METHODS.precomputed_only_columns
+    ).any()
     assert precomputed["finite_values"] == 1
     assert precomputed["non_finite_values"] == 2
     assert precomputed["physical_limit_violations"] == 1

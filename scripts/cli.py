@@ -643,7 +643,7 @@ def _require_input_workbook(path: Path) -> None:
 def cmd_reproduce_core(args: argparse.Namespace) -> None:
     """Regenerate cleaned data, ET0, metrics, figures, validation, and rankings."""
     cmd_all(args)
-    _run_compute_eto(args, include_precomputed=True)
+    _run_compute_eto(args, include_precomputed=True, input_dir=args.output)
     _run_downstream_analysis(args)
     validate_args = argparse.Namespace(
         input=args.input,
@@ -651,6 +651,7 @@ def cmd_reproduce_core(args: argparse.Namespace) -> None:
         year=args.year,
         site=args.site,
         all_sites=args.all_sites,
+        use_calculated_results=True,
     )
     cmd_validate_data(validate_args)
     summarize_args = argparse.Namespace(
@@ -760,7 +761,11 @@ def cmd_run_site(args: argparse.Namespace) -> None:
             )
         )
     if "compute-eto" in steps:
-        _run_compute_eto(args, include_precomputed=getattr(args, "include_precomputed", False))
+        _run_compute_eto(
+            args,
+            include_precomputed=getattr(args, "include_precomputed", False),
+            input_dir=args.output,
+        )
     if "validate-data" in steps:
         cmd_validate_data(
             argparse.Namespace(

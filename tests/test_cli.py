@@ -705,3 +705,29 @@ def test_calibrate_command_allows_nonfinite_values_in_computed_reference(tmp_pat
     cmd_calibrate(args)
 
     assert (tables_dir / "manaus_hargreaves_samani_calibration_metrics.csv").exists()
+
+
+def test_run_site_computes_from_selected_cleaned_directory(monkeypatch, tmp_path) -> None:
+    args = cli.build_parser().parse_args([
+        "run-site", "--site", "manaus", "--output", str(tmp_path),
+        "--steps", "compute-eto,validate-data",
+    ])
+    calls = []
+    monkeypatch.setattr(cli, "cmd_compute_eto", lambda args: calls.append(args))
+    monkeypatch.setattr(cli, "cmd_validate_data", lambda args: calls.append(args))
+    cli.cmd_run_site(args)
+    assert calls[0].input == str(tmp_path)
+    assert calls[1].use_calculated_results is True
+
+
+def test_reproduce_core_audits_fresh_custom_input_results(monkeypatch, tmp_path) -> None:
+    args = cli.build_parser().parse_args(["quickstart", "--input", "custom.xlsx"])
+    calls = []
+    monkeypatch.setattr(cli, "cmd_all", lambda args: None)
+    monkeypatch.setattr(cli, "cmd_compute_eto", lambda args: calls.append(args))
+    monkeypatch.setattr(cli, "_run_downstream_analysis", lambda args: None)
+    monkeypatch.setattr(cli, "cmd_validate_data", lambda args: calls.append(args))
+    monkeypatch.setattr(cli, "cmd_summarize", lambda args: None)
+    cli.cmd_reproduce_core(args)
+    assert calls[0].input == args.output
+    assert calls[1].use_calculated_results is True
