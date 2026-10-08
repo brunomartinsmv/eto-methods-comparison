@@ -46,7 +46,7 @@ Coverage and QC flags by input variable.
 | manaus | computed_et0 | et_global_radiation | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
 | manaus | computed_et0 | et_hargreaves_samani | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
 | manaus | computed_et0 | et_hicks_hess | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
-| manaus | computed_et0 | et_ivanov | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 365 |
+| manaus | computed_et0 | et_ivanov | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
 | manaus | computed_et0 | et_jensen_heise | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
 | manaus | computed_et0 | et_lungeon | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
 | manaus | computed_et0 | et_makkink | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 226 |
@@ -110,9 +110,9 @@ Best overall: **Lungeon** (composite rank).
 | 12 | Global Radiation | 28.5679 | 26.6278 | -26.6278 | 0.6285 | 0.3950 | 0.3702 | 0.2327 | Very Poor |
 | 13 | Net Radiation | 29.0409 | 27.1149 | -27.1149 | 0.6285 | 0.3950 | 0.3661 | 0.2301 | Very Poor |
 | 14 | Makkink | 32.3695 | 30.6728 | -30.6728 | 0.6607 | 0.4365 | 0.3447 | 0.2278 | Very Poor |
-| 15 | Thornthwaite | 127.4527 | 127.3784 | 127.3784 | 0.9174 | 0.8416 | 0.1325 | 0.1215 | Very Poor |
-| 16 | Mccloud | 239.3698 | 236.9905 | 236.9905 | 0.9587 | 0.9191 | 0.0859 | 0.0823 | Very Poor |
-| 17 | Ivanov | 4477.3666 | 4213.5650 | 4213.5650 | 0.9765 | 0.9536 | 0.0057 | 0.0056 | Very Poor |
+| 15 | Ivanov | 118.2675 | 111.1566 | 111.1566 | 0.9765 | 0.9536 | 0.1919 | 0.1874 | Very Poor |
+| 16 | Thornthwaite | 127.4527 | 127.3784 | 127.3784 | 0.9174 | 0.8416 | 0.1325 | 0.1215 | Very Poor |
+| 17 | Mccloud | 239.3698 | 236.9905 | 236.9905 | 0.9587 | 0.9191 | 0.0859 | 0.0823 | Very Poor |
 | 18 | Thornthwaite Camargo | 123.6738 | 123.1483 | 123.1483 | -0.0517 | 0.0027 | 0.1249 | -0.0065 | Very Poor |
 
 ### Manaus — daily
@@ -135,9 +135,9 @@ Best overall: **Lungeon** (composite rank).
 | 12 | Makkink | 1.1340 | 1.0057 | -1.0057 | 0.7043 | 0.4961 | 0.4080 | 0.2874 | Very Poor |
 | 13 | Net Radiation | 1.0333 | 0.8890 | -0.8890 | 0.6772 | 0.4586 | 0.4236 | 0.2868 | Very Poor |
 | 14 | Hargreaves Samani Corr | 1.5976 | 1.5418 | 1.5418 | 0.6514 | 0.4244 | 0.3827 | 0.2493 | Very Poor |
-| 15 | Thornthwaite | 4.1902 | 4.1763 | 4.1763 | 0.7883 | 0.6214 | 0.1849 | 0.1458 | Very Poor |
-| 16 | Mccloud | 7.9368 | 7.7702 | 7.7702 | 0.8859 | 0.7849 | 0.1269 | 0.1124 | Very Poor |
-| 17 | Ivanov | 152.9854 | 138.1497 | 138.1497 | 0.9136 | 0.8346 | 0.0085 | 0.0077 | Very Poor |
+| 15 | Ivanov | 4.0295 | 3.6445 | 3.6445 | 0.9136 | 0.8346 | 0.2649 | 0.2420 | Very Poor |
+| 16 | Thornthwaite | 4.1902 | 4.1763 | 4.1763 | 0.7883 | 0.6214 | 0.1849 | 0.1458 | Very Poor |
+| 17 | Mccloud | 7.9368 | 7.7702 | 7.7702 | 0.8859 | 0.7849 | 0.1269 | 0.1124 | Very Poor |
 | 18 | Thornthwaite Camargo | 4.0750 | 4.0376 | 4.0376 | 0.0000 | 0.0000 | 0.1717 | 0.0000 | Very Poor |
 
 
@@ -161,9 +161,9 @@ Error and agreement metrics versus Penman–Monteith.
 | Global Radiation | 28.5679 | 26.6278 | -26.6278 | 0.6285 | 0.3950 | 0.3702 | 0.2327 | Very Poor |
 | Net Radiation | 29.0409 | 27.1149 | -27.1149 | 0.6285 | 0.3950 | 0.3661 | 0.2301 | Very Poor |
 | Makkink | 32.3695 | 30.6728 | -30.6728 | 0.6607 | 0.4365 | 0.3447 | 0.2278 | Very Poor |
+| Ivanov | 118.2675 | 111.1566 | 111.1566 | 0.9765 | 0.9536 | 0.1919 | 0.1874 | Very Poor |
 | Thornthwaite | 127.4527 | 127.3784 | 127.3784 | 0.9174 | 0.8416 | 0.1325 | 0.1215 | Very Poor |
 | Mccloud | 239.3698 | 236.9905 | 236.9905 | 0.9587 | 0.9191 | 0.0859 | 0.0823 | Very Poor |
-| Ivanov | 4477.3666 | 4213.5650 | 4213.5650 | 0.9765 | 0.9536 | 0.0057 | 0.0056 | Very Poor |
 | Thornthwaite Camargo | 123.6738 | 123.1483 | 123.1483 | -0.0517 | 0.0027 | 0.1249 | -0.0065 | Very Poor |
 
 ## Daily metrics
@@ -186,9 +186,9 @@ Error and agreement metrics versus Penman–Monteith.
 | Makkink | 1.1340 | 1.0057 | -1.0057 | 0.7043 | 0.4961 | 0.4080 | 0.2874 | Very Poor |
 | Net Radiation | 1.0333 | 0.8890 | -0.8890 | 0.6772 | 0.4586 | 0.4236 | 0.2868 | Very Poor |
 | Hargreaves Samani Corr | 1.5976 | 1.5418 | 1.5418 | 0.6514 | 0.4244 | 0.3827 | 0.2493 | Very Poor |
+| Ivanov | 4.0295 | 3.6445 | 3.6445 | 0.9136 | 0.8346 | 0.2649 | 0.2420 | Very Poor |
 | Thornthwaite | 4.1902 | 4.1763 | 4.1763 | 0.7883 | 0.6214 | 0.1849 | 0.1458 | Very Poor |
 | Mccloud | 7.9368 | 7.7702 | 7.7702 | 0.8859 | 0.7849 | 0.1269 | 0.1124 | Very Poor |
-| Ivanov | 152.9854 | 138.1497 | 138.1497 | 0.9136 | 0.8346 | 0.0085 | 0.0077 | Very Poor |
 | Thornthwaite Camargo | 4.0750 | 4.0376 | 4.0376 | 0.0000 | 0.0000 | 0.1717 | 0.0000 | Very Poor |
 
 ## Uncertainty and sensitivity
@@ -240,7 +240,7 @@ Showing first 20 of 54 rows. See CSV outputs for complete tables.
 | month | 2024-01 | et_mccloud | 31 | 137.0000 | 7.0698 | 7.0186 | 7.0186 |
 | month | 2024-01 | et_turc | 31 | 137.0000 | 0.4269 | 0.3450 | -0.3348 |
 | month | 2024-01 | et_global_radiation | 31 | 137.0000 | 0.7974 | 0.7506 | -0.7506 |
-| month | 2024-01 | et_ivanov | 31 | 137.0000 | 115.9922 | 112.5488 | 112.5488 |
+| month | 2024-01 | et_ivanov | 31 | 137.0000 | 2.9809 | 2.8969 | 2.8969 |
 | month | 2024-01 | et_jensen_heise | 31 | 137.0000 | 0.7690 | 0.7241 | -0.7241 |
 | month | 2024-01 | et_net_radiation | 31 | 137.0000 | 0.8153 | 0.7683 | -0.7683 |
 | month | 2024-01 | et_radiation_temperature | 31 | 137.0000 | 0.8212 | 0.7748 | -0.7748 |

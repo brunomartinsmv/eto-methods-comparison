@@ -45,7 +45,7 @@ Showing first 20 of 54 rows. See CSV outputs for complete tables.
 | month | 2024-01 | et_mccloud | 31 | 137.0000 | 7.0698 | 7.0186 | 7.0186 |
 | month | 2024-01 | et_turc | 31 | 137.0000 | 0.4269 | 0.3450 | -0.3348 |
 | month | 2024-01 | et_global_radiation | 31 | 137.0000 | 0.7974 | 0.7506 | -0.7506 |
-| month | 2024-01 | et_ivanov | 31 | 137.0000 | 115.9922 | 112.5488 | 112.5488 |
+| month | 2024-01 | et_ivanov | 31 | 137.0000 | 2.9809 | 2.8969 | 2.8969 |
 | month | 2024-01 | et_jensen_heise | 31 | 137.0000 | 0.7690 | 0.7241 | -0.7241 |
 | month | 2024-01 | et_net_radiation | 31 | 137.0000 | 0.8153 | 0.7683 | -0.7683 |
 | month | 2024-01 | et_radiation_temperature | 31 | 137.0000 | 0.8212 | 0.7748 | -0.7748 |

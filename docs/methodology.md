@@ -289,7 +289,9 @@ Radiacao global.
 
 **Equacao**
 
-$$\mathrm{ETo} = 0{,}0018\,(T_{mean} + 25)^2\,(100 - RH)$$
+$$\mathrm{ETo}_{dia} = 0{,}00006\,(T_{mean} + 25)^2\,(100 - RH)$$
+
+O coeficiente \(0{,}00006\) produz estimativas diárias em mm d⁻¹; \(0{,}0018\) é a forma mensal aproximada para 30 dias.
 
 **Requisitos de dados**
 Temperatura media e umidade relativa.
