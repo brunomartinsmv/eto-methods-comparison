@@ -131,3 +131,12 @@ def test_methods_config_lists_precomputed_only_columns() -> None:
         "et_thornthwaite_camargo",
         "et_hargreaves_samani_corr",
     }
+
+
+def test_precomputed_comparison_excludes_infinite_values() -> None:
+    df = _weather_frame()
+    df["et_penman_monteith"] = [4.0, np.inf]
+    result = compute_eto.compute_daily_eto(df, site_meta={"alt_m": 120.0}, include_precomputed=True)
+    comparison = result.report.comparisons[0]
+    assert comparison.n_pairs == 1
+    assert np.isfinite(comparison.rmse)

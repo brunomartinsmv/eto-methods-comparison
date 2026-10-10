@@ -8,25 +8,21 @@
 [![Results](https://img.shields.io/badge/results-summary_rankings.csv-informational.svg)](outputs/tables/summary_rankings.csv)
 [![Contact](https://img.shields.io/badge/contact-GitHub%20Issues-lightgrey.svg)](https://github.com/brunomartinsmv/eto-methods-comparison/issues)
 
-**A reproducible analysis framework for comparing up to 18 empirical and semi-empirical ET0 estimation methods against Penman-Monteith (FAO-56).**
+This repository compares 18 alternative ET₀ methods with FAO-56 Penman-Monteith. It includes the Python pipeline, method rankings, data-quality reports, uncertainty and sensitivity analyses, optional PCA, and instructions for reproducing the outputs.
 
-This repository is organized as an open, citable research compendium. The current stage includes the executable ETo pipeline, method rankings, uncertainty/sensitivity diagnostics, data-quality reports, optional PCA of meteorological drivers, tests, citation metadata, licensing, contribution guidance, and documentation for reproducing the analysis.
-
-## Key Findings
+## Demonstration results
 
 This repository now configures **18 alternative ET0 methods plus Penman-Monteith FAO-56 as reference**. The current demonstration workflow runs end to end for two contrasting Brazilian climates:
-- **Piracicaba, SP** (Cwa — humid subtropical with dry winter)
-- **Manaus, AM** (Af — tropical rainforest)
+- **Piracicaba, SP** (Cwa, humid subtropical with dry winter)
+- **Manaus, AM** (Af, tropical rainforest)
 
 Manaus and Piracicaba are demonstration sites, not a fixed multicity study design. Additional sites can be added through `configs/sites.yml` without changing the code structure.
 
-**Main results:**
-- Temperature-based methods (Thornthwaite, Camargo) systematically underestimate ETo in both climates, with errors exceeding 30% RMSE
-- Priestley-Taylor shows excellent performance in humid Manaus (RMSE < 15%), but moderate performance in Piracicaba
-- Hargreaves-Samani (calibrated) achieves best balance across both sites when radiation data is unavailable
-- All simplified methods degrade more in Manaus than Piracicaba, highlighting the challenge of tropical humid climates
+The current 2024 daily tables give Priestley-Taylor an RMSE of 1.03 mm d⁻¹ in Manaus and 0.50 mm d⁻¹ in Piracicaba. Makkink has an RMSE of 0.42 mm d⁻¹ in Piracicaba. Camargo overestimates the reference in Manaus (MBE +0.97 mm d⁻¹) and underestimates it in Piracicaba (MBE −1.86 mm d⁻¹).
 
-**→ See [`outputs/tables/summary_rankings.csv`](outputs/tables/summary_rankings.csv) for a ranked comparison across sites and scales (also available as [`outputs/reports/summary_rankings.md`](outputs/reports/summary_rankings.md)).**
+These comparisons describe agreement with the calculated reference for one year. They do not establish a general ranking across climates. The corrected Hargreaves-Samani series comes from the spreadsheet; its calibration history is not reproduced by this pipeline.
+
+See [`outputs/tables/summary_rankings.csv`](outputs/tables/summary_rankings.csv) for rankings by site and scale. The default composite ranking uses several metrics and can differ from the RMSE order in the figure below.
 
 ![Daily RMSE for the eight methods with the lowest error at each site](outputs/figures/methods_rmse_overview.svg)
 
@@ -36,42 +32,42 @@ Per-method metrics remain in `outputs/tables/{site}_{daily|monthly}_metrics.csv`
 
 ---
 
-## What This Repository Provides
+## Outputs
 
-### Ready-to-Use Results (for Demonstration Sites)
-Clone and run the pipeline in under 5 minutes to generate:
+### Results for demonstration sites
+Run the pipeline to generate:
 
-**📊 Metrics Tables** (`outputs/tables/`)
-- `summary_rankings.csv` — All methods ranked by site (Manaus, Piracicaba), scale (daily, monthly), and selected ranking rule
-- `{site}_daily_metrics.csv` — RMSE, MAE, MBE, Pearson r, R², Willmott d, confidence c, and performance classification for daily estimates
-- `{site}_monthly_metrics.csv` — Same metrics aggregated monthly
-- `{site}_bootstrap_metric_intervals.csv` — Bootstrap confidence intervals for method metrics
-- `{site}_seasonal_error_metrics.csv` — Seasonal error diagnostics
-- `{site}_bias_by_eto_bin.csv` — Bias summarized by Penman-Monteith ETo range
-- **→ Start with `summary_rankings.csv` to see which methods perform best in each climate**
+**Metric tables** (`outputs/tables/`)
+- `summary_rankings.csv`, All methods ranked by site (Manaus, Piracicaba), scale (daily, monthly), and selected ranking rule
+- `{site}_daily_metrics.csv`, RMSE, MAE, MBE, Pearson r, R², Willmott d, confidence c, and performance classification for daily estimates
+- `{site}_monthly_metrics.csv`, Same metrics aggregated monthly
+- `{site}_bootstrap_metric_intervals.csv`, Bootstrap confidence intervals for method metrics
+- `{site}_seasonal_error_metrics.csv`, Seasonal error diagnostics
+- `{site}_bias_by_eto_bin.csv`, Bias summarized by Penman-Monteith ETo range
+- Start with `summary_rankings.csv` to compare methods at each site.
 
-**📈 Figures** (`outputs/figures/{site}/`)
-- Taylor diagrams (daily and monthly) — Visual summary of method agreement
-- Scatter plots — Method vs Penman-Monteith comparisons
-- Time series — Temporal patterns over the year
-- Monthly totals — Seasonal ETo accumulation by method
-- Bias-by-ETo-bin plots — Bias behavior across low-to-high reference ETo ranges
-- Optional PCA biplots — Meteorological driver structure when `pca` is run
+**Figures** (`outputs/figures/{site}/`)
+- Taylor diagrams (daily and monthly), Visual summary of method agreement
+- Scatter plots, Method vs Penman-Monteith comparisons
+- Time series, Temporal patterns over the year
+- Monthly totals, Seasonal ETo accumulation by method
+- Bias-by-ETo-bin plots, Bias behavior across low-to-high reference ETo ranges
+- Optional PCA biplots, Meteorological driver structure when `pca` is run
 
-**📁 Intermediate Data** (`data/cleaned/`, `outputs/results/`)
+**Intermediate data** (`data/cleaned/`, `outputs/results/`)
 - Cleaned daily time series: `data/cleaned/{site}_daily.csv`
 - 7-day rolling means: `outputs/results/{site}_rolling_7d.csv`
 - Monthly aggregations: `outputs/results/{site}_monthly_totals.csv`
 - Computed daily ETo series: `outputs/results/{site}_daily_eto.csv`
 
-**📄 Reports** (`outputs/reports/`)
-- `{site}_data_quality.csv` and `data_quality_summary.csv` — Missing-value, date-range, and interpolation audits
-- `{site}_uncertainty_sensitivity.md` — Site-level uncertainty and sensitivity narrative
-- `summary.csv` and `summary.md` — Best method by site, temporal scale, rank, and ranking rule
-- `summary_rankings.md` — Readable version of the ranked method table
+**Reports** (`outputs/reports/`)
+- `{site}_data_quality.csv` and `data_quality_summary.csv`, Missing-value, date-range, and interpolation audits
+- `{site}_uncertainty_sensitivity.md`, Site-level uncertainty and sensitivity narrative
+- `summary.csv` and `summary.md`, Best method by site, temporal scale, rank, and ranking rule
+- `summary_rankings.md`, Readable version of the ranked method table
 
-### Extensible Framework
-The pipeline works for **any location** where you have meteorological data:
+### Adding sites
+Additional sites need compatible meteorological data and site metadata:
 - Add site metadata to `configs/sites.yml`
 - Add compatible data to `data/raw/` or adapt the reader for your source format
 - Keep method metadata in `configs/methods.yml`
@@ -79,7 +75,7 @@ The pipeline works for **any location** where you have meteorological data:
 
 ---
 
-## Quick Start
+## Quick start
 
 ### Prerequisites
 - **Python 3.10 or higher** (CI uses Python 3.12)
@@ -87,7 +83,7 @@ The pipeline works for **any location** where you have meteorological data:
 - **pip** for package management
 - **Git** for cloning the repository
 
-### Step-by-Step Installation
+### Installation
 
 **1. Clone the repository**
 ```bash
@@ -189,7 +185,7 @@ ls outputs/reports/
 open outputs/index.html
 ```
 
-### Output Naming Standard
+### Output naming
 
 The current CLI uses snake-case suffixes for generated files:
 
@@ -216,7 +212,7 @@ The current CLI uses snake-case suffixes for generated files:
 Older `rolling7d` files are legacy names. Use `rolling_7d` for current pipeline
 outputs.
 
-### Running Individual Steps
+### Individual steps
 
 If you only need specific outputs:
 
@@ -275,8 +271,6 @@ The outputs are `outputs/tables/{site}_{method}_calibration_coefficients.csv`
 and `outputs/tables/{site}_{method}_calibration_metrics.csv`, including
 train/test periods, the `minimize_train_rmse` objective, fitted coefficients,
 and before/after metrics.
-
-**Expected runtime:** ~30 seconds for full pipeline on both sites (2024 data) [Tested in a MacBook Air M4, so results may vary].
 
 ---
 
@@ -339,19 +333,19 @@ chmod -R u+w outputs/ data/cleaned/
 ---
 
 **Still having issues?**
-- Check Python version: `python3 --version` (must be ≥3.8)
+- Check Python version: `python3 --version` (must be ≥3.10)
 - Try running in a fresh virtual environment
 - Open an issue on GitHub with the full error message
 
 ---
 
-## Using Your Own Data
+## Using your own data
 
-The pipeline is designed for **any location** with meteorological data. Here's how to add a new city:
+Add a site through `configs/sites.yml` and supply compatible daily data.
 
-### Required Meteorological Variables
+### Required meteorological variables
 
-To compute the full configured set of 18 alternative ET0 methods, you generally need daily data for:
+The implemented methods use the daily inputs below. Thornthwaite, Thornthwaite-Camargo, and corrected Hargreaves-Samani also require their precomputed spreadsheet columns to include all 18 alternatives.
 
 **Minimum requirements (for basic methods):**
 - Date
@@ -359,12 +353,12 @@ To compute the full configured set of 18 alternative ET0 methods, you generally 
 - Latitude of the site
 
 **For complete analysis (including Penman-Monteith):**
-- Net radiation (Rn) or solar radiation
-- Wind speed at 2m height (u2)
-- Relative humidity or vapor pressure
-- Soil heat flux (G) — often assumed as 0 for daily calculations
+- Net radiation (Rn) for the reference, plus global radiation for methods that require it
+- Wind speed and its measurement height in site metadata (`wind_height_m`); the pipeline converts it to 2 m
+- Relative humidity
+- The reference calculation assumes daily soil heat flux G = 0
 
-### Data Sources
+### Data sources
 
 **Option 1: INMET (Brazilian stations)**
 - Portal: [https://portal.inmet.gov.br/](https://bdmep.inmet.gov.br/)
@@ -527,7 +521,7 @@ The repository also includes [`CITATION.cff`](CITATION.cff), which GitHub can us
 The repository configuration targets **18 alternative ET0 estimation methods** plus **Penman-Monteith FAO-56** as the reference. The `compute-eto` command calculates the **15 methods with `status: computed`** from standardized meteorological variables and writes daily calculated series to `outputs/results/{site}_daily_eto.csv`.
 
 **Reference standard:**
-- **Penman-Monteith (FAO-56)** — Energy balance + aerodynamic approach, requires full met data
+- **Penman-Monteith (FAO-56)**, Energy balance + aerodynamic approach, requires full met data
 
 **Computed 15-method comparison scope:** Camargo, Hargreaves-Samani, Makkink, McCloud, Priestley-Taylor, Turc, Global Radiation, Ivanov, Jensen-Heise, Garcia-Lopez, Net Radiation, Radiation-Temperature, Lungeon, Stephens-Stewart, and Hicks-Hess.
 
@@ -552,7 +546,7 @@ The configuration also preserves existing computed legacy/auxiliary method colum
 3. **Run the pipeline:** Follow the Quick Start above to generate results for Piracicaba and Manaus.
 
 4. **Interpret the results:**
-   - Start with `outputs/tables/*_daily_metrics.csv` — these show which methods perform best
+   - Start with `outputs/tables/*_daily_metrics.csv`, these show which methods perform best
    - Check Taylor diagrams in `outputs/figures/{site}/{site}_daily_taylor.png` for visual summary
    - Compare daily vs monthly performance to understand temporal aggregation effects
 
@@ -562,7 +556,7 @@ The configuration also preserves existing computed legacy/auxiliary method colum
 
 ## References
 
-- Allen, R. G., Pereira, L. S., Raes, D., & Smith, M. (1998). *Crop Evapotranspiration — Guidelines for computing crop water requirements* (FAO Irrigation and Drainage Paper No. 56). FAO.
+- Allen, R. G., Pereira, L. S., Raes, D., & Smith, M. (1998). *Crop Evapotranspiration, Guidelines for computing crop water requirements* (FAO Irrigation and Drainage Paper No. 56). FAO.
 - Thornthwaite, C. W. (1948). An approach toward a rational classification of climate. *Geographical Review*.
 - Hargreaves, G. H., & Samani, Z. A. (1985). Reference crop evapotranspiration from temperature. *Applied Engineering in Agriculture*.
 - Priestley, C. H. B., & Taylor, R. J. (1972). On the assessment of surface heat flux and evaporation using large-scale parameters. *Monthly Weather Review*.

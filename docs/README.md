@@ -21,7 +21,7 @@ Academic documentation. Use `methodology.md` for methods, `reproducibility.md` f
 ## Leitura recomendada para revisores / Recommended reviewer path
 
 1. Leia o resumo e a secao "How to Cite" no [`../README.md`](../README.md).
-2. Rode `python -m scripts.cli all --year 2024` seguindo [`reproducibility.md`](reproducibility.md).
+2. Rode `MPLCONFIGDIR=/tmp/matplotlib-cache python -m scripts.cli quickstart --year 2024` seguindo [`reproducibility.md`](reproducibility.md).
 3. Confira `outputs/tables/summary_rankings.csv` e `outputs/reports/summary_rankings.md`.
 4. Use [`methodology.md`](methodology.md) para auditar os metodos e suas limitacoes.
 5. Use [`data_provenance.md`](data_provenance.md) e `outputs/reports/*_data_quality.csv` para auditar dados.

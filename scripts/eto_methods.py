@@ -1,16 +1,14 @@
+"""ET0 methods implemented as pure numerical transforms.
+
+Coefficients are explicit keyword defaults so callers can document local calibration.
+"""
+
 from __future__ import annotations
 
 import numpy as np
 import pandas as pd
 
 from .conversions import ArrayLike, as_array, mj_m2_day_to_mm_day, restore_from_inputs
-
-
-def _doc_note(method: str) -> str:
-    return (
-        f"{method} is implemented as a pure numerical transform. Coefficients "
-        "are explicit keyword defaults so local calibration can be documented by callers."
-    )
 
 
 def camargo(
@@ -245,7 +243,9 @@ def turc(
         rh = as_array(rh_mean_pct)
         correction = np.where(rh < 50, 1 + (50 - rh) / 70, 1.0)
         result = result * correction
-    inputs = (t_mean_c, rs_mj_m2_day) if rh_mean_pct is None else (t_mean_c, rs_mj_m2_day, rh_mean_pct)
+    inputs = (
+        (t_mean_c, rs_mj_m2_day) if rh_mean_pct is None else (t_mean_c, rs_mj_m2_day, rh_mean_pct)
+    )
     return restore_from_inputs(result, *inputs)
 
 
@@ -579,6 +579,3 @@ def hicks_hess(
         * (1 + as_array(wind_2m_m_s))
     )
     return restore_from_inputs(result, t_mean_c, rs_mj_m2_day, wind_2m_m_s)
-
-
-__doc__ = _doc_note("ET0 methods")
