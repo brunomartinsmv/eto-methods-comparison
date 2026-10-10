@@ -13,6 +13,8 @@ import pandas as pd
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+from .figure_style import PALETTE, apply_figure_style
+
 PCA_CANDIDATE_COLUMNS: tuple[str, ...] = (
     "tmed_c",
     "tmax_c",
@@ -22,6 +24,17 @@ PCA_CANDIDATE_COLUMNS: tuple[str, ...] = (
     "rad_global_mj_m2_d",
     "rad_net_mj_m2_d",
 )
+
+
+PCA_FEATURE_LABELS = {
+    "tmed_c": "Mean temperature",
+    "tmax_c": "Maximum temperature",
+    "tmin_c": "Minimum temperature",
+    "rh_mean_pct": "Relative humidity",
+    "wind_mean_ms": "Mean wind speed",
+    "rad_global_mj_m2_d": "Global radiation",
+    "rad_net_mj_m2_d": "Net radiation",
+}
 
 
 @dataclass(frozen=True)
@@ -46,7 +59,9 @@ def select_pca_columns(df: pd.DataFrame) -> list[str]:
     return [column for column in PCA_CANDIDATE_COLUMNS if column in df.columns]
 
 
-def prepare_pca_data(df: pd.DataFrame, columns: list[str] | None = None) -> tuple[pd.DataFrame, list[str]]:
+def prepare_pca_data(
+    df: pd.DataFrame, columns: list[str] | None = None
+) -> tuple[pd.DataFrame, list[str]]:
     selected_columns = columns if columns is not None else select_pca_columns(df)
     if len(selected_columns) < 2:
         raise ValueError(
@@ -54,7 +69,9 @@ def prepare_pca_data(df: pd.DataFrame, columns: list[str] | None = None) -> tupl
             f"Available columns: {', '.join(selected_columns) if selected_columns else 'none'}"
         )
 
-    prepared = df.loc[:, selected_columns].apply(pd.to_numeric, errors="coerce").dropna(axis=0, how="any")
+    prepared = (
+        df.loc[:, selected_columns].apply(pd.to_numeric, errors="coerce").dropna(axis=0, how="any")
+    )
     if len(prepared) < 2:
         raise ValueError(
             "PCA requires at least two complete rows after removing missing values. "
@@ -67,7 +84,9 @@ def prepare_pca_data(df: pd.DataFrame, columns: list[str] | None = None) -> tupl
 def _build_loadings(pca: Any, features: list[str]) -> pd.DataFrame:
     component_names = [f"PC{i}" for i in range(1, pca.n_components_ + 1)]
     loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
-    return pd.DataFrame(loadings, index=features, columns=component_names).reset_index(names="variable")
+    return pd.DataFrame(loadings, index=features, columns=component_names).reset_index(
+        names="variable"
+    )
 
 
 def _build_explained_variance(pca: Any) -> pd.DataFrame:
@@ -79,7 +98,9 @@ def _build_explained_variance(pca: Any) -> pd.DataFrame:
             "explained_variance_ratio": pca.explained_variance_ratio_,
         }
     )
-    explained["cumulative_explained_variance_ratio"] = explained["explained_variance_ratio"].cumsum()
+    explained["cumulative_explained_variance_ratio"] = explained[
+        "explained_variance_ratio"
+    ].cumsum()
     return explained
 
 
@@ -136,25 +157,47 @@ def plot_pca_biplot(result: PCAResult, output_path: Path) -> None:
     explained = result.explained_variance
     scale = _arrow_scale(scores, loadings)
 
+    apply_figure_style(font_size=10)
     fig, ax = plt.subplots(figsize=(8, 6))
-    ax.scatter(scores[:, 0], scores[:, 1], s=18, alpha=0.55, color="#2a6f97")
-    ax.axhline(0, color="0.7", linewidth=0.8)
-    ax.axvline(0, color="0.7", linewidth=0.8)
+    ax.scatter(scores[:, 0], scores[:, 1], s=20, alpha=0.45, color=PALETTE["blue"], linewidths=0)
+    ax.axhline(0, color=PALETTE["gray_light"], linewidth=0.8)
+    ax.axvline(0, color=PALETTE["gray_light"], linewidth=0.8)
 
-    for row in loadings.itertuples(index=False):
+    for number, row in enumerate(loadings.itertuples(index=False), start=1):
         x = float(row.PC1) * scale
         y = float(row.PC2) * scale
-        ax.arrow(0, 0, x, y, color="#bc4749", alpha=0.85, width=0.0, head_width=0.04, length_includes_head=True)
-        ax.text(x * 1.08, y * 1.08, row.variable, color="#8b1e3f", fontsize=9, ha="center", va="center")
+        ax.annotate(
+            "",
+            xy=(x, y),
+            xytext=(0, 0),
+            arrowprops={"arrowstyle": "-|>", "color": PALETTE["red"], "lw": 1.25, "alpha": 0.85},
+        )
+        ax.annotate(
+            str(number),
+            xy=(x, y),
+            xytext=(7, 10 if number % 2 else -14),
+            textcoords="offset points",
+            color=PALETTE["red"],
+            fontsize=9,
+            bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.8, "pad": 1},
+        )
+        ax.plot(
+            [],
+            [],
+            color=PALETTE["red"],
+            label=f"{number}. {PCA_FEATURE_LABELS.get(row.variable, row.variable)}",
+        )
+    ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1), fontsize=9)
 
     pc1_ratio = explained.loc[explained["component"] == "PC1", "explained_variance_ratio"].iloc[0]
     pc2_ratio = explained.loc[explained["component"] == "PC2", "explained_variance_ratio"].iloc[0]
     ax.set_xlabel(f"PC1 ({pc1_ratio:.1%} of variance)")
     ax.set_ylabel(f"PC2 ({pc2_ratio:.1%} of variance)")
-    ax.set_title(f"PCA biplot - {result.label}")
-    ax.grid(True, alpha=0.25)
-    plt.tight_layout()
-    plt.savefig(output_path, dpi=200)
+    ax.set_title(f"PCA biplot · {result.label}")
+    ax.set_axisbelow(True)
+    ax.grid(color=PALETTE["gray_light"], linewidth=0.6, alpha=0.55)
+    fig.tight_layout(pad=1.2)
+    fig.savefig(output_path, dpi=300, bbox_inches="tight")
     plt.close(fig)
 
 

@@ -61,7 +61,9 @@ class ComputeEtoReport:
     def log_summary(self, *, site: str | None = None) -> None:
         prefix = f"{site}: " if site else ""
         if self.computed:
-            logger.info("%scomputed %d method(s): %s", prefix, len(self.computed), ", ".join(self.computed))
+            logger.info(
+                "%scomputed %d method(s): %s", prefix, len(self.computed), ", ".join(self.computed)
+            )
         if self.attached_precomputed_only:
             logger.info(
                 "%sattached %d precomputed-only column(s): %s",
@@ -97,10 +99,6 @@ def _record_skip(report: ComputeEtoReport, column: str, missing: list[str]) -> N
     report.skipped.append(MethodSkip(column, f"missing columns: {', '.join(missing)}"))
 
 
-def _record_computed(report: ComputeEtoReport, column: str) -> None:
-    report.computed.append(column)
-
-
 def _wind_for_pm(df: pd.DataFrame, site_meta: dict) -> pd.Series:
     wind_height_m = float(site_meta.get("wind_height_m", DEFAULT_WIND_HEIGHT_M))
     return wind_speed_at_2m(df["wind_mean_ms"], measurement_height_m=wind_height_m)
@@ -118,7 +116,7 @@ def _compare_with_precomputed(
         result[precomputed_col] = df[column]
         computed = pd.to_numeric(result[column], errors="coerce")
         precomputed = pd.to_numeric(result[precomputed_col], errors="coerce")
-        mask = computed.notna() & precomputed.notna()
+        mask = np.isfinite(computed) & np.isfinite(precomputed)
         n_pairs = int(mask.sum())
         if n_pairs == 0:
             logger.info("validation %s vs precomputed: no overlapping finite pairs", column)
@@ -193,7 +191,7 @@ def compute_daily_eto(
             delta_kpa_c=delta,
             gamma_kpa_c=gamma,
         )
-        _record_computed(report, "et_penman_monteith")
+        report.computed.append("et_penman_monteith")
     else:
         _record_skip(report, "et_penman_monteith", missing)
 
@@ -203,7 +201,7 @@ def compute_daily_eto(
             t_mean_c=df["tmed_c"],
             ra_mj_m2_day=df["ra_extraterrestre_mj_m2_d"],
         )
-        _record_computed(report, "et_camargo")
+        report.computed.append("et_camargo")
     else:
         _record_skip(report, "et_camargo", missing)
 
@@ -215,7 +213,7 @@ def compute_daily_eto(
             t_mean_c=df["tmed_c"],
             ra_mj_m2_day=df["ra_extraterrestre_mj_m2_d"],
         )
-        _record_computed(report, "et_hargreaves_samani")
+        report.computed.append("et_hargreaves_samani")
     else:
         _record_skip(report, "et_hargreaves_samani", missing)
 
@@ -227,39 +225,39 @@ def compute_daily_eto(
             gamma_kpa_c=gamma,
             rs_mj_m2_day=df["rad_global_mj_m2_d"],
         )
-        _record_computed(report, "et_makkink")
+        report.computed.append("et_makkink")
         result["et_turc"] = eto_methods.turc(
             t_mean_c=df["tmed_c"],
             rs_mj_m2_day=df["rad_global_mj_m2_d"],
             rh_mean_pct=df["rh_mean_pct"] if "rh_mean_pct" in df.columns else None,
         )
-        _record_computed(report, "et_turc")
+        report.computed.append("et_turc")
         result["et_global_radiation"] = eto_methods.global_radiation(
             rs_mj_m2_day=df["rad_global_mj_m2_d"],
         )
-        _record_computed(report, "et_global_radiation")
+        report.computed.append("et_global_radiation")
         result["et_jensen_heise"] = eto_methods.jensen_heise(
             t_mean_c=df["tmed_c"],
             rs_mj_m2_day=df["rad_global_mj_m2_d"],
         )
-        _record_computed(report, "et_jensen_heise")
+        report.computed.append("et_jensen_heise")
         result["et_radiation_temperature"] = eto_methods.radiation_temperature(
             t_mean_c=df["tmed_c"],
             rs_mj_m2_day=df["rad_global_mj_m2_d"],
         )
-        _record_computed(report, "et_radiation_temperature")
+        report.computed.append("et_radiation_temperature")
         result["et_stephens_stewart"] = eto_methods.stephens_stewart(
             t_mean_c=df["tmed_c"],
             rs_mj_m2_day=df["rad_global_mj_m2_d"],
         )
-        _record_computed(report, "et_stephens_stewart")
+        report.computed.append("et_stephens_stewart")
         if wind_2m is not None:
             result["et_hicks_hess"] = eto_methods.hicks_hess(
                 t_mean_c=df["tmed_c"],
                 rs_mj_m2_day=df["rad_global_mj_m2_d"],
                 wind_2m_m_s=wind_2m,
             )
-            _record_computed(report, "et_hicks_hess")
+            report.computed.append("et_hicks_hess")
         else:
             _record_skip(report, "et_hicks_hess", ["wind_mean_ms"])
         if {"rh_mean_pct", "wind_mean_ms"} <= set(df.columns) and wind_2m is not None:
@@ -269,7 +267,7 @@ def compute_daily_eto(
                 wind_2m_m_s=wind_2m,
                 rs_mj_m2_day=df["rad_global_mj_m2_d"],
             )
-            _record_computed(report, "et_garcia_lopez")
+            report.computed.append("et_garcia_lopez")
         else:
             missing_optional = _missing_columns(df, ["rh_mean_pct", "wind_mean_ms"])
             _record_skip(report, "et_garcia_lopez", missing_optional)
@@ -289,7 +287,7 @@ def compute_daily_eto(
     missing = _missing_columns(df, ["tmed_c"])
     if not missing:
         result["et_mccloud"] = eto_methods.mccloud(t_mean_c=df["tmed_c"])
-        _record_computed(report, "et_mccloud")
+        report.computed.append("et_mccloud")
     else:
         _record_skip(report, "et_mccloud", missing)
 
@@ -299,12 +297,12 @@ def compute_daily_eto(
             t_mean_c=df["tmed_c"],
             rh_mean_pct=df["rh_mean_pct"],
         )
-        _record_computed(report, "et_ivanov")
+        report.computed.append("et_ivanov")
         result["et_lungeon"] = eto_methods.lungeon(
             t_mean_c=df["tmed_c"],
             rh_mean_pct=df["rh_mean_pct"],
         )
-        _record_computed(report, "et_lungeon")
+        report.computed.append("et_lungeon")
     else:
         _record_skip(report, "et_ivanov", missing)
         _record_skip(report, "et_lungeon", missing)
@@ -314,7 +312,7 @@ def compute_daily_eto(
         result["et_net_radiation"] = eto_methods.net_radiation(
             rn_mj_m2_day=df["rad_net_mj_m2_d"],
         )
-        _record_computed(report, "et_net_radiation")
+        report.computed.append("et_net_radiation")
         if "tmed_c" in df.columns:
             delta = vapor_pressure_slope_kpa_c(df["tmed_c"])
             result["et_priestley_taylor"] = eto_methods.priestley_taylor(
@@ -322,12 +320,16 @@ def compute_daily_eto(
                 gamma_kpa_c=gamma,
                 rn_mj_m2_day=df["rad_net_mj_m2_d"],
             )
-            _record_computed(report, "et_priestley_taylor")
+            report.computed.append("et_priestley_taylor")
         else:
             _record_skip(report, "et_priestley_taylor", ["tmed_c"])
     else:
         _record_skip(report, "et_net_radiation", missing)
-        _record_skip(report, "et_priestley_taylor", missing + (["tmed_c"] if "tmed_c" not in df.columns else []))
+        _record_skip(
+            report,
+            "et_priestley_taylor",
+            missing + (["tmed_c"] if "tmed_c" not in df.columns else []),
+        )
 
     result = _attach_precomputed_only_columns(result, df, report)
     if include_precomputed:
