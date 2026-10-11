@@ -1,12 +1,12 @@
 # Methodological assumptions and sensitive implementation choices
 
-This document records assumptions that affect interpretation of the ETo comparison. It is intended to let a reviewer audit the methodological decisions without reading the source code.
+This document records the assumptions used to calculate and compare ET₀. It identifies the input transformations and the limits of the reported metrics.
 
 ## Reference treatment: FAO-56 Penman-Monteith
 
 Penman-Monteith FAO-56 is treated as the reference series for method comparison, not as an error-free physical truth. Metrics, bootstrap intervals, monthly errors, rainfall-season summaries, and ETo-bin bias tables are computed as deviations of each alternative method from `et_penman_monteith`.
 
-The pipeline preserves the reference column supplied in the cleaned data. It does not recalibrate Penman-Monteith during analysis. Therefore, any uncertainty or measurement error in radiation, humidity, wind, or temperature inputs propagates into the reference but is not explicitly modeled in the current metrics.
+`quickstart` recalculates the reference from cleaned weather inputs and writes it to `outputs/results/{site}_daily_eto.csv`. Metrics prefer that file when it exists; otherwise, they use the spreadsheet reference retained in the cleaned data. Penman-Monteith is not calibrated. Measurement errors in radiation, humidity, wind, or temperature can affect the reference, but the metrics do not propagate those errors explicitly.
 
 ## Net radiation
 
@@ -16,15 +16,15 @@ Priestley-Taylor and Penman-Monteith are especially sensitive to net radiation. 
 
 ## Wind
 
-Wind is represented by daily wind variables from the input sheets, standardized in cleaned data as `wind_mean_ms` and `wind_max_ms` when available. The analysis does not apply an additional height conversion or roughness correction at the metrics stage.
+Daily wind inputs are standardized as `wind_mean_ms` and `wind_max_ms`. When calculating Penman-Monteith, the pipeline converts mean wind to 2 m using FAO-56 equation 47 and the site's `wind_height_m`. The default measurement height is 10 m when that metadata is absent; the source height must therefore be checked when adding a site.
 
-Because FAO-56 Penman-Monteith uses wind speed at 2 m, the validity of the reference depends on the upstream source having already supplied compatible wind values or having applied the needed conversion. Alternative temperature- or radiation-based methods do not use wind directly, so site-specific wind regimes can appear as systematic method bias.
+The metrics stage compares the resulting ET₀ series without another wind conversion. Methods that omit wind can differ from the reference when aerodynamic demand changes.
 
 ## Humidity
 
-Relative humidity variables are standardized as daily mean, maximum, and minimum humidity columns when available. The metrics stage does not recompute vapor pressure deficit or humidity corrections. Humidity affects the Penman-Monteith reference through the source-derived ETo values and is not perturbed in the uncertainty analysis.
+Relative humidity inputs are standardized as daily mean, maximum, and minimum columns. The reference calculation estimates actual vapor pressure from minimum/maximum temperature and humidity when those columns exist, or from mean temperature and humidity otherwise. Saturation vapor pressure is calculated from mean temperature. These choices are implemented in `scripts/compute_eto.py` and `scripts/derived_meteo.py`.
 
-This is important for Manaus, where high humidity and low vapor-pressure deficit can reduce aerodynamic demand. Temperature-only methods may miss this control and can show climate-specific bias.
+The daily bootstrap resamples method-reference pairs without perturbing humidity. The separate optional OAT sensitivity command can perturb humidity inputs. Temperature-only methods omit this control on atmospheric demand.
 
 ## Missing days and interpolation
 
@@ -36,13 +36,15 @@ Interpolation is treated as an upstream data-preparation decision. The bootstrap
 
 The corrected Hargreaves-Samani column is treated as a precomputed calibrated method (`et_hargreaves_samani_corr`). The current analysis compares it to Penman-Monteith but does not refit its coefficients during the pipeline.
 
-This choice preserves compatibility with the existing results. It also means the corrected method should be interpreted as locally calibrated for the dataset that produced the column. Its coefficients may not transfer to another site, year, or climate regime without recalibration and validation on independent data.
+The corrected series retains the calibration used to produce the spreadsheet column. Its coefficients may not transfer to another site, year, or climate regime without recalibration and validation on independent data.
 
 ## Monthly and rainfall-season analysis
 
-Monthly error tables group daily errors by calendar month. Rainfall-season summaries split months into `wet` and `dry` groups using each site's median monthly rainfall in the analyzed year. This is a data-driven descriptive classification, not a climatological season definition.
+Monthly totals sum finite daily estimates and preserve missing months as missing values. Each method has accompanying `_valid_days` and `_valid_fraction` columns. Partial totals are not rescaled to a full month; monthly comparisons can therefore involve unequal coverage, which must be checked before interpreting the ranking.
 
-This approach is justified for comparing Manaus and Piracicaba within the same pipeline because it avoids hard-coding site-specific seasonal calendars. It should not be used to infer long-term climatological wet/dry behavior from a single year.
+Monthly error tables in the uncertainty analysis group daily errors by calendar month. Rainfall-season summaries split months into `wet` and `dry` groups using each site's median monthly rainfall in the analyzed year. This is a data-driven descriptive classification, not a climatological season definition.
+
+This rule applies the same descriptive classification to both sites without prescribing seasonal calendars. It should not be used to infer long-term climatological wet/dry behavior from a single year.
 
 ## Bootstrap uncertainty
 

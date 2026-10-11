@@ -87,5 +87,5 @@ Showing first 20 of 72 rows. See CSV outputs for complete tables.
 ## Limitations
 
 - Confidence intervals resample available paired days and do not model autocorrelation explicitly.
-- Wet/dry labels are relative to each site's 2024 monthly rainfall distribution.
+- Wet/dry labels are relative to each site's monthly rainfall distribution in the analyzed period.
 - Bias bins are quantile-based, so bin widths differ when the Penman-Monteith ETo distribution is uneven.

@@ -2,13 +2,13 @@
 
 Para uma auditoria das decisoes implementacionais sensiveis, veja tambem [`methodological_assumptions.md`](methodological_assumptions.md). Esse documento explicita como a referencia Penman-Monteith, radiacao liquida, vento, umidade, dias faltantes, interpolacao, calibracao do Hargreaves-Samani corrigido e limitacoes por metodo/localidade sao tratados no pipeline reprodutivel.
 
-Este capitulo apresenta, de forma detalhada, os metodos usados para estimar a evapotranspiracao de referencia (ETo/ET0), incluindo equacoes, hipoteses, requisitos de dados, limitacoes e recomendacao de clima/regiao. As referencias bibliograficas aparecem ao final.
+Este capítulo descreve os métodos de evapotranspiração de referência (ET₀), suas equações, hipóteses, dados de entrada e limitações. As referências bibliográficas aparecem ao final.
 
 Para **derivações LaTeX completas** de cada método e das variáveis meteorológicas derivadas, consulte [`equations/README.md`](equations/README.md) — em particular [`equations/et0_methods.md`](equations/et0_methods.md) e [`equations/derived_meteorology.md`](equations/derived_meteorology.md).
 
 ## Escopo configurado dos metodos
 
-O repositorio agora configura 18 metodos alternativos de ET0 e usa Penman-Monteith FAO-56 como referencia. Manaus e Piracicaba sao localidades demonstrativas configuradas em `configs/sites.yml`; o projeto nao esta limitado a essas cidades. Novas localidades podem ser adicionadas por configuracao e por dados de entrada compatíveis.
+O repositório configura 18 métodos alternativos de ET₀ e usa Penman-Monteith FAO-56 como referência. Manaus e Piracicaba são localidades demonstrativas em `configs/sites.yml`. Outras localidades exigem metadados e dados de entrada compatíveis.
 
 O comando `compute-eto` calcula os metodos com `status: computed` a partir de variaveis meteorologicas padronizadas em `data/cleaned/` e escreve `outputs/results/{site}_daily_eto.csv`. Metodos com `status: precomputed_only` sao preservados da planilha quando presentes no input limpo. As metricas preferem essas series calculadas quando o arquivo existe; caso contrario, usam as colunas `et_*` pre-calculadas dos dados limpos como fallback historico.
 
@@ -84,7 +84,7 @@ Esses coeficientes sao locais e nao devem ser transferidos para outras localidad
 ## 1. Penman-Monteith (FAO-56)
 
 **PT — Descricao**
-O metodo Penman-Monteith, padronizado pela FAO-56, combina balanço de energia e transporte de massa, sendo o metodo de referencia para ETo. Ele integra radiação, temperatura, umidade e vento para estimar a demanda atmosferica por evapotranspiracao. A equacao pode ser lida como a soma de dois mecanismos: (i) o termo radiativo, que expressa a energia disponivel na superficie (Rn - G), e (ii) o termo aerodinamico, que expressa a eficiencia com que a atmosfera remove vapor (função de vento e deficit de pressao de vapor). A ponderacao por \u0394 e \u03b3 representa o acoplamento entre processos energeticos e aerodinamicos.
+O metodo Penman-Monteith, padronizado pela FAO-56, combina balanço de energia e transporte de massa, sendo o metodo de referencia para ETo. Ele integra radiação, temperatura, umidade e vento para estimar a demanda atmosferica por evapotranspiracao. A equacao pode ser lida como a soma de dois mecanismos: (i) o termo radiativo, que expressa a energia disponivel na superficie (Rn - G), e (ii) o termo aerodinamico, que expressa a eficiencia com que a atmosfera remove vapor (função de vento e deficit de pressao de vapor). A ponderacao por Δ e γ representa o acoplamento entre processos energeticos e aerodinamicos.
 
 **Equacao (FAO-56)**
 
@@ -173,10 +173,10 @@ Metodo semi-empirico que usa temperatura minima e maxima como proxy de radiacao.
 
 **Equacao**
 
-$$\mathrm{ETo} = 0.0023\,R_a\,(T_{max} - T_{min})^{0.5}\,(T_{mean} + 17.8)$$
+$$\mathrm{ETo} = 0.0023\,\frac{R_a}{\lambda}\,(T_{max} - T_{min})^{0.5}\,(T_{mean} + 17.8)$$
 
 **Requisitos de dados**
-Temperatura maxima, minima e media; radiacao extraterrestre (calculada via latitude e dia do ano).
+Temperatura máxima, mínima e média; radiação extraterrestre em MJ m⁻² d⁻¹, convertida para mm d⁻¹ com λ = 2,45 MJ kg⁻¹. O pipeline consome a coluna de radiação extraterrestre dos dados limpos.
 
 **Clima/regiao recomendada**
 Climas aridos e semi-aridos (ex.: interior do Nordeste), onde a amplitude termica diaria e um bom proxy da radiacao. Em climas umidos, tende a superestimar ou gerar vies.
@@ -379,16 +379,16 @@ Use os diagramas em `outputs/figures/<site>/<site>_daily_taylor.png` e `<site>_m
 - O ponto de referencia (Penman-Monteith) fica no eixo horizontal, com desvio padrao igual ao do metodo de referencia.
 - O angulo representa a correlacao: quanto mais proximo de 1, mais alinhado ao referencia.
 - O raio representa o desvio padrao: quanto mais proximo do raio do referencia, mais similar a variabilidade.
-- Pontos mais proximos do ponto de referencia indicam melhor desempenho global.
-- Compare diario vs mensal para ver se o metodo melhora quando agregamos a escala temporal.
+- A distância ao ponto de referência descreve diferenças de correlação e variabilidade; não representa o viés médio. Consulte também RMSE, MBE e cobertura dos pares finitos.
+- Os valores diários usam mm d⁻¹; os totais mensais usam mm. Compare as métricas na escala correspondente. Os pontos dos métodos usam pares finitos, enquanto o ponto de referência usa todos os registros finitos da referência.
 
 **EN**
 Use the diagrams in `outputs/figures/<site>/<site>_daily_taylor.png` and `<site>_monthly_taylor.png`. Key readings:
 - The reference point (Penman-Monteith) sits on the x-axis with its standard deviation as radius.
 - The angle encodes correlation: closer to 1 is better.
 - The radius encodes standard deviation: closer to the reference radius means similar variability.
-- Points closer to the reference indicate better overall agreement.
-- Compare daily vs monthly to see if performance improves with temporal aggregation.
+- Distance to the reference reflects correlation and variability, not mean bias. Check RMSE, MBE, and finite-pair coverage as well.
+- Daily values use mm d⁻¹; monthly totals use mm. Compare metrics at their own temporal scale. Method points use pairwise finite records, while the reference point uses all finite reference records.
 
 ---
 

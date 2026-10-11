@@ -405,10 +405,15 @@ def cmd_plots(args: argparse.Namespace) -> None:
     figures_dir = Path(args.output)
     _ensure_dir(figures_dir)
 
+    metrics_by_site = {}
     for site in _selected_sites(args).keys():
         df = read_eto_frame(site, cleaned_dir=input_dir)
         method_cols = _method_cols_present(df)
         ref_col = REFERENCE_COLUMN
+
+        metrics_by_site[site] = metrics.compute_metrics(
+            df, ref_col, [col for col in method_cols if col != ref_col]
+        )
 
         site_dir = figures_dir / site
         _ensure_dir(site_dir)
@@ -446,8 +451,12 @@ def cmd_plots(args: argparse.Namespace) -> None:
             method_cols,
             site_dir / figure_filename(site, "monthly_taylor"),
             title=f"Taylor diagram (monthly) - {site}",
+            unit="mm",
         )
         logger.info("wrote figures for %s (%d alternative methods)", site, len(method_cols) - 1)
+
+    if metrics_by_site:
+        plots.plot_readme_overview(metrics_by_site, figures_dir / "methods_rmse_overview.png")
 
 
 def _site_group_label(meta: dict) -> str | None:
@@ -878,6 +887,14 @@ def cmd_clean_outputs(args: argparse.Namespace) -> None:
     for directory in (OUTPUTS_RESULTS, OUTPUTS_TABLES, OUTPUTS_REPORTS):
         if directory.exists():
             targets.extend(path for path in directory.glob("*") if path.is_file())
+    targets.extend(
+        path
+        for path in (
+            OUTPUTS_FIGURES / "methods_rmse_overview.png",
+            OUTPUTS_FIGURES / "methods_rmse_overview.svg",
+        )
+        if path.is_file()
+    )
     if OUTPUTS_FIGURES.exists():
         for site_dir in OUTPUTS_FIGURES.iterdir():
             if not site_dir.is_dir() or site_dir.name == "legacy":
