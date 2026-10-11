@@ -190,6 +190,12 @@ def plot_taylor(
     *,
     unit: str = "mm d⁻¹",
 ) -> None:
+    """Plot correlation against standard deviation.
+
+    The reference marker uses the standard deviation of every finite reference
+    value. Each method uses only the days on which both that method and the
+    reference are finite, so its position can describe a different subset.
+    """
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     ref = df[ref_col].to_numpy()
