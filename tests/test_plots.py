@@ -66,6 +66,9 @@ def test_plots_command_writes_expected_figures_in_temporary_directory(
     }
     written_stems = {path.stem for path in png_files}
     assert expected_stems <= written_stems
+    overview = figures_dir / "methods_rmse_overview.png"
+    assert overview.is_file() and overview.stat().st_size > 0
+    assert overview.with_suffix(".svg").is_file()
 
     for path in png_files:
         assert path.stat().st_size > 0
@@ -194,6 +197,50 @@ def test_overview_ignores_nonfinite_errors_and_handles_zero_rmse(
     assert ax.get_title(loc="left") == "Custom"
     assert [label.get_text() for label in ax.get_yticklabels()] == ["Exact"]
     assert ax.get_xlim()[1] > 0
+
+
+def test_plots_command_skips_site_without_alternative_metrics(
+    tmp_path: Path, monkeypatch
+) -> None:
+    cleaned = tmp_path / "cleaned"
+    figures = tmp_path / "figures"
+    results = tmp_path / "results"
+    cleaned.mkdir()
+    results.mkdir()
+    _minimal_eto_frame().to_csv(cleaned / "manaus_daily.csv", index=False)
+    _minimal_eto_frame()[["date", REFERENCE_COLUMN]].to_csv(
+        cleaned / "piracicaba_daily.csv", index=False
+    )
+    monkeypatch.setattr("scripts.eto_io.OUTPUTS_RESULTS", results)
+    for name in ("plot_scatter", "plot_timeseries", "plot_monthly_totals", "plot_taylor"):
+        monkeypatch.setattr(cli.plots, name, lambda *args, **kwargs: None)
+
+    overview = figures / "methods_rmse_overview.png"
+    figures.mkdir()
+    overview.write_bytes(b"stale")
+    overview.with_suffix(".svg").write_bytes(b"stale")
+    cmd_plots(
+        argparse.Namespace(
+            input=str(cleaned), output=str(figures), year=2024, site=None, all_sites=True
+        )
+    )
+
+    svg = overview.with_suffix(".svg").read_text(encoding="utf-8")
+    assert overview.read_bytes() != b"stale"
+    assert "Manaus" in svg
+    assert "Piracicaba" not in svg
+
+    cmd_plots(
+        argparse.Namespace(
+            input=str(cleaned),
+            output=str(figures),
+            year=2024,
+            site="piracicaba",
+            all_sites=False,
+        )
+    )
+    assert not overview.exists()
+    assert not overview.with_suffix(".svg").exists()
 
 
 def test_plots_overview_uses_selected_site_and_current_frame(tmp_path: Path, monkeypatch) -> None:
