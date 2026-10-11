@@ -19,9 +19,10 @@ def plot_scatter(df: pd.DataFrame, ref_col: str, method_col: str, output_path: P
     valid = df[[ref_col, method_col]].apply(pd.to_numeric, errors="coerce")
     valid = valid.loc[np.isfinite(valid).all(axis=1)]
     if valid.empty:
+        output_path.unlink(missing_ok=True)
         return
     apply_figure_style()
-    fig, ax = plt.subplots(figsize=(5.4, 5.0))
+    fig, ax = plt.subplots(figsize=(7.0, 6.5))
     ax.scatter(
         valid[ref_col], valid[method_col], s=18, alpha=0.42, color=PALETTE["blue"], linewidths=0
     )
@@ -47,21 +48,21 @@ def plot_scatter(df: pd.DataFrame, ref_col: str, method_col: str, output_path: P
 def plot_timeseries(df: pd.DataFrame, ref_col: str, method_col: str, output_path: Path) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     apply_figure_style()
-    fig, ax = plt.subplots(figsize=(10, 3.6))
+    fig, ax = plt.subplots(figsize=(12, 4.5))
     ax.plot(
         df["date"],
         df[ref_col],
         color=PALETTE["ink"],
-        linewidth=1.25,
-        alpha=0.82,
+        linewidth=2.0,
+        alpha=0.9,
         label=method_label(ref_col),
     )
     ax.plot(
         df["date"],
         df[method_col],
         color=PALETTE["blue"],
-        linewidth=1.0,
-        alpha=0.8,
+        linewidth=1.8,
+        alpha=0.9,
         label=method_label(method_col),
     )
     ax.set(xlabel="Date", ylabel="ET₀ (mm d⁻¹)")
@@ -76,35 +77,49 @@ def plot_timeseries(df: pd.DataFrame, ref_col: str, method_col: str, output_path
 
 def plot_monthly_totals(df: pd.DataFrame, method_cols: list[str], output_path: Path) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    apply_figure_style(font_size=9.5)
-    fig, ax = plt.subplots(figsize=(10, 4.6))
+    apply_figure_style()
     alternatives = [col for col in method_cols if col != "et_penman_monteith"]
-    colors = plt.cm.tab20(np.linspace(0, 1, max(len(alternatives), 1)))
-    for index, col in enumerate(alternatives):
-        ax.plot(
-            df["month"],
-            df[col],
-            color=colors[index],
-            linewidth=1.15,
-            alpha=0.78,
-            label=method_label(col),
-        )
-    if "et_penman_monteith" in method_cols:
-        ax.plot(
-            df["month"],
-            df["et_penman_monteith"],
-            color=PALETTE["ink"],
-            linewidth=2.4,
-            label="Penman–Monteith",
-            zorder=5,
-        )
-    ax.set(xlabel="Month", ylabel="Monthly ET₀ (mm)")
-    ax.xaxis.set_major_locator(mdates.MonthLocator())
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
-    ax.legend(ncol=4, loc="upper center", bbox_to_anchor=(0.5, -0.2), fontsize=8)
-    style_axis(ax)
-    ax.grid(axis="x", visible=False)
-    fig.tight_layout(pad=1.1)
+    panels = [alternatives[index : index + 3] for index in range(0, len(alternatives), 3)] or [[]]
+    ncols = min(2, len(panels))
+    fig, axes = plt.subplots(
+        (len(panels) + ncols - 1) // ncols,
+        ncols,
+        figsize=(8 * ncols, 4.8 * ((len(panels) + ncols - 1) // ncols)),
+        sharex=True,
+        sharey=True,
+        squeeze=False,
+    )
+    colors = [PALETTE["blue"], PALETTE["red"], PALETTE["teal"]]
+    for ax, columns in zip(axes.flat, panels, strict=False):
+        for index, col in enumerate(columns):
+            ax.plot(
+                df["month"],
+                df[col],
+                color=colors[index],
+                linestyle=["-", "--", ":"][index],
+                marker=["o", "s", "^"][index],
+                markersize=4,
+                linewidth=2,
+                label=method_label(col),
+            )
+        if "et_penman_monteith" in method_cols:
+            ax.plot(
+                df["month"],
+                df["et_penman_monteith"],
+                color=PALETTE["ink"],
+                linewidth=2.5,
+                label="Penman–Monteith",
+                zorder=5,
+            )
+        ax.set(xlabel="Month", ylabel="Monthly ET₀ (mm)")
+        ax.xaxis.set_major_locator(mdates.MonthLocator(interval=2))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
+        ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.22), ncol=2, fontsize=10)
+        style_axis(ax)
+        ax.grid(axis="x", visible=False)
+    for ax in list(axes.flat)[len(panels) :]:
+        ax.set_axis_off()
+    fig.tight_layout(pad=2, h_pad=4)
     fig.savefig(output_path, dpi=300, bbox_inches="tight")
     plt.close(fig)
 
@@ -112,29 +127,41 @@ def plot_monthly_totals(df: pd.DataFrame, method_cols: list[str], output_path: P
 def plot_bias_by_eto_bin(df: pd.DataFrame, output_path: Path, title: str) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     if df.empty:
+        output_path.unlink(missing_ok=True)
         return
 
-    apply_figure_style(font_size=9.5)
-    fig, ax = plt.subplots(figsize=(10, 5.2))
+    apply_figure_style()
     groups = list(df.groupby("method", sort=False))
-    colors = plt.cm.tab20(np.linspace(0, 1, max(len(groups), 1)))
-    for index, (method, group) in enumerate(groups):
-        group = group.sort_values("eto_bin")
-        ax.plot(
-            group["eto_bin"],
-            group["mean_bias"],
-            marker="o",
-            markersize=3.5,
-            linewidth=1.25,
-            color=colors[index],
-            label=method_label(method),
-        )
-    ax.axhline(0, color=PALETTE["ink"], linewidth=0.9, alpha=0.7)
-    ax.set(xlabel="Penman–Monteith ET₀ quantile", ylabel="Mean bias (mm d⁻¹)", title=title)
-    ax.legend(ncol=4, loc="upper center", bbox_to_anchor=(0.5, -0.2), fontsize=8)
-    style_axis(ax)
-    ax.grid(axis="x", visible=False)
-    fig.tight_layout(pad=1.1)
+    panels = [groups[index : index + 3] for index in range(0, len(groups), 3)]
+    ncols = min(2, len(panels))
+    nrows = (len(panels) + ncols - 1) // ncols
+    fig, axes = plt.subplots(
+        nrows, ncols, figsize=(8 * ncols, 4.5 * nrows), sharex=True, sharey=True, squeeze=False
+    )
+    colors = [PALETTE["blue"], PALETTE["red"], PALETTE["teal"]]
+    for ax, panel in zip(axes.flat, panels, strict=False):
+        for index, (method, group) in enumerate(panel):
+            group = group.sort_values("eto_bin")
+            ax.plot(
+                group["eto_bin"],
+                group["mean_bias"],
+                marker=["o", "s", "^"][index],
+                linestyle=["-", "--", ":"][index],
+                markersize=5,
+                linewidth=2,
+                color=colors[index],
+                label=method_label(method),
+            )
+        ax.axhline(0, color=PALETTE["ink"], linewidth=1)
+        ax.set(xlabel="Reference ET₀ quantile bin", ylabel="Mean bias (mm d⁻¹)")
+        ax.set_xticks(sorted(df["eto_bin"].unique()))
+        ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.22), ncol=2, fontsize=10)
+        style_axis(ax)
+        ax.grid(axis="x", visible=False)
+    for ax in list(axes.flat)[len(panels) :]:
+        ax.set_axis_off()
+    fig.suptitle(title, fontsize=18)
+    fig.tight_layout(pad=2, h_pad=4)
     fig.savefig(output_path, dpi=300, bbox_inches="tight")
     plt.close(fig)
 
@@ -168,11 +195,12 @@ def plot_taylor(
     ref = df[ref_col].to_numpy()
     finite_ref = ref[np.isfinite(ref)]
     if finite_ref.size < 2:
+        output_path.unlink(missing_ok=True)
         return
     ref_std = np.std(finite_ref, ddof=1)
 
-    apply_figure_style(font_size=9.5)
-    fig = plt.figure(figsize=(7.5, 6.2))
+    apply_figure_style()
+    fig = plt.figure(figsize=(11, 8))
     ax = fig.add_subplot(111, polar=True)
     ax.set_theta_direction(1)
     ax.set_thetamin(0)
@@ -194,7 +222,7 @@ def plot_taylor(
     )
 
     alternatives = [col for col in method_cols if col != ref_col]
-    colors = plt.cm.tab20(np.linspace(0, 1, max(len(alternatives), 1)))
+    colors = [PALETTE[key] for key in ("blue", "red", "teal", "violet", "gray", "green")]
     for index, col in enumerate(alternatives):
         series = df[col].to_numpy()
         _, series_std, corr = _taylor_stats(ref, series)
@@ -204,17 +232,17 @@ def plot_taylor(
         ax.plot(
             theta,
             series_std,
-            marker="o",
-            markersize=4.5,
+            marker=["o", "s", "^", "D", "v", "P"][index // len(colors)],
+            markersize=6,
             linestyle="none",
-            color=colors[index],
+            color=colors[index % len(colors)],
             label=method_label(col),
         )
 
     ax.set_title(title, pad=18)
     ax.set_xlabel("Correlation", labelpad=10)
     ax.set_ylabel(f"Standard deviation ({unit})", labelpad=24)
-    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.13), ncol=4, fontsize=8)
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.13), ncol=3, fontsize=11)
     fig.tight_layout(pad=1.1)
     fig.savefig(output_path, dpi=300, bbox_inches="tight")
     plt.close(fig)
@@ -225,17 +253,21 @@ def plot_readme_overview(
 ) -> None:
     best_by_site = {}
     for site, metrics in metrics_by_site.items():
+        if metrics.empty:
+            continue
         best = metrics.assign(rmse=pd.to_numeric(metrics["rmse"], errors="coerce"))
         best = best.loc[np.isfinite(best["rmse"])]
         if not best.empty:
             best_by_site[site] = best.nsmallest(top_n, "rmse")
     if not best_by_site:
+        output_path.unlink(missing_ok=True)
+        output_path.with_suffix(".svg").unlink(missing_ok=True)
         return
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    apply_figure_style(font_size=11)
+    apply_figure_style(font_size=15)
     fig, axes = plt.subplots(
-        1, len(best_by_site), figsize=(6 * len(best_by_site), 6.1), sharex=True, squeeze=False
+        1, len(best_by_site), figsize=(8 * len(best_by_site), 7.5), sharex=True, squeeze=False
     )
     xmax = max(max(best["rmse"].max() for best in best_by_site.values()) * 1.2, 0.1)
 
@@ -258,7 +290,7 @@ def plot_readme_overview(
                 position,
                 f"{row.rmse:.2f}",
                 va="center",
-                fontsize=9,
+                fontsize=12,
                 color=PALETTE["ink"],
             )
         ax.set_yticks(range(len(best)), [method_label(method) for method in best["method"]])
@@ -276,7 +308,7 @@ def plot_readme_overview(
         x=0.08,
         y=0.98,
         ha="left",
-        fontsize=16,
+        fontsize=20,
         fontweight="bold",
     )
     fig.text(
@@ -284,7 +316,7 @@ def plot_readme_overview(
         0.92,
         f"Up to {top_n} methods with the lowest RMSE at each selected site",
         color=PALETTE["gray"],
-        fontsize=10.5,
+        fontsize=13,
     )
     fig.tight_layout(rect=(0.02, 0.03, 0.98, 0.89), w_pad=2.6)
     fig.savefig(output_path, dpi=300, bbox_inches="tight")

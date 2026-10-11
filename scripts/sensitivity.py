@@ -177,27 +177,33 @@ def plot_sensitivity(sensitivity: pd.DataFrame, output_path: Path, *, title: str
     if ok.empty:
         raise ValueError("Cannot plot sensitivity without valid perturbation rows.")
 
-    apply_figure_style(font_size=9.5)
-    fig, ax = plt.subplots(figsize=(9.5, 5.4))
+    apply_figure_style()
     groups = list(ok.groupby("variable", sort=False))
-    colors = plt.cm.tab10(np.linspace(0, 1, max(len(groups), 1)))
-    for index, (variable, group) in enumerate(groups):
-        group = group.sort_values("perturbation_pct")
-        ax.plot(
-            group["perturbation_pct"],
-            group["delta_mean_eto_mm_d"],
-            marker="o",
-            markersize=3.5,
-            linewidth=1.5,
-            color=colors[index],
-            label=variable.replace("_", " ").title(),
-        )
-    ax.axhline(0, color=PALETTE["ink"], linewidth=0.9, alpha=0.7)
-    ax.set(xlabel="Input perturbation (%)", ylabel="Change in mean ET₀ (mm d⁻¹)", title=title)
-    ax.legend(ncol=2, loc="upper center", bbox_to_anchor=(0.5, -0.16), fontsize=8.5)
-    style_axis(ax)
-    ax.grid(axis="x", visible=False)
-    fig.tight_layout(pad=1.2)
+    panels = [groups[index : index + 4] for index in range(0, len(groups), 4)]
+    fig, axes = plt.subplots(
+        1, len(panels), figsize=(8 * len(panels), 6), sharex=True, sharey=True, squeeze=False
+    )
+    colors = [PALETTE[key] for key in ("blue", "red", "teal", "violet")]
+    for ax, panel in zip(axes[0], panels, strict=True):
+        for index, (variable, group) in enumerate(panel):
+            group = group.sort_values("perturbation_pct")
+            ax.plot(
+                group["perturbation_pct"],
+                group["delta_mean_eto_mm_d"],
+                marker=["o", "s", "^", "D"][index],
+                linestyle=["-", "--", ":", "-."][index],
+                markersize=4,
+                linewidth=2,
+                color=colors[index],
+                label=variable.replace("_", " ").title(),
+            )
+        ax.axhline(0, color=PALETTE["ink"], linewidth=1)
+        ax.set(xlabel="Input perturbation (%)", ylabel="Change in mean ET₀ (mm d⁻¹)")
+        ax.legend(ncol=2, loc="upper center", bbox_to_anchor=(0.5, -0.2), fontsize=11)
+        style_axis(ax)
+        ax.grid(axis="x", visible=False)
+    fig.suptitle(title, fontsize=18)
+    fig.tight_layout(pad=2)
     fig.savefig(output_path, dpi=300, bbox_inches="tight")
     plt.close(fig)
 

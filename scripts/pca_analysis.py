@@ -157,8 +157,8 @@ def plot_pca_biplot(result: PCAResult, output_path: Path) -> None:
     explained = result.explained_variance
     scale = _arrow_scale(scores, loadings)
 
-    apply_figure_style(font_size=10)
-    fig, ax = plt.subplots(figsize=(8, 6))
+    apply_figure_style()
+    fig, ax = plt.subplots(figsize=(11, 8))
     ax.scatter(scores[:, 0], scores[:, 1], s=20, alpha=0.45, color=PALETTE["blue"], linewidths=0)
     ax.axhline(0, color=PALETTE["gray_light"], linewidth=0.8)
     ax.axvline(0, color=PALETTE["gray_light"], linewidth=0.8)
@@ -178,7 +178,7 @@ def plot_pca_biplot(result: PCAResult, output_path: Path) -> None:
             xytext=(7, 10 if number % 2 else -14),
             textcoords="offset points",
             color=PALETTE["red"],
-            fontsize=9,
+            fontsize=12,
             bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.8, "pad": 1},
         )
         ax.plot(
@@ -187,7 +187,7 @@ def plot_pca_biplot(result: PCAResult, output_path: Path) -> None:
             color=PALETTE["red"],
             label=f"{number}. {PCA_FEATURE_LABELS.get(row.variable, row.variable)}",
         )
-    ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1), fontsize=9)
+    ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1), fontsize=12)
 
     pc1_ratio = explained.loc[explained["component"] == "PC1", "explained_variance_ratio"].iloc[0]
     pc2_ratio = explained.loc[explained["component"] == "PC2", "explained_variance_ratio"].iloc[0]

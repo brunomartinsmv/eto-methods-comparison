@@ -887,6 +887,14 @@ def cmd_clean_outputs(args: argparse.Namespace) -> None:
     for directory in (OUTPUTS_RESULTS, OUTPUTS_TABLES, OUTPUTS_REPORTS):
         if directory.exists():
             targets.extend(path for path in directory.glob("*") if path.is_file())
+    targets.extend(
+        path
+        for path in (
+            OUTPUTS_FIGURES / "methods_rmse_overview.png",
+            OUTPUTS_FIGURES / "methods_rmse_overview.svg",
+        )
+        if path.is_file()
+    )
     if OUTPUTS_FIGURES.exists():
         for site_dir in OUTPUTS_FIGURES.iterdir():
             if not site_dir.is_dir() or site_dir.name == "legacy":

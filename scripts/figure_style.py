@@ -43,7 +43,7 @@ METHOD_LABELS = {
 }
 
 
-def apply_figure_style(*, font_size: float = 10.5, axes_linewidth: float = 0.8) -> None:
+def apply_figure_style(*, font_size: float = 15, axes_linewidth: float = 2) -> None:
     plt.rcParams.update(
         {
             "font.family": ["Arial", "Helvetica", "DejaVu Sans", "sans-serif"],

@@ -158,6 +158,7 @@ def test_scatter_skips_when_no_finite_pairs(tmp_path: Path) -> None:
 
     frame = pd.DataFrame({"reference": [np.inf, np.nan], "method": [1.0, 2.0]})
     output = tmp_path / "scatter.png"
+    output.write_bytes(b"stale figure")
     plot_scatter(frame, "reference", "method", output)
     assert not output.exists()
 
@@ -246,3 +247,24 @@ def test_overview_svg_is_reproducible(tmp_path: Path) -> None:
     plot_readme_overview(metrics, first)
     plot_readme_overview(metrics, second)
     assert first.with_suffix(".svg").read_bytes() == second.with_suffix(".svg").read_bytes()
+
+
+def test_overview_skips_reference_only_site_and_removes_stale_outputs(tmp_path) -> None:
+    from scripts.plots import plot_readme_overview
+
+    output = tmp_path / "overview.png"
+    valid = pd.DataFrame({"method": ["et_turc"], "rmse": [0.5]})
+    plot_readme_overview({"reference_only": pd.DataFrame(), "valid": valid}, output)
+    assert output.is_file()
+    assert output.with_suffix(".svg").is_file()
+    plot_readme_overview({"reference_only": pd.DataFrame()}, output)
+    assert not output.exists()
+    assert not output.with_suffix(".svg").exists()
+
+
+def test_taylor_removes_stale_output_without_finite_reference(tmp_path) -> None:
+    output = tmp_path / "taylor.png"
+    output.write_bytes(b"stale figure")
+    frame = pd.DataFrame({REFERENCE_COLUMN: [np.nan], "method": [1.0]})
+    plot_taylor(frame, REFERENCE_COLUMN, [REFERENCE_COLUMN, "method"], output, "Taylor")
+    assert not output.exists()
