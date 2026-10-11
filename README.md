@@ -347,7 +347,7 @@ Add a site through `configs/sites.yml` and supply compatible daily data.
 
 ### Required meteorological variables
 
-The implemented methods use the daily inputs below. Thornthwaite, Thornthwaite-Camargo, and corrected Hargreaves-Samani also require their precomputed spreadsheet columns to include all 18 alternatives.
+The implemented methods use the daily inputs below. Only Thornthwaite, Thornthwaite-Camargo, and corrected Hargreaves-Samani require precomputed spreadsheet columns, and only their own: `et_thornthwaite`, `et_thornthwaite_camargo`, and `et_hargreaves_samani_corr`. The other alternatives are calculated from the meteorological inputs.
 
 **Minimum requirements (for basic methods):**
 - Date
