@@ -957,6 +957,12 @@ def cmd_export_supplement(args: argparse.Namespace) -> None:
     manifest.write_text("\n".join(lines) + "\n", encoding="utf-8")
     logger.info("exported %d supplement file(s) to %s", len(copied), output_dir)
 
+def cmd_overview(args: argparse.Namespace) -> None:
+    from . import results_overview
+
+    selected = _selected_sites(args)
+    results_overview.show_results_overview(sites=list(selected.keys()))
+
 
 def _add_site_selection(parser: argparse.ArgumentParser) -> None:
     group = parser.add_mutually_exclusive_group()
@@ -1347,6 +1353,20 @@ def build_parser() -> argparse.ArgumentParser:
         help="Do not remove files under outputs/supplement/",
     )
     clean_outputs_parser.set_defaults(func=cmd_clean_outputs)
+
+    overview_parser = subparsers.add_parser(
+        "overview",
+        help="Print result tables, data-quality audit flags, and figure paths for configured sites",
+    )
+    _add_site_selection(overview_parser)
+    overview_parser.set_defaults(func=cmd_overview)
+
+    results_overview_parser = subparsers.add_parser(
+        "results-overview",
+        help="Alias for overview",
+    )
+    _add_site_selection(results_overview_parser)
+    results_overview_parser.set_defaults(func=cmd_overview)
 
     return parser
 
