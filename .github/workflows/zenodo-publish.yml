@@ -8,7 +8,7 @@ on:
       tag:
         description: Git tag to publish on Zenodo
         required: true
-        default: v2.0.0
+        default: v2.2.0
 
 permissions:
   contents: read
@@ -21,6 +21,11 @@ jobs:
         with:
           ref: ${{ github.event.release.tag_name || github.event.inputs.tag }}
           fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
       - name: Require Zenodo token
         env:
