@@ -24,12 +24,12 @@ que os arquivos em `data/raw/` forem substituidos.
 O comando padrao do estudo espera:
 
 ```bash
-python -m scripts.cli all --year 2024 --input data/raw/Evapo.xlsx --use-precomputed-eto
+MPLCONFIGDIR=/tmp/matplotlib-cache python -m scripts.cli quickstart --year 2024 --input data/raw/Evapo.xlsx
 ```
 
-`--use-precomputed-eto` e o modo padrao atual por compatibilidade. A flag
-torna explicita a dependencia transitoria de colunas de ETo ja calculadas na
-planilha. A flag `--compute-eto` nos comandos `clean` e `all` calcula ET0 a
+`quickstart` recalcula a referência e os métodos implementados a partir
+dos dados meteorológicos limpos. `--use-precomputed-eto` permanece disponível
+em `clean` e `all` para compatibilidade com as colunas históricas da planilha. A flag `--compute-eto` nos comandos `clean` e `all` calcula ET0 a
 partir das variaveis meteorologicas padronizadas apos a limpeza e escreve
 `outputs/results/{site}_daily_eto.csv`. O comando dedicado `compute-eto` e o
 passo `compute-eto` de `run-site` / `quickstart` fazem o mesmo calculo de
@@ -72,8 +72,9 @@ ser preenchidos no momento do download ou da substituicao do arquivo bruto.
 calculo, incluindo `Thornthwaite`, `Thornthwaite-Camargo`, `Camargo`,
 `Hargreaves & Samani`, `Hargreaves & Samani (corrigido)`,
 `Priestley-Taylor`, `Penman-Monteith` e `Garcia Lopez`. A coluna
-`Penman-Monteith` e padronizada como `et_penman_monteith` e usada como
-referencia para as metricas comparativas.
+`Penman-Monteith` é padronizada como `et_penman_monteith` nos dados limpos.
+As métricas preferem a referência recalculada em `outputs/results/` quando
+esse arquivo existe; a coluna da planilha é o fallback histórico.
 
 ## Camadas de dados na transicao raw-to-ETo
 
@@ -83,7 +84,7 @@ A transicao metodologica separa quatro camadas:
 | --- | --- | --- |
 | Dados meteorologicos brutos padronizados | Data, temperatura, umidade, vento, chuva e radiacao vindas da planilha ou de fontes INMET futuras. | Lidos por `scripts.io.read_evapo_sheet` via `WEATHER_COLUMNS`. |
 | Variaveis meteorologicas derivadas | Variaveis calculadas a partir de coordenadas/data ou de outros insumos, como `ra_extraterrestre_mj_m2_d`. | Classificadas em `scripts.eto_layers`, mas ainda consumidas da planilha quando presentes. |
-| ETo calculada pelos metodos | Series `et_*` produzidas por formulas versionadas de Thornthwaite, Camargo, Hargreaves-Samani, Priestley-Taylor, Penman-Monteith e metodos radiativos configurados. | Calculada por `scripts.compute_eto` e escrita em `outputs/results/{site}_daily_eto.csv`. |
+| ETo calculada pelos metodos | Séries `et_*` calculadas pelos métodos implementados; Thornthwaite, Thornthwaite-Camargo e Hargreaves-Samani corrigido permanecem pré-calculados. | Calculada por `scripts.compute_eto` e escrita em `outputs/results/{site}_daily_eto.csv`. |
 | Metricas comparativas | RMSE, MAE, MBE, r, R2, Willmott d, c, classificacao por c, agregacoes mensais, bootstrap, sazonalidade e vies por faixa de ETo. | Calculadas por `scripts.metrics`, `scripts.aggregate`, `scripts.uncertainty`, `scripts.plots` e `scripts.summary`; `metrics` prefere ET0 calculada em `outputs/results/` e usa colunas `et_*` limpas como fallback. |
 
 `scripts.eto_layers.build_data_layers` e a camada intermediaria inicial para
@@ -100,7 +101,7 @@ Os seguintes pontos ainda dependem explicitamente de colunas `et_*` vindas de
 | `configs/methods.yml` | Define os nomes padronizados das colunas de ETo dos metodos configurados. |
 | `scripts/config.py` | Carrega `METHOD_COLUMNS` e `REFERENCE_COLUMN`; `WEATHER_COLUMNS` ainda inclui somente padronizacao de insumos, nao formulas; `LEGACY_METHOD_COLUMN_ALIASES` mantem compatibilidade com cabecalhos historicos da planilha. |
 | `scripts/io.py` | Renomeia as colunas de metodos da planilha para `et_*`. |
-| `scripts/cli.py` | `clean` preserva colunas `et_*`; `aggregate`, `metrics`, `plots` e `analyze-uncertainty` selecionam colunas `et_*` presentes no CSV limpo. |
+| `scripts/cli.py` | `clean` preserva colunas `et_*`; `aggregate`, `metrics`, `plots` e `analyze-uncertainty` preferem o arquivo de ET₀ calculada e usam o CSV limpo quando ele não existe. |
 | `scripts/aggregate.py` | Soma colunas de ETo para totais mensais. |
 | `scripts/metrics.py` | Calcula metricas comparando metodos contra `et_penman_monteith`. |
 | `scripts/uncertainty.py` | Reamostra e estratifica vies usando a serie `et_penman_monteith` como referencia. |

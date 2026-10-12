@@ -731,3 +731,27 @@ def test_reproduce_core_audits_fresh_custom_input_results(monkeypatch, tmp_path)
     cli.cmd_reproduce_core(args)
     assert calls[0].input == args.output
     assert calls[1].use_calculated_results is True
+
+
+@pytest.mark.parametrize("dry_run", [True, False])
+def test_clean_outputs_handles_root_overview_and_preserves_unrelated_files(
+    tmp_path, monkeypatch, dry_run
+) -> None:
+    for name in [
+        "OUTPUTS_RESULTS",
+        "OUTPUTS_TABLES",
+        "OUTPUTS_REPORTS",
+        "OUTPUTS_FIGURES",
+        "OUTPUTS_SUPPLEMENT",
+    ]:
+        directory = tmp_path / name.lower()
+        directory.mkdir()
+        monkeypatch.setattr(cli, name, directory)
+    figures = cli.OUTPUTS_FIGURES
+    overview = [figures / "methods_rmse_overview.png", figures / "methods_rmse_overview.svg"]
+    readme = figures / "README.md"
+    for path in [*overview, readme]:
+        path.write_text("fixture")
+    cli.cmd_clean_outputs(argparse.Namespace(dry_run=dry_run, keep_supplement=True))
+    assert readme.is_file()
+    assert all(path.exists() == dry_run for path in overview)
