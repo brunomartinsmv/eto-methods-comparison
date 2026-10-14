@@ -21,7 +21,6 @@ DEFAULT_ALTITUDE_M = 0.0
 DEFAULT_WIND_HEIGHT_M = 10.0
 logger = get_logger("compute_eto")
 
-# Re-export derived meteorological helpers for backward compatibility.
 __all__ = [
     "ComputeDailyEtoResult",
     "ComputeEtoReport",

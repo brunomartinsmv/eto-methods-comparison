@@ -17,28 +17,21 @@ def camargo(
     ra_mj_m2_day: ArrayLike,
     coefficient: float = 0.01,
 ) -> float | np.ndarray | pd.Series:
-    """Estimate ET0 with a Camargo-style temperature and extraterrestrial-radiation form.
-
-    Equation summary:
-        ET0 = c * Ra_mm * Tmean.
+    """Camargo ET0 = c * Ra_mm * Tmean.
 
     Parameters
     ----------
-    t_mean_c:
-        Daily mean air temperature.
-    ra_mj_m2_day:
-        Extraterrestrial radiation.
-    coefficient:
-        Empirical Camargo coefficient.
+    t_mean_c: daily mean air temperature, degrees C.
+    ra_mj_m2_day: extraterrestrial radiation, MJ m-2 day-1, converted to mm day-1.
+    coefficient: empirical coefficient.
 
     Units
     -----
-    Temperature is degrees C; Ra is MJ m-2 day-1 and is converted to mm day-1.
+    ET0 in mm day-1.
 
     Returns
     -------
-    float, numpy.ndarray, or pandas.Series
-        ET0 in mm day-1. A pandas.Series input index/name is preserved.
+    float, numpy.ndarray, or pandas.Series.
     """
     ra_mm = as_array(mj_m2_day_to_mm_day(ra_mj_m2_day))
     result = coefficient * ra_mm * as_array(t_mean_c)
@@ -53,28 +46,21 @@ def hargreaves_samani(
     ra_mj_m2_day: ArrayLike,
     coefficient: float = 0.0023,
 ) -> float | np.ndarray | pd.Series:
-    """Estimate ET0 with the Hargreaves-Samani temperature-range method.
-
-    Equation summary:
-        ET0 = c * Ra_mm * sqrt(Tmax - Tmin) * (Tmean + 17.8).
+    """Hargreaves-Samani ET0 = c * Ra_mm * sqrt(Tmax - Tmin) * (Tmean + 17.8).
 
     Parameters
     ----------
-    t_min_c, t_max_c, t_mean_c:
-        Daily minimum, maximum, and mean air temperature.
-    ra_mj_m2_day:
-        Extraterrestrial radiation.
-    coefficient:
-        Hargreaves-Samani empirical coefficient.
+    t_min_c, t_max_c, t_mean_c: daily minimum, maximum, and mean air temperature, degrees C.
+    ra_mj_m2_day: extraterrestrial radiation, MJ m-2 day-1, converted to mm day-1.
+    coefficient: empirical coefficient.
 
     Units
     -----
-    Temperatures are degrees C; Ra is MJ m-2 day-1 and is converted to mm day-1.
+    ET0 in mm day-1.
 
     Returns
     -------
-    float, numpy.ndarray, or pandas.Series
-        ET0 in mm day-1. A pandas.Series input index/name is preserved.
+    float, numpy.ndarray, or pandas.Series.
     """
     temp_range = np.maximum(as_array(t_max_c) - as_array(t_min_c), 0)
     ra_mm = as_array(mj_m2_day_to_mm_day(ra_mj_m2_day))
@@ -90,30 +76,22 @@ def makkink(
     coefficient: float = 0.61,
     intercept_mm_day: float = -0.12,
 ) -> float | np.ndarray | pd.Series:
-    """Estimate ET0 with the Makkink radiation-temperature method.
-
-    Equation summary:
-        ET0 = c * [Delta / (Delta + gamma)] * Rs_mm + intercept.
+    """Makkink ET0 = c * [Delta / (Delta + gamma)] * Rs_mm + intercept.
 
     Parameters
     ----------
-    delta_kpa_c:
-        Slope of saturation vapor pressure curve.
-    gamma_kpa_c:
-        Psychrometric constant.
-    rs_mj_m2_day:
-        Incoming solar/global radiation.
-    coefficient, intercept_mm_day:
-        Empirical Makkink coefficients.
+    delta_kpa_c: slope of the saturation vapor-pressure curve, kPa C-1.
+    gamma_kpa_c: psychrometric constant, kPa C-1.
+    rs_mj_m2_day: global radiation, MJ m-2 day-1, converted to mm day-1.
+    coefficient, intercept_mm_day: empirical coefficients.
 
     Units
     -----
-    Delta and gamma are kPa C-1; Rs is MJ m-2 day-1 and is converted to mm day-1.
+    ET0 in mm day-1.
 
     Returns
     -------
-    float, numpy.ndarray, or pandas.Series
-        ET0 in mm day-1. A pandas.Series input index/name is preserved.
+    float, numpy.ndarray, or pandas.Series.
     """
     delta = as_array(delta_kpa_c)
     gamma = as_array(gamma_kpa_c)
@@ -129,30 +107,22 @@ def mccloud(
     coefficient: float = 0.254,
     base: float = 1.07,
 ) -> float | np.ndarray | pd.Series:
-    """Estimate ET0 with the daily McCloud exponential temperature form.
-
-    Equation summary:
-        ET0 = c * base^(p * Tmean).
+    """McCloud ET0 = c * base^(p * Tmean).
 
     Parameters
     ----------
-    t_mean_c:
-        Daily mean air temperature.
-    exponent:
-        Empirical temperature exponent.
-    coefficient:
-        Daily scaling coefficient (default 0.254).
-    base:
-        Empirical temperature base (default 1.07).
+    t_mean_c: daily mean air temperature, degrees C.
+    exponent: empirical temperature exponent.
+    coefficient: daily scaling coefficient.
+    base: empirical temperature base.
 
     Units
     -----
-    Temperature is daily mean degrees C; output is mm day-1.
+    ET0 in mm day-1.
 
     Returns
     -------
-    float, numpy.ndarray, or pandas.Series
-        ET0 in mm day-1. A pandas.Series input index/name is preserved.
+    float, numpy.ndarray, or pandas.Series.
     """
     result = coefficient * base ** (exponent * as_array(t_mean_c))
     return restore_from_inputs(result, t_mean_c)
@@ -166,33 +136,23 @@ def priestley_taylor(
     g_mj_m2_day: ArrayLike = 0.0,
     alpha: float = 1.26,
 ) -> float | np.ndarray | pd.Series:
-    """Estimate ET0 with the Priestley-Taylor equilibrium evaporation method.
-
-    Equation summary:
-        ET0 = alpha * [Delta / (Delta + gamma)] * (Rn - G)_mm.
+    """Priestley-Taylor ET0 = alpha * [Delta / (Delta + gamma)] * (Rn - G)_mm.
 
     Parameters
     ----------
-    delta_kpa_c:
-        Slope of saturation vapor pressure curve.
-    gamma_kpa_c:
-        Psychrometric constant.
-    rn_mj_m2_day:
-        Net radiation.
-    g_mj_m2_day:
-        Soil heat flux density.
-    alpha:
-        Priestley-Taylor coefficient.
+    delta_kpa_c: slope of the saturation vapor-pressure curve, kPa C-1.
+    gamma_kpa_c: psychrometric constant, kPa C-1.
+    rn_mj_m2_day: net radiation, MJ m-2 day-1.
+    g_mj_m2_day: soil heat flux, MJ m-2 day-1.
+    alpha: Priestley-Taylor coefficient.
 
     Units
     -----
-    Delta and gamma are kPa C-1; Rn and G are MJ m-2 day-1 and are converted to
-    mm day-1.
+    Rn and G are converted to mm day-1. ET0 is mm day-1.
 
     Returns
     -------
-    float, numpy.ndarray, or pandas.Series
-        ET0 in mm day-1. A pandas.Series input index/name is preserved.
+    float, numpy.ndarray, or pandas.Series.
     """
     delta = as_array(delta_kpa_c)
     gamma = as_array(gamma_kpa_c)
@@ -208,33 +168,24 @@ def turc(
     rh_mean_pct: ArrayLike | None = None,
     coefficient: float = 0.013,
 ) -> float | np.ndarray | pd.Series:
-    """Estimate ET0 with the Turc radiation-temperature method.
+    """Turc ET0 = c * Tmean / (Tmean + 15) * (Rs_cal_cm2_day + 50).
 
-    Equation summary:
-        ET0 = 0.013 * Tmean/(Tmean + 15) * (Rs_cal_cm2_day + 50), with a
-        humidity correction when RH < 50 percent.
+    When relative humidity is below 50 percent, multiply by 1 + (50 - RH) / 70.
 
     Parameters
     ----------
-    t_mean_c:
-        Daily mean air temperature.
-    rs_mj_m2_day:
-        Incoming solar/global radiation.
-    rh_mean_pct:
-        Mean relative humidity. If provided below 50 percent, Turc's dry-air
-        correction is applied.
-    coefficient:
-        Turc empirical radiation-temperature coefficient.
+    t_mean_c: daily mean air temperature, degrees C.
+    rs_mj_m2_day: global radiation, MJ m-2 day-1, converted to cal cm-2 day-1.
+    rh_mean_pct: mean relative humidity, percent. Optional.
+    coefficient: empirical coefficient.
 
     Units
     -----
-    Temperature is degrees C; Rs is MJ m-2 day-1 and internally converted to
-    cal cm-2 day-1.
+    ET0 in mm day-1.
 
     Returns
     -------
-    float, numpy.ndarray, or pandas.Series
-        ET0 in mm day-1. A pandas.Series input index/name is preserved.
+    float, numpy.ndarray, or pandas.Series.
     """
     t = as_array(t_mean_c)
     rs_cal_cm2_day = as_array(rs_mj_m2_day) * 23.9006
@@ -254,26 +205,20 @@ def global_radiation(
     rs_mj_m2_day: ArrayLike,
     coefficient: float = 0.53,
 ) -> float | np.ndarray | pd.Series:
-    """Estimate ET0 as a calibrated fraction of global radiation.
-
-    Equation summary:
-        ET0 = c * Rs_mm.
+    """ET0 = c * Rs_mm.
 
     Parameters
     ----------
-    rs_mj_m2_day:
-        Incoming solar/global radiation.
-    coefficient:
-        Empirical radiation coefficient.
+    rs_mj_m2_day: global radiation, MJ m-2 day-1, converted to mm day-1.
+    coefficient: empirical coefficient.
 
     Units
     -----
-    Rs is MJ m-2 day-1 and is converted to mm day-1.
+    ET0 in mm day-1.
 
     Returns
     -------
-    float, numpy.ndarray, or pandas.Series
-        ET0 in mm day-1. A pandas.Series input index/name is preserved.
+    float, numpy.ndarray, or pandas.Series.
     """
     result = coefficient * as_array(mj_m2_day_to_mm_day(rs_mj_m2_day))
     return restore_from_inputs(result, rs_mj_m2_day)
@@ -285,28 +230,21 @@ def ivanov(
     rh_mean_pct: ArrayLike,
     coefficient: float = 0.00006,
 ) -> float | np.ndarray | pd.Series:
-    """Estimate ET0 with the Ivanov temperature-humidity method.
-
-    Equation summary:
-        ET0 = c_daily * (Tmean + 25)^2 * (100 - RH).
+    """Ivanov ET0 = c_daily * (Tmean + 25)^2 * (100 - RH).
 
     Parameters
     ----------
-    t_mean_c:
-        Daily mean air temperature.
-    rh_mean_pct:
-        Mean relative humidity.
-    coefficient:
-        Daily empirical Ivanov coefficient (default 0.00006).
+    t_mean_c: daily mean air temperature, degrees C.
+    rh_mean_pct: mean relative humidity, percent.
+    coefficient: daily empirical coefficient.
 
     Units
     -----
-    Temperature is daily mean degrees C; relative humidity is percent; output is mm day-1.
+    ET0 in mm day-1.
 
     Returns
     -------
-    float, numpy.ndarray, or pandas.Series
-        ET0 in mm day-1. A pandas.Series input index/name is preserved.
+    float, numpy.ndarray, or pandas.Series.
     """
     result = coefficient * (as_array(t_mean_c) + 25) ** 2 * (100 - as_array(rh_mean_pct))
     return restore_from_inputs(result, t_mean_c, rh_mean_pct)
@@ -319,30 +257,22 @@ def jensen_heise(
     temperature_coefficient: float = 0.025,
     temperature_offset_c: float = 3.0,
 ) -> float | np.ndarray | pd.Series:
-    """Estimate ET0 with the Jensen-Heise radiation-temperature method.
-
-    Equation summary:
-        ET0 = Rs_mm * Ct * (Tmean - Tx).
+    """Jensen-Heise ET0 = Rs_mm * Ct * (Tmean - Tx).
 
     Parameters
     ----------
-    t_mean_c:
-        Daily mean air temperature.
-    rs_mj_m2_day:
-        Incoming solar/global radiation.
-    temperature_coefficient:
-        Empirical temperature coefficient.
-    temperature_offset_c:
-        Empirical temperature offset.
+    t_mean_c: daily mean air temperature, degrees C.
+    rs_mj_m2_day: global radiation, MJ m-2 day-1, converted to mm day-1.
+    temperature_coefficient: empirical temperature coefficient.
+    temperature_offset_c: empirical temperature offset, degrees C.
 
     Units
     -----
-    Temperature is degrees C; Rs is MJ m-2 day-1 and is converted to mm day-1.
+    ET0 in mm day-1.
 
     Returns
     -------
-    float, numpy.ndarray, or pandas.Series
-        ET0 in mm day-1. A pandas.Series input index/name is preserved.
+    float, numpy.ndarray, or pandas.Series.
     """
     rs_mm = as_array(mj_m2_day_to_mm_day(rs_mj_m2_day))
     result = rs_mm * temperature_coefficient * (as_array(t_mean_c) - temperature_offset_c)
@@ -357,33 +287,23 @@ def garcia_lopez(
     rs_mj_m2_day: ArrayLike,
     coefficient: float = 0.01,
 ) -> float | np.ndarray | pd.Series:
-    """Estimate ET0 with a Garcia-Lopez combined empirical form.
-
-    Equation summary:
-        ET0 = c * (Tmean + 21) * (1 - RH/100) * (1 + u2) * Rs_mm.
+    """Garcia-Lopez ET0 = c * (Tmean + 21) * (1 - RH/100) * (1 + u2) * Rs_mm.
 
     Parameters
     ----------
-    t_mean_c:
-        Daily mean air temperature.
-    rh_mean_pct:
-        Mean relative humidity.
-    wind_2m_m_s:
-        Wind speed at 2 m height.
-    rs_mj_m2_day:
-        Incoming solar/global radiation.
-    coefficient:
-        Empirical Garcia-Lopez scaling coefficient.
+    t_mean_c: daily mean air temperature, degrees C.
+    rh_mean_pct: mean relative humidity, percent.
+    wind_2m_m_s: wind speed at 2 m, m s-1.
+    rs_mj_m2_day: global radiation, MJ m-2 day-1, converted to mm day-1.
+    coefficient: empirical coefficient.
 
     Units
     -----
-    Temperature is degrees C; relative humidity is percent; wind is m s-1; Rs
-    is MJ m-2 day-1 and is converted to mm day-1.
+    ET0 in mm day-1.
 
     Returns
     -------
-    float, numpy.ndarray, or pandas.Series
-        ET0 in mm day-1. A pandas.Series input index/name is preserved.
+    float, numpy.ndarray, or pandas.Series.
     """
     rs_mm = as_array(mj_m2_day_to_mm_day(rs_mj_m2_day))
     result = (
@@ -401,26 +321,20 @@ def net_radiation(
     rn_mj_m2_day: ArrayLike,
     coefficient: float = 0.408,
 ) -> float | np.ndarray | pd.Series:
-    """Estimate ET0 from net radiation alone.
-
-    Equation summary:
-        ET0 = c * Rn, where c defaults to the FAO-56 0.408 conversion.
+    """ET0 = c * Rn. The default c is the FAO-56 factor 0.408.
 
     Parameters
     ----------
-    rn_mj_m2_day:
-        Net radiation.
-    coefficient:
-        Conversion/scaling coefficient.
+    rn_mj_m2_day: net radiation, MJ m-2 day-1.
+    coefficient: conversion coefficient.
 
     Units
     -----
-    Rn is MJ m-2 day-1; output is mm day-1 when c is 0.408.
+    ET0 in mm day-1 when c is 0.408.
 
     Returns
     -------
-    float, numpy.ndarray, or pandas.Series
-        ET0 in mm day-1. A pandas.Series input index/name is preserved.
+    float, numpy.ndarray, or pandas.Series.
     """
     result = coefficient * as_array(rn_mj_m2_day)
     return restore_from_inputs(result, rn_mj_m2_day)
@@ -433,30 +347,22 @@ def radiation_temperature(
     coefficient: float = 0.01,
     temperature_offset_c: float = 15.0,
 ) -> float | np.ndarray | pd.Series:
-    """Estimate ET0 with a generic radiation-temperature empirical form.
-
-    Equation summary:
-        ET0 = c * Rs_mm * (Tmean + offset).
+    """ET0 = c * Rs_mm * (Tmean + offset).
 
     Parameters
     ----------
-    t_mean_c:
-        Daily mean air temperature.
-    rs_mj_m2_day:
-        Incoming solar/global radiation.
-    coefficient:
-        Empirical scaling coefficient.
-    temperature_offset_c:
-        Empirical temperature offset.
+    t_mean_c: daily mean air temperature, degrees C.
+    rs_mj_m2_day: global radiation, MJ m-2 day-1, converted to mm day-1.
+    coefficient: empirical coefficient.
+    temperature_offset_c: empirical temperature offset, degrees C.
 
     Units
     -----
-    Temperature is degrees C; Rs is MJ m-2 day-1 and is converted to mm day-1.
+    ET0 in mm day-1.
 
     Returns
     -------
-    float, numpy.ndarray, or pandas.Series
-        ET0 in mm day-1. A pandas.Series input index/name is preserved.
+    float, numpy.ndarray, or pandas.Series.
     """
     result = (
         coefficient
@@ -472,28 +378,21 @@ def lungeon(
     rh_mean_pct: ArrayLike,
     coefficient: float = 0.001,
 ) -> float | np.ndarray | pd.Series:
-    """Estimate ET0 with a Lungeon temperature-humidity empirical form.
-
-    Equation summary:
-        ET0 = c * (Tmean + 20)^2 * (1 - RH/100).
+    """Lungeon ET0 = c * (Tmean + 20)^2 * (1 - RH/100).
 
     Parameters
     ----------
-    t_mean_c:
-        Daily mean air temperature.
-    rh_mean_pct:
-        Mean relative humidity.
-    coefficient:
-        Empirical Lungeon scaling coefficient.
+    t_mean_c: daily mean air temperature, degrees C.
+    rh_mean_pct: mean relative humidity, percent.
+    coefficient: empirical coefficient.
 
     Units
     -----
-    Temperature is degrees C; relative humidity is percent; output is mm day-1.
+    ET0 in mm day-1.
 
     Returns
     -------
-    float, numpy.ndarray, or pandas.Series
-        ET0 in mm day-1. A pandas.Series input index/name is preserved.
+    float, numpy.ndarray, or pandas.Series.
     """
     result = coefficient * (as_array(t_mean_c) + 20) ** 2 * (1 - as_array(rh_mean_pct) / 100)
     return restore_from_inputs(result, t_mean_c, rh_mean_pct)
@@ -506,30 +405,22 @@ def stephens_stewart(
     coefficient: float = 0.01476,
     temperature_offset_c: float = 5.0,
 ) -> float | np.ndarray | pd.Series:
-    """Estimate ET0 with the Stephens-Stewart radiation-temperature method.
-
-    Equation summary:
-        ET0 = c * (Tmean + offset) * Rs_mm.
+    """Stephens-Stewart ET0 = c * (Tmean + offset) * Rs_mm.
 
     Parameters
     ----------
-    t_mean_c:
-        Daily mean air temperature.
-    rs_mj_m2_day:
-        Incoming solar/global radiation.
-    coefficient:
-        Empirical Stephens-Stewart coefficient.
-    temperature_offset_c:
-        Empirical temperature offset.
+    t_mean_c: daily mean air temperature, degrees C.
+    rs_mj_m2_day: global radiation, MJ m-2 day-1, converted to mm day-1.
+    coefficient: empirical coefficient.
+    temperature_offset_c: empirical temperature offset, degrees C.
 
     Units
     -----
-    Temperature is degrees C; Rs is MJ m-2 day-1 and is converted to mm day-1.
+    ET0 in mm day-1.
 
     Returns
     -------
-    float, numpy.ndarray, or pandas.Series
-        ET0 in mm day-1. A pandas.Series input index/name is preserved.
+    float, numpy.ndarray, or pandas.Series.
     """
     result = (
         coefficient
@@ -546,31 +437,22 @@ def hicks_hess(
     wind_2m_m_s: ArrayLike,
     coefficient: float = 0.0055,
 ) -> float | np.ndarray | pd.Series:
-    """Estimate ET0 with a Hicks-Hess radiation-temperature-wind form.
-
-    Equation summary:
-        ET0 = c * Rs_mm * (Tmean + 17.8) * (1 + u2).
+    """Hicks-Hess ET0 = c * Rs_mm * (Tmean + 17.8) * (1 + u2).
 
     Parameters
     ----------
-    t_mean_c:
-        Daily mean air temperature.
-    rs_mj_m2_day:
-        Incoming solar/global radiation.
-    wind_2m_m_s:
-        Wind speed at 2 m height.
-    coefficient:
-        Empirical Hicks-Hess scaling coefficient.
+    t_mean_c: daily mean air temperature, degrees C.
+    rs_mj_m2_day: global radiation, MJ m-2 day-1, converted to mm day-1.
+    wind_2m_m_s: wind speed at 2 m, m s-1.
+    coefficient: empirical coefficient.
 
     Units
     -----
-    Temperature is degrees C; Rs is MJ m-2 day-1 and is converted to mm day-1;
-    wind is m s-1.
+    ET0 in mm day-1.
 
     Returns
     -------
-    float, numpy.ndarray, or pandas.Series
-        ET0 in mm day-1. A pandas.Series input index/name is preserved.
+    float, numpy.ndarray, or pandas.Series.
     """
     result = (
         coefficient
