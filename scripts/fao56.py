@@ -17,40 +17,29 @@ def penman_monteith_fao56(
     delta_kpa_c: ArrayLike,
     gamma_kpa_c: ArrayLike,
 ) -> float | np.ndarray | pd.Series:
-    """Estimate reference ET0 using the FAO-56 Penman-Monteith equation.
+    """FAO-56 Penman-Monteith reference ET0 (eq. 6).
 
-    Equation summary:
-        ET0 = [0.408 Delta (Rn - G) + gamma 900/(T + 273) u2 (es - ea)]
-        / [Delta + gamma (1 + 0.34 u2)].
+    ET0 = [0.408 Delta (Rn - G) + gamma * 900/(T + 273) * u2 * (es - ea)]
+    / [Delta + gamma (1 + 0.34 u2)].
 
     Parameters
     ----------
-    t_mean_c:
-        Daily mean air temperature.
-    rn_mj_m2_day:
-        Net radiation at crop surface.
-    g_mj_m2_day:
-        Soil heat flux density, often 0 for daily calculations.
-    wind_2m_m_s:
-        Wind speed at 2 m height.
-    saturation_vapor_pressure_kpa:
-        Saturation vapor pressure, es.
-    actual_vapor_pressure_kpa:
-        Actual vapor pressure, ea.
-    delta_kpa_c:
-        Slope of saturation vapor pressure curve.
-    gamma_kpa_c:
-        Psychrometric constant.
+    t_mean_c: daily mean air temperature, degrees C.
+    rn_mj_m2_day: net radiation, MJ m-2 day-1.
+    g_mj_m2_day: soil heat flux, MJ m-2 day-1 (often 0 at daily scale).
+    wind_2m_m_s: wind speed at 2 m, m s-1.
+    saturation_vapor_pressure_kpa: saturation vapor pressure es, kPa.
+    actual_vapor_pressure_kpa: actual vapor pressure ea, kPa.
+    delta_kpa_c: slope of the saturation vapor-pressure curve, kPa C-1.
+    gamma_kpa_c: psychrometric constant, kPa C-1.
 
     Units
     -----
-    Temperature is degrees C; radiation and soil heat flux are MJ m-2 day-1;
-    wind is m s-1; vapor pressures are kPa; Delta and gamma are kPa C-1.
+    ET0 in mm day-1.
 
     Returns
     -------
-    float, numpy.ndarray, or pandas.Series
-        ET0 in mm day-1. A pandas.Series input index/name is preserved.
+    float, numpy.ndarray, or pandas.Series.
     """
     t = as_array(t_mean_c)
     rn = as_array(rn_mj_m2_day)

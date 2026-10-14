@@ -3,7 +3,6 @@ import numpy as np
 import os
 import math
 
-# --- Cell 1 Logic ---
 
 PATH = r'c:\Users\bruno\fisicambiental\Evapo_2.xlsx'
 ALTITUDE_M = 72  # m (altitude de Manaus)
@@ -15,7 +14,6 @@ def pressao_atm_kPa(z_m: float) -> float:
 
 P_atm = pressao_atm_kPa(ALTITUDE_M)  # kPa
 
-# Ler planilha
 print(f"Reading file: {PATH}")
 try:
     df = pd.read_excel(PATH, sheet_name='Manaus', skiprows=4)
@@ -23,7 +21,6 @@ except Exception as e:
     print(f"Error reading excel: {e}")
     exit(1)
 
-# Renomear colunas chave para nomes simples
 rename_map = {
     'DIA': 'dia',
     'TMED (oC)': 'tmed',
@@ -46,12 +43,9 @@ rename_map = {
 }
 df = df.rename(columns=rename_map)
 
-# Construção robusta de mês, data e dia juliano
 try:
-    # Tentar converter 'dia' para datetime assumindo formato DD/MM/YYYY
     df['data'] = pd.to_datetime(df['dia'], format='%d/%m/%Y', errors='coerce')
     
-    # Se a conversão foi bem-sucedida (maioria dos valores não-NaN), usar este formato
     if df['data'].notna().sum() > len(df) * 0.5:
         print("Formato de data DD/MM/AAAA detectado")
         df['mes'] = df['data'].dt.month
@@ -61,17 +55,14 @@ try:
         raise ValueError("Formato DD/MM/AAAA não detectado, tentando outras opções")
         
 except (ValueError, TypeError):
-    # Se não funcionou, tentar outros formatos
     is_doy = pd.to_numeric(df['dia'], errors='coerce').max() > 31
 
     if is_doy:
-        # Dia já é dia-do-ano
         df['dia_num'] = pd.to_numeric(df['dia'], errors='coerce').fillna(1).astype(int)
         df['data'] = pd.to_datetime(f"{ANO}-01-01") + pd.to_timedelta(df['dia_num'] - 1, unit='D')
         df['mes'] = df['data'].dt.month
         df['julia'] = df['data'].dt.dayofyear
     else:
-        # Tentar localizar coluna de mês textual/numérica
         mes_col = None
         month_names_pattern = r'Jan|Fev|Mar|Abr|Mai|Jun|Jul|Ago|Set|Out|Nov|Dez'
         possible_names = [m.lower() for m in ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']]
@@ -101,7 +92,6 @@ except (ValueError, TypeError):
             numeric = pd.to_numeric(df[mes_col], errors='coerce')
             df['mes'] = mapped.fillna(numeric)
 
-        # Fallback: detectar reinício do dia indicando troca de mês
         if df['mes'].isna().any():
             months = []
             current_month = 1
@@ -123,22 +113,18 @@ except (ValueError, TypeError):
         df['mes'] = pd.to_numeric(df['mes'], errors='coerce').fillna(1).astype(int).clip(1,12)
         df['dia_num'] = pd.to_numeric(df['dia'], errors='coerce').fillna(1).astype(int)
 
-        # Construir data a partir de mes/dia e derivar dia juliano pela própria datetime
         df['data'] = pd.to_datetime({'year': ANO, 'month': df['mes'], 'day': df['dia_num']})
         df['julia'] = df['data'].dt.dayofyear
 
-# Interpolação simples para variáveis numéricas faltantes
 numeric_cols = df.select_dtypes(include=['float','int']).columns
 df[numeric_cols] = df[numeric_cols].interpolate(method='linear')
 
-# Verificação radiação líquida
 if 'rad_liq' in df.columns and 'rad_glob' in df.columns:
     ratio = (df['rad_liq'] / df['rad_glob']).describe()
-    rad_liq_is_rn = ratio['mean'] < 1.0  # heurística simples
+    rad_liq_is_rn = ratio['mean'] < 1.0
 else:
     rad_liq_is_rn = False
 
-# Calcular pressão de saturação e real se não existirem
 def esat(T):
     return 0.6108 * np.exp((17.27 * T) / (T + 237.3))  # kPa
 
@@ -152,9 +138,8 @@ if 'ea' not in df.columns or df['ea'].isna().all():
     if 'ur_med' in df.columns:
         df['ea'] = df['es_med'] * df['ur_med'] / 100
     else:
-        df['ea'] = df['es_med'] * 0.7  # fallback
+        df['ea'] = df['es_med'] * 0.7
 
-# Declividade curva pressão vapor (Δ) se ausente
 if 's_slope' not in df.columns or df['s_slope'].isna().all():
     df['s_slope'] = 4098 * (0.6108 * np.exp((17.27 * df['tmed']) / (df['tmed'] + 237.3))) / (df['tmed'] + 237.3) ** 2
 
@@ -165,14 +150,12 @@ print('Pressão atmosférica padrão (kPa):', round(P_atm,3))
 print('Radiação líquida já considerada Rn?:', rad_liq_is_rn)
 print('Linhas e colunas após limpeza:', df.shape)
 
-# --- Cell 2 Logic ---
 
 LAT_GRAUS = -3.1019  # 3°6'7" S em graus decimais negativo (Manaus)
 ALBEDO = 0.23
 ALPHA_PT = 1.26
 G_DIARIO = 0.0  # MJ m-2 d-1 (fluxo de calor no solo diário)
 
-# Funções auxiliares
 RAD2DEG = 180/np.pi
 DEG2RAD = np.pi/180
 
@@ -213,15 +196,12 @@ def hargreaves_samani(Tmean: float, Tmax: float, Tmin: float, Ra: float) -> floa
 
 lat_rad = LAT_GRAUS * DEG2RAD
 
-# Se não existir Ra_extr (Q_0), recalcular; senão usar
 if 'Ra_extr' not in df.columns or df['Ra_extr'].isna().all():
     df['Ra_extr'] = df['julia'].apply(lambda j: ra_extraterrestre(int(j), lat_rad))
 
-# Calcular Rn: usar rad_liq se disponível e plausível, senão estimar de Rs
 if 'rad_liq' in df.columns and not df['rad_liq'].isna().all():
-    # Verificar razão média
     ratio_mean = (df['rad_liq']/df['rad_glob']).replace([np.inf,-np.inf], np.nan).mean()
-    usar_rad_liq = ratio_mean < 1.2  # heurística
+    usar_rad_liq = ratio_mean < 1.2
 else:
     usar_rad_liq = False
 
@@ -245,19 +225,17 @@ for i, row in df.iterrows():
 
 df['Rn'] = Rn_list
 
-# Check for NaNs in Rn
 print(f"NaNs in Rn: {df['Rn'].isna().sum()}")
 if df['Rn'].isna().any():
     print("Rows with NaN Rn:")
     print(df[df['Rn'].isna()][['dia', 'rad_glob', 'rad_liq', 'tmax', 'tmin', 'ea', 'Ra_extr']])
 
-# Cálculo ET Penman-Monteith, Priestley-Taylor e Hargreaves-Samani
 if 's_slope' in df.columns:
     delta_col = df['s_slope']
 else:
     delta_col = 4098 * (0.6108 * np.exp((17.27 * df['tmed']) / (df['tmed'] + 237.3))) / (df['tmed'] + 237.3) ** 2
 
-u2 = df.get('vento_med', pd.Series(np.full(len(df), 2.0)))  # se faltar, usar 2 m/s
+u2 = df.get('vento_med', pd.Series(np.full(len(df), 2.0)))
 
 ET_PM = []
 ET_PT = []
