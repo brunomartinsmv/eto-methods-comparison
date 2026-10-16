@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+import unicodedata
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
@@ -23,6 +25,28 @@ class ReaderConfig:
     sheet: str | None = None
     skiprows: int = 4
     column_map: dict[str, str] | None = None
+
+
+@dataclass(frozen=True)
+class SiteTable:
+    frame: pd.DataFrame
+    station_status: str | None = None
+
+
+_CANONICAL_WEATHER = (
+    "tmed_c",
+    "tmax_c",
+    "tmin_c",
+    "rh_mean_pct",
+    "rh_max_pct",
+    "rh_min_pct",
+    "wind_mean_ms",
+    "wind_max_ms",
+    "rain_mm",
+    "pressure_hpa",
+    "rad_global_mj_m2_d",
+    "rad_net_mj_m2_d",
+)
 
 
 def resolve_reader_config(site_meta: dict, default_input: Path) -> ReaderConfig:
@@ -94,7 +118,11 @@ def _apply_column_map(df: pd.DataFrame, column_map: dict[str, str] | None) -> pd
 
 def canonical_cleaned_columns(df: pd.DataFrame) -> list[str]:
     """Return column order for cleaned daily CSV output."""
-    weather = [col for col in WEATHER_COLUMNS.values() if col in df.columns and col != "date"]
+    weather = [col for col in _CANONICAL_WEATHER if col in df.columns]
+    listed = set(_CANONICAL_WEATHER)
+    for column in WEATHER_COLUMNS.values():
+        if column in df.columns and column != "date" and column not in listed and column not in weather:
+            weather.append(column)
     derived = [col for col in ("ra_extraterrestre_mj_m2_d",) if col in df.columns]
     methods = sorted(col for col in METHOD_COLUMNS.values() if col in df.columns)
     ordered = ["date"] if "date" in df.columns else []
@@ -139,13 +167,117 @@ def read_generic_table(path: Path, *, skiprows: int = 0, column_map: dict[str, s
     return _apply_column_map(df, column_map)
 
 
-def read_site_data(
+def _ascii_key(value: object) -> str:
+    text = unicodedata.normalize("NFKD", str(value)).encode("ascii", "ignore").decode("ascii")
+    text = re.sub(r"[^a-z0-9]+", " ", text.lower())
+    return " ".join(text.split())
+
+
+def _canonical_inmet_column(key: str) -> str | None:
+    """Map one INMET automatic-station header onto a canonical weather name.
+
+    Radiation columns are copied only when the sheet already has them. This
+    function does not create a radiation series.
+    """
+    if not key or key.startswith("unnamed"):
+        return None
+    if key == "data medicao":
+        return "date"
+    if key.startswith("precipitacao"):
+        return "rain_mm"
+    if key.startswith("pressao atmosferica"):
+        return "pressure_hpa"
+    if key.startswith("temperatura maxima"):
+        return "tmax_c"
+    if key.startswith("temperatura media"):
+        return "tmed_c"
+    if key.startswith("temperatura minima"):
+        return "tmin_c"
+    if key.startswith("umidade relativa"):
+        if "minima" in key:
+            return "rh_min_pct"
+        if "maxima" in key:
+            return "rh_max_pct"
+        if "media" in key:
+            return "rh_mean_pct"
+        return None
+    if key.startswith("vento"):
+        if "media" in key:
+            return "wind_mean_ms"
+        if "max" in key or "rajada" in key:
+            return "wind_max_ms"
+        return None
+    if "radiacao" in key or key.startswith("rad "):
+        if "liq" in key:
+            return "rad_net_mj_m2_d"
+        if "extrater" in key or key in {"q 0", "q0"}:
+            return "ra_extraterrestre_mj_m2_d"
+        return "rad_global_mj_m2_d"
+    return None
+
+
+def _inmet_metadata_value(raw_value: str) -> str:
+    return " ".join(raw_value.strip().split())
+
+
+def read_inmet_limited_table(path: Path, sheet: str) -> SiteTable:
+    """Read an INMET automatic-station sheet as a limited weather table.
+
+    The sheet header block carries station metadata, including ``Situacao``.
+    Daily columns are renamed when they match temperature, humidity, wind,
+    pressure, or rain. Missing radiation stays missing.
+    """
+    raw = pd.read_excel(path, sheet_name=sheet, header=None)
+    header_idx: int | None = None
+    metadata: dict[str, str] = {}
+    for idx in range(len(raw)):
+        row = raw.iloc[idx]
+        keys = ["" if pd.isna(cell) else _ascii_key(cell) for cell in row.tolist()]
+        if "data medicao" in keys:
+            header_idx = idx
+            break
+        first = row.iloc[0]
+        if pd.isna(first):
+            continue
+        text = str(first).strip()
+        if ":" not in text:
+            continue
+        key, raw_value = text.split(":", 1)
+        metadata[_ascii_key(key)] = _inmet_metadata_value(raw_value)
+
+    if header_idx is None:
+        raise ValueError(f"INMET limited reader did not find a 'Data Medicao' header in sheet {sheet}")
+
+    header_keys = [
+        "" if pd.isna(cell) else _ascii_key(cell) for cell in raw.iloc[header_idx].tolist()
+    ]
+    canonical = [_canonical_inmet_column(key) for key in header_keys]
+    renamed = [name for name in canonical if name]
+    duplicates = {name for name in renamed if renamed.count(name) > 1}
+    if duplicates:
+        raise ValueError(
+            f"INMET limited reader found duplicate columns in sheet {sheet}: {', '.join(sorted(duplicates))}"
+        )
+
+    body = raw.iloc[header_idx + 1 :].copy()
+    body.columns = [name if name else f"__drop_{pos}" for pos, name in enumerate(canonical)]
+    keep = [column for column in body.columns if not str(column).startswith("__drop_")]
+    body = body.loc[:, keep].dropna(how="all")
+    if "date" not in body.columns:
+        raise ValueError(f"INMET limited reader did not map a date column in sheet {sheet}")
+
+    status = metadata.get("situacao") or None
+    return SiteTable(frame=body.reset_index(drop=True), station_status=status)
+
+
+def read_site_table(
     default_input: Path,
     site_meta: dict,
     *,
     year: int = DEFAULT_YEAR,
-) -> pd.DataFrame:
+) -> SiteTable:
     reader = resolve_reader_config(site_meta, default_input)
+    station_status: str | None = None
     if reader.format == "generic":
         if not reader.path:
             raise ValueError("Generic reader requires reader.path in site configuration")
@@ -155,6 +287,16 @@ def read_site_data(
         if not path.exists():
             raise FileNotFoundError(f"Configured data path not found: {reader.path}")
         df = read_generic_table(path, skiprows=reader.skiprows, column_map=reader.column_map)
+    elif reader.format == "inmet_limited":
+        sheet = reader.sheet or site_meta.get("sheet")
+        if not sheet:
+            raise ValueError("INMET limited reader requires 'sheet' or reader.sheet")
+        path = Path(reader.path) if reader.path else default_input
+        if reader.path and not path.is_absolute():
+            path = BASE_DIR / path
+        table = read_inmet_limited_table(path, sheet)
+        df = table.frame
+        station_status = table.station_status
     else:
         sheet = reader.sheet or site_meta.get("sheet")
         if not sheet:
@@ -166,8 +308,18 @@ def read_site_data(
 
     if "date" not in df.columns:
         raise ValueError("Input data must contain a date column after column mapping")
+    df = df.copy()
     df["date"] = _parse_date_series(df["date"], year)
-    return df
+    return SiteTable(frame=df, station_status=station_status)
+
+
+def read_site_data(
+    default_input: Path,
+    site_meta: dict,
+    *,
+    year: int = DEFAULT_YEAR,
+) -> pd.DataFrame:
+    return read_site_table(default_input, site_meta, year=year).frame
 
 
 def write_cleaned(df: pd.DataFrame, output_path: Path) -> None:

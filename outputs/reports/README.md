@@ -10,8 +10,9 @@ Each site report (`*_data_quality.csv`) contains input and precomputed ET0 rows 
 Methods configured as `precomputed_only` appear only in the precomputed stage.
 The report records:
 
-- `stage`: `input`, `precomputed_et0`, or `computed_et0`.
-- `status`: `available`, `not_available`, or `not_run`.
+- `stage`: `input`, `precomputed_et0`, `computed_et0`, or `station` when the reader captured an INMET station-status flag.
+- `status`: `available`, `not_available`, or `not_run`. For `stage=station`, `status` is the flag text from the sheet (Pane for the versioned Petrolina sheet).
+- `station_status`: present on a limited-data report, repeating that flag on every row.
 - `source_present`: whether the source contains the series.
 - `valid_days` and `valid_fraction`: finite daily coverage within the expected calendar.
 - `finite_values` and `non_finite_values`: numeric value counts.
@@ -25,13 +26,13 @@ The report records:
 - `interpolated_values`: values filled by numeric interpolation during cleaning.
 - `physical_limit_violations`: values outside conservative physical plausibility limits.
 
-When the site has an altitude, the report also contains one `radiation_envelope` row for `rad_global_mj_m2_d` and a daily file `{site}_radiation_screen.csv`.
+When the site has an altitude and a global-radiation column, the report also contains one `radiation_envelope` row for `rad_global_mj_m2_d` and a daily file `{site}_radiation_screen.csv`.
 `Ra` in that file is FAO-56 equation 21 from latitude and day of year when latitude is known. `Rso = (0.75 + 2e-5 * altitude_m) * Ra`.
 A day is inside when `0.25 ≤ Rs/Rso ≤ 1.0` and `Rs ≤ Ra`.
 The count columns are `envelope_days_inside`, `envelope_days_outside`, and `envelope_days_unevaluable`.
 The cleaned `ra_extraterrestre_mj_m2_d` column is not used for this count when latitude is available, and `rad_net_mj_m2_d` is not replaced.
 
-`data_quality_summary.csv` concatenates the site-level reports for quick review.
+`data_quality_summary.csv` concatenates the site-level reports from the `validate-data` run. The default run covers the full-data Penman-Monteith sites. Petrolina is omitted from that run; `python -m scripts.cli validate-data --site petrolina --year 2024` writes `petrolina_data_quality.csv` and labels the station-status flag. That sheet has no radiation columns, and the reader does not create any. A fair semiarid Penman-Monteith comparison still needs a radiation-bearing series.
 
 `summary.csv` and `summary.md` are generated with:
 
@@ -43,10 +44,11 @@ They report the best-performing method for each site and temporal scale using
 the selected ranking rule and the current metrics tables in `outputs/tables/`.
 The default is `--ranking composite`: highest confidence coefficient c, then
 lowest RMSE, lowest MAE, highest Willmott d, and lowest absolute MBE. You can
-also choose `--ranking rmse`, `--ranking mae`, `--ranking c`, or
-`--ranking willmott_d`. Ranking outputs include `rank`, `selection_rule`, and
-per-metric ranks for MAE, MBE, Pearson r, R², Willmott d, and the confidence
-coefficient c.
+also choose `--ranking rmse`, `--ranking mae`, `--ranking c`,
+`--ranking willmott_d`, or `--ranking kge`. Ranking outputs include `rank`,
+`selection_rule`, and per-metric ranks for MAE, MBE, Pearson r, R², Willmott d,
+the confidence coefficient c, Kling–Gupta efficiency, and percent bias.
+Every rank measures agreement with calculated Penman–Monteith.
 
 `summary_rankings.md` is generated alongside `outputs/tables/summary_rankings.csv`
 and lists every method ranked within each site and temporal scale.

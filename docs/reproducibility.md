@@ -85,7 +85,7 @@ python -m scripts.cli export-supplement
 - `validate-data` escreve relatorios CSV em `outputs/reports/`.
 - O relatorio de qualidade separa variaveis meteorologicas (`input`), series ET₀ da planilha (`precomputed_et0`) e series ET₀ calculadas (`computed_et0`). Metodos `precomputed_only` aparecem apenas na etapa da planilha. Para cada metodo calculavel configurado, informa valores finitos, dias validos distintos, cobertura do calendario e violacoes dos limites fisicos. Metodos ausentes no arquivo calculado recebem `not_available`; sem arquivo calculado, a etapa recebe `not_run`.
 - `pca` escreve `outputs/tables/{site}_pca_loadings.csv`, `outputs/tables/{site}_pca_explained_variance.csv` e `outputs/figures/{site}/{site}_pca_biplot.png` quando ha variaveis e linhas suficientes.
-- `summarize` escreve `outputs/reports/summary.csv`, `outputs/reports/summary.md` e `outputs/tables/summary_rankings.csv` com `rank` e `selection_rule`. A regra padrao `composite` ordena por maior `c`, menor `rmse`, menor `mae`, maior `willmott_d` e menor modulo de `mbe`; tambem e possivel escolher `rmse`, `mae`, `c` ou `willmott_d`.
+- `summarize` escreve `outputs/reports/summary.csv`, `outputs/reports/summary.md` e `outputs/tables/summary_rankings.csv` com `rank` e `selection_rule`. A regra padrao `composite` ordena por maior `c`, menor `rmse`, menor `mae`, maior `willmott_d` e menor modulo de `mbe`; tambem e possivel escolher `rmse`, `mae`, `c`, `willmott_d` ou `kge`. Todo ranking mede concordancia com o Penman–Monteith calculado.
 - `export-supplement` cria `outputs/supplement/` com CSVs atuais de `outputs/tables/`, `outputs/results/` e `outputs/reports/`, deixando outputs legados fora do pacote suplementar.
 - `all` continua disponivel para compatibilidade historica.
 - `metrics` prefere `outputs/results/{site}_daily_eto.csv` quando esse arquivo existe; se nao existir, usa as colunas `et_*` pre-calculadas em `data/cleaned/{site}_daily.csv`.
@@ -109,6 +109,7 @@ After running the pipeline, start with:
 - `outputs/tables/{site}_daily_metrics.csv`, for daily metrics;
 - `outputs/figures/{site}/{site}_daily_taylor.png`, for visual comparison;
 - `outputs/reports/{site}_data_quality.csv`, for data-quality auditing.
+- `python -m scripts.cli validate-data --site petrolina --year 2024` writes the Petrolina quality report, including the station-status flag. Petrolina is a temperature-humidity-wind case and is left out of the Penman-Monteith comparison. A fair semiarid comparison still needs a radiation-bearing series.
 - The quality report separates weather inputs (`input`), spreadsheet ET₀ series (`precomputed_et0`), and calculated ET₀ series (`computed_et0`). Methods configured as `precomputed_only` appear only in the spreadsheet stage. For each configured calculable method, it reports finite values, distinct valid days, calendar coverage, and physical-limit violations. Methods absent from an existing calculated file are marked `not_available`; without a calculated file, the stage is marked `not_run`. A `radiation_envelope` row counts days whose global radiation falls outside the FAO-56/ASCE clear-sky envelope. `outputs/tables/{site}_daily_metrics_radiation_screen.csv` scores only the days inside that envelope; the full-year metric tables are kept.
 
 ## Checagens de desenvolvimento / Development checks

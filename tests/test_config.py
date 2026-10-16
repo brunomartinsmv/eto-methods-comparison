@@ -145,7 +145,9 @@ def test_repository_methods_config_lists_15_et0_methods_and_reference() -> None:
     configured_methods = set(methods.columns)
     assert expected_alternatives <= configured_methods
     assert "Penman-Monteith FAO-56" in configured_methods
+    assert {"FAO-56 PMT", "Valiantzas"} <= configured_methods
     assert methods.reference_column == "et_penman_monteith"
+    assert methods.excluded_from_default_ranking == {"et_fao56_pmt", "et_valiantzas"}
     assert len(expected_alternatives) == 15
     assert len(set(methods.columns.values())) == len(methods.columns)
     assert len(set(methods.short_names.values())) == len(methods.short_names)
@@ -182,6 +184,8 @@ def test_repository_methods_config_declares_full_name_and_computation_status() -
         "Lungeon",
         "Stephens-Stewart",
         "Hicks-Hess",
+        "FAO-56 PMT",
+        "Valiantzas",
     } <= computed_methods
     assert precomputed_only_methods == {
         "Thornthwaite",

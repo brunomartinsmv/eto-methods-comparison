@@ -26,6 +26,7 @@ PUBLIC_METHODS = [
     "lungeon",
     "stephens_stewart",
     "hicks_hess",
+    "valiantzas",
 ]
 
 SYNTHETIC_WEATHER = {
@@ -161,6 +162,16 @@ METHOD_CASES = {
         },
         np.array([3.3942857143, 5.1884081633, 7.5114285714]),
     ),
+    "valiantzas": (
+        eto_methods.valiantzas,
+        {
+            "t_mean_c": SYNTHETIC_WEATHER["t_mean_c"],
+            "t_min_c": SYNTHETIC_WEATHER["t_min_c"],
+            "rs_mj_m2_day": SYNTHETIC_WEATHER["rs_mj_m2_day"],
+            "latitude_deg": -22.7,
+        },
+        np.array([3.3369135159, 4.1804917945, 5.0849294621]),
+    ),
 }
 
 
@@ -188,6 +199,24 @@ def test_public_methods_have_synthetic_regression_values(method_name: str) -> No
     assert np.all(result > 0)
     assert np.all(np.diff(result) > 0)
     assert np.allclose(result, expected, rtol=1e-10, atol=1e-10)
+
+
+def test_jensen_heise_keeps_configured_temperature_intercept() -> None:
+    t_mean = np.array([20.0, 25.0, 30.0])
+    rs_mj = np.array([16.0, 18.0, 20.0])
+    rs_mm = rs_mj / 2.45
+    configured = rs_mm * 0.025 * (t_mean - 3.0)
+    cited_with_negative_intercept = rs_mm * 0.025 * (t_mean + 3.0)
+    cited_metric_intercept = rs_mm * (0.025 * t_mean + 0.08)
+
+    result = np.asarray(
+        eto_methods.jensen_heise(t_mean_c=t_mean, rs_mj_m2_day=rs_mj),
+        dtype=float,
+    )
+
+    assert np.allclose(result, configured, rtol=0.0, atol=1e-12)
+    assert np.max(np.abs(result - cited_with_negative_intercept)) > 0.5
+    assert np.max(np.abs(result - cited_metric_intercept)) > 0.5
 
 
 def test_hargreaves_samani_is_zero_when_temperature_range_is_zero() -> None:

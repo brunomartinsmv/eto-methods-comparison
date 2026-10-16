@@ -8,7 +8,7 @@ Para **derivações LaTeX completas** de cada método e das variáveis meteorol�
 
 ## Escopo configurado dos metodos
 
-O repositório configura 18 métodos alternativos de ET₀ e usa Penman-Monteith FAO-56 como referência. Manaus e Piracicaba são localidades demonstrativas em `configs/sites.yml`. Outras localidades exigem metadados e dados de entrada compatíveis.
+O repositório configura 20 métodos alternativos de ET₀ e usa Penman-Monteith FAO-56 como referência. Manaus e Piracicaba são localidades demonstrativas em `configs/sites.yml`. A aba Petrolina é lida só como caso limitado de temperatura, umidade e vento: a situação da estação na planilha é Pane e não há radiação. Uma comparação semiárida justa com Penman-Monteith ainda precisa de uma série que contenha radiação. Outras localidades de comparação exigem metadados e dados de entrada compatíveis, inclusive radiação.
 
 O comando `compute-eto` calcula os metodos com `status: computed` a partir de variaveis meteorologicas padronizadas em `data/cleaned/` e escreve `outputs/results/{site}_daily_eto.csv`. Metodos com `status: precomputed_only` sao preservados da planilha quando presentes no input limpo. As metricas preferem essas series calculadas quando o arquivo existe; caso contrario, usam as colunas `et_*` pre-calculadas dos dados limpos como fallback historico.
 
@@ -32,6 +32,8 @@ O comando `compute-eto` calcula os metodos com `status: computed` a partir de va
 | Lungeon | `et_lungeon` | computed |
 | Stephens-Stewart | `et_stephens_stewart` | computed |
 | Hicks-Hess | `et_hicks_hess` | computed |
+| FAO-56 PMT | `et_fao56_pmt` | computed, fora do ranking padrão |
+| Valiantzas | `et_valiantzas` | computed, fora do ranking padrão |
 | Penman-Monteith FAO-56 | `et_penman_monteith` | reference |
 
 Metodos `precomputed_only` dependem de colunas historicas da planilha `Evapo.xlsx` e nao sao recalculados pelo pipeline. Thornthwaite e Thornthwaite-Camargo usam desagregacao diaria legada documentada em [`equations/et0_methods.md`](equations/et0_methods.md); Hargreaves-Samani corrigido usa coeficientes locais calibrados fora do pipeline (ver `methodological_assumptions.md`). O comando `compute-eto --include-precomputed` registra comparacoes automaticas entre series calculadas e colunas pre-calculadas quando ambas estao disponiveis.
@@ -47,9 +49,13 @@ As tabelas em `outputs/tables/{site}_{daily|monthly}_metrics.csv` comparam cada 
 - `r2`: quadrado de `r`;
 - `willmott_d`: indice de concordancia de Willmott;
 - `c`: coeficiente de confianca, calculado como `r * willmott_d`;
+- `kge`: eficiencia de Kling–Gupta (Gupta et al., 2009), `1 - sqrt((r - 1)^2 + (alpha - 1)^2 + (beta - 1)^2)`, em que `alpha` e o desvio-padrao do metodo dividido pelo desvio-padrao da referencia e `beta` e a media do metodo dividida pela media da referencia;
+- `pbias`: vies percentual, `100 * soma(metodo - referencia) / soma(referencia)`; o sinal segue `mbe` (positivo quando o metodo supera a referencia);
 - `classification`: classe de desempenho derivada de `c`.
 
-A classificacao segue estes limiares: `Excellent` para `c > 0.85`; `Very Good` para `0.75 < c <= 0.85`; `Good` para `0.65 < c <= 0.75`; `Average` para `0.60 < c <= 0.65`; `Poor` para `0.50 < c <= 0.60`; `Bad` para `0.40 < c <= 0.50`; e `Very Poor` para `c <= 0.40`. Quando `r`, `d` ou `c` nao podem ser estimados, a classe fica vazia.
+A classificacao segue estes limiares: `Excellent` para `c > 0.85`; `Very Good` para `0.75 < c <= 0.85`; `Good` para `0.65 < c <= 0.75`; `Average` para `0.60 < c <= 0.65`; `Poor` para `0.50 < c <= 0.60`; `Bad` para `0.40 < c <= 0.50`; e `Very Poor` para `c <= 0.40`. Quando `r`, `d` ou `c` nao podem ser estimados, a classe fica vazia. `kge` e `pbias` nao alteram essa classe. O comando `summarize` pode ordenar por `--ranking kge`; a regra padrao continua sendo `composite`, baseada em `c`. Todo ranking mede concordancia com o Penman–Monteith calculado, nao com evapotranspiracao de lisimetro (Martí et al., 2015; López-Urrea et al., 2006).
+
+O comando `limited-data` escreve `outputs/tables/{site}_limited_data_metrics.csv`. Cada linha e Penman-Monteith com vento, umidade, radiacao ou os tres substituidos pelas regras FAO-56, mais Hargreaves-Samani e Turc, todos contra a Penman-Monteith de dados completos nos mesmos dias. A ordem das linhas e a lista de cenarios. Os pressupostos estao em [`methodological_assumptions.md`](methodological_assumptions.md).
 
 ## Calibracao local opcional
 
@@ -308,7 +314,7 @@ $$\mathrm{ETo} = \frac{R_s}{\lambda}\,0{,}025\,(T_{mean} - 3)$$
 Temperatura media e radiacao global.
 
 **Nota de implementacao**
-A implementacao em `scripts/eto_methods.py` nao aplica clamp em \(T_{mean} - T_x\); quando \(T_{mean} < T_x\), o resultado pode ser negativo. Ver [`equations/et0_methods.md`](equations/et0_methods.md).
+A implementacao em `scripts/eto_methods.py` nao aplica clamp em \(T_{mean} - T_x\); quando \(T_{mean} < T_x\), o resultado pode ser negativo. Os valores \(0{,}025\) e \(3\) °C vêm do coeficiente \(C_t\) e do módulo de \(T_x = -3\) °C citados para Jensen–Haise; o produto configurado usa \(T_{mean} - 3\), que difere de \(T + 3\) e de \(0{,}025\,T + 0{,}08\). A chave permanece Jensen-Heise. Ver [`equations/et0_methods.md`](equations/et0_methods.md).
 
 ---
 
@@ -367,6 +373,36 @@ Temperatura media, radiacao global e vento a 2 m.
 
 ---
 
+## 20. FAO-56 PMT
+
+**Equacao**
+
+Penman-Monteith FAO-56 (equação 6) com dados faltantes preenchidos pelos procedimentos do Capítulo 3: \(T_{dew} = T_{min}\), \(R_s = k_{Rs}\sqrt{T_{max}-T_{min}}\,R_a\) com \(k_{Rs} = 0{,}16\) (interior), \(u_2 = 2\) m s⁻¹ e \(R_n\) reconstruída a partir dessa \(R_s\). O exemplo 20 de Allen et al. (1998) dá 4,56 mm d⁻¹.
+
+**Requisitos de dados**
+Temperatura máxima, temperatura mínima, radiação extraterrestre e altitude. Umidade, radiação global e vento medidos não entram.
+
+**Ranking**
+`default_ranking: false`. A série é calculada, mas fica fora das métricas e do ranking padrão.
+
+---
+
+## 21. Valiantzas (temperatura e radiação)
+
+**Equacao**
+
+Forma de Valiantzas (2013a) que usa temperatura e radiação solar, com \(R_s\) em MJ m⁻² d⁻¹ e \(\varphi\) em radianos:
+
+$$\mathrm{ETo} = 0{,}0393\,R_s\sqrt{T+9{,}5} - 0{,}19\,R_s^{0{,}6}\,|\varphi|^{0{,}15} + 0{,}0061\,(T+20)\,(1{,}12\,T-T_{min}-2)^{0{,}7}$$
+
+**Requisitos de dados**
+Temperatura média, temperatura mínima, radiação global e latitude.
+
+**Ranking**
+`default_ranking: false`, pelo mesmo motivo do FAO-56 PMT.
+
+---
+
 # EN Summary (Short)
 For English readers, the methods above are the same. The key idea is that **Penman-Monteith (FAO-56)** is the reference standard, **Thornthwaite/Camargo** rely mostly on temperature, **Hargreaves-Samani** uses temperature range as a proxy for radiation, and **Priestley-Taylor** is energy-balance based with a simplifying coefficient. Each method’s suitability depends on climate and data availability.
 
@@ -394,6 +430,10 @@ Use the diagrams in `outputs/figures/<site>/<site>_daily_taylor.png` and `<site>
 
 # Referencias / References
 - Allen, R. G., Pereira, L. S., Raes, D., & Smith, M. (1998). *Crop Evapotranspiration — Guidelines for computing crop water requirements* (FAO Irrigation and Drainage Paper No. 56). FAO.
+- Gupta, H. V., Kling, H., Yilmaz, K. K., & Martinez, G. F. (2009). Decomposition of the mean squared error and NSE performance criteria: Implications for improving hydrological modelling. *Journal of Hydrology*, 377(1–2), 80–91. https://doi.org/10.1016/j.jhydrol.2009.08.003
+- López-Urrea, R., Martín de Santa Olalla, F., Fabeiro, C., & Moratalla, A. (2006). Testing evapotranspiration equations using lysimeter observations in a semiarid climate. *Agricultural Water Management*, 85(1–2), 15–26. https://doi.org/10.1016/j.agwat.2006.03.014
+- Martí, P., González-Altozano, P., López-Urrea, R., Mancha, L. A., & Shiri, J. (2015). Modeling reference evapotranspiration with calculated targets. Assessment and implications. *Agricultural Water Management*, 149, 81–90. https://doi.org/10.1016/j.agwat.2014.10.028
 - Thornthwaite, C. W. (1948). An approach toward a rational classification of climate. *Geographical Review*.
 - Hargreaves, G. H., & Samani, Z. A. (1985). Reference crop evapotranspiration from temperature. *Applied Engineering in Agriculture*.
 - Priestley, C. H. B., & Taylor, R. J. (1972). On the assessment of surface heat flux and evaporation using large-scale parameters. *Monthly Weather Review*.
+- Valiantzas, J. D. (2013a). Simple ET0 forms of Penman's equation without wind and/or humidity data. I: Theoretical development. *Journal of Irrigation and Drainage Engineering*, 139(1), 1–8. https://doi.org/10.1061/(ASCE)IR.1943-4774.0000520

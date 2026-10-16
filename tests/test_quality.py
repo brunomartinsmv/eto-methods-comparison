@@ -166,8 +166,8 @@ def test_validate_data_reads_computed_results_and_marks_source_stages(
         }
     )
     monkeypatch.setattr(cli, "OUTPUTS_RESULTS", results_dir)
-    monkeypatch.setattr(cli, "_selected_sites", lambda _: {"manaus": {}})
-    monkeypatch.setattr(cli.io, "read_site_data", lambda *args, **kwargs: raw)
+    monkeypatch.setattr(cli, "_selected_sites", lambda *args, **kwargs: {"manaus": {}})
+    monkeypatch.setattr(cli.io, "read_site_table", lambda *args, **kwargs: cli.io.SiteTable(frame=raw))
 
     cli.cmd_validate_data(
         argparse.Namespace(
@@ -199,8 +199,8 @@ def test_validate_data_does_not_mix_custom_input_with_default_calculated_results
     ).to_csv(results_dir / "manaus_daily_eto.csv", index=False)
     raw = pd.DataFrame({"date": pd.date_range("2024-01-01", periods=1), "tmed_c": [20.0]})
     monkeypatch.setattr(cli, "OUTPUTS_RESULTS", results_dir)
-    monkeypatch.setattr(cli, "_selected_sites", lambda _: {"manaus": {}})
-    monkeypatch.setattr(cli.io, "read_site_data", lambda *args, **kwargs: raw)
+    monkeypatch.setattr(cli, "_selected_sites", lambda *args, **kwargs: {"manaus": {}})
+    monkeypatch.setattr(cli.io, "read_site_table", lambda *args, **kwargs: cli.io.SiteTable(frame=raw))
 
     cli.cmd_validate_data(
         argparse.Namespace(

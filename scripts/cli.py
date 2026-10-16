@@ -15,6 +15,7 @@ from . import (
     compute_eto,
     feasibility,
     io,
+    limited_data,
     metrics,
     pca_analysis,
     plots,
@@ -32,6 +33,7 @@ from .config import (
     DEFAULT_YEAR,
     METHOD_COLUMNS,
     METHOD_SHORT,
+    METHODS,
     OUTPUTS_FIGURES,
     OUTPUTS_REPORTS,
     OUTPUTS_RESULTS,
@@ -41,6 +43,7 @@ from .config import (
     REFERENCE_COLUMN,
     SITES,
     select_sites,
+    site_is_full_penman_monteith,
 )
 from .eto_io import read_eto_frame
 from .logging_config import get_logger, setup_logging
@@ -50,6 +53,7 @@ from .naming import (
     cleaned_daily_filename,
     daily_eto_filename,
     figure_filename,
+    limited_data_metrics_filename,
     method_only_filename,
     metrics_filename,
     monthly_totals_filename,
@@ -79,7 +83,8 @@ def _ensure_dir(path: Path) -> None:
 
 
 def _method_cols_present(df: pd.DataFrame) -> list[str]:
-    return [col for col in METHOD_COLUMNS.values() if col in df.columns]
+    excluded = set(METHODS.excluded_from_default_ranking)
+    return [col for col in METHOD_COLUMNS.values() if col in df.columns and col not in excluded]
 
 
 def _compute_eto_requested(args: argparse.Namespace) -> bool:
@@ -100,8 +105,32 @@ def _maybe_compute_eto_after_clean(args: argparse.Namespace) -> None:
     cmd_compute_eto(compute_args)
 
 
-def _selected_sites(args: argparse.Namespace) -> dict[str, dict]:
-    return select_sites(SITES, site=getattr(args, "site", None), all_sites=getattr(args, "all_sites", True))
+def _limited_site_message(site: str, meta: dict) -> str:
+    case = str(meta.get("data_case", "limited-data")).replace("_", "-")
+    return (
+        f"{site} is configured as a {case} case, not a full-data Penman-Monteith site. "
+        "The reader keeps temperature, humidity, wind, pressure, and rain when those "
+        "columns are on the sheet, and it does not estimate radiation. "
+        "A fair semiarid Penman-Monteith comparison still needs a radiation-bearing series. "
+        f"Read this sheet with `python -m scripts.cli validate-data --site {site}` "
+        f"or `python -m scripts.cli clean --site {site}`."
+    )
+
+
+def _selected_sites(args: argparse.Namespace, *, allow_limited: bool = False) -> dict[str, dict]:
+    sites = select_sites(SITES, site=getattr(args, "site", None), all_sites=getattr(args, "all_sites", True))
+    selected: dict[str, dict] = {}
+    explicit_site = getattr(args, "site", None)
+    for name, meta in sites.items():
+        if site_is_full_penman_monteith(meta):
+            selected[name] = meta
+            continue
+        if allow_limited and explicit_site == name:
+            selected[name] = meta
+            continue
+        if explicit_site == name:
+            raise ValueError(_limited_site_message(name, meta))
+    return selected
 
 
 def _pipeline_site_kwargs(args: argparse.Namespace) -> dict[str, int | str | bool | None]:
@@ -126,6 +155,24 @@ def _pipeline_uncertainty_kwargs(args: argparse.Namespace) -> dict[str, int | fl
     random_state = getattr(args, "random_state", None)
     rainfall_column = getattr(args, "rainfall_column", None)
     eto_bins = getattr(args, "eto_bins", None)
+    bootstrap = getattr(args, "bootstrap", None)
+    block_length = getattr(args, "block_length", None)
+    scheme = uncertainty.normalize_bootstrap_scheme(
+        pipeline.uncertainty_bootstrap if bootstrap is None else bootstrap
+    )
+    if scheme == uncertainty.BOOTSTRAP_IID:
+        if block_length is not None and int(block_length) != 1:
+            raise ValueError(
+                "block_length applies to --bootstrap moving-block; "
+                "the day-exchangeable bootstrap records block_length 1"
+            )
+        resolved_block_length = 1
+    else:
+        resolved_block_length = (
+            pipeline.uncertainty_block_length if block_length is None else int(block_length)
+        )
+        if resolved_block_length < 1:
+            raise ValueError("block_length must be at least 1")
     return {
         "bootstrap_samples": (
             pipeline.uncertainty_bootstrap_samples
@@ -140,6 +187,8 @@ def _pipeline_uncertainty_kwargs(args: argparse.Namespace) -> dict[str, int | fl
             else rainfall_column
         ),
         "eto_bins": pipeline.uncertainty_eto_bins if eto_bins is None else eto_bins,
+        "bootstrap": scheme,
+        "block_length": resolved_block_length,
     }
 
 
@@ -204,7 +253,7 @@ def cmd_clean(args: argparse.Namespace) -> None:
     if max_gap is None:
         max_gap = PIPELINE.cleaning_max_gap_days
 
-    for site, meta in _selected_sites(args).items():
+    for site, meta in _selected_sites(args, allow_limited=True).items():
         df = io.select_cleaned_columns(io.read_site_data(input_path, meta, year=args.year))
         cleaned_df, audit = cleaning.clean_daily_with_audit(df, max_gap=max_gap)
         output_path = output_dir / cleaned_daily_filename(site)
@@ -234,13 +283,17 @@ def cmd_validate_data(args: argparse.Namespace) -> None:
         max_gap = PIPELINE.cleaning_max_gap_days
 
     reports = []
-    for site, meta in _selected_sites(args).items():
-        raw_df = io.read_site_data(input_path, meta, year=args.year)
+    for site, meta in _selected_sites(args, allow_limited=True).items():
+        table = io.read_site_table(input_path, meta, year=args.year)
+        raw_df = table.frame
         canonical_df = io.select_cleaned_columns(raw_df)
         cleaned_df, audit = cleaning.clean_daily_with_audit(canonical_df, max_gap=max_gap)
+        full_site = site_is_full_penman_monteith(meta)
         calculated_path = OUTPUTS_RESULTS / daily_eto_filename(site)
         default_input = (DATA_RAW / "Evapo.xlsx").resolve()
-        include_calculated = getattr(args, "use_calculated_results", input_path.resolve() == default_input)
+        include_calculated = full_site and getattr(
+            args, "use_calculated_results", input_path.resolve() == default_input
+        )
         calculated_df = (
             pd.read_csv(calculated_path, parse_dates=["date"])
             if include_calculated and calculated_path.exists()
@@ -250,6 +303,7 @@ def cmd_validate_data(args: argparse.Namespace) -> None:
             calculated_df = calculated_df.loc[calculated_df["date"].dt.year == args.year]
         elevation_m = meta.get("alt_m")
         latitude_deg = meta.get("lat")
+        has_global_radiation = "rad_global_mj_m2_d" in cleaned_df.columns
         report = quality.build_quality_report(
             site=site,
             raw_df=raw_df,
@@ -257,11 +311,21 @@ def cmd_validate_data(args: argparse.Namespace) -> None:
             year=args.year,
             interpolated_by_variable=audit.interpolated_by_variable,
             calculated_df=calculated_df,
-            elevation_m=None if elevation_m is None else float(elevation_m),
-            latitude_deg=None if latitude_deg is None else float(latitude_deg),
+            station_status=table.station_status,
+            include_computed_methods=full_site,
+            elevation_m=(
+                None
+                if elevation_m is None or not has_global_radiation
+                else float(elevation_m)
+            ),
+            latitude_deg=(
+                None
+                if latitude_deg is None or not has_global_radiation
+                else float(latitude_deg)
+            ),
         )
         quality.write_quality_report(report, output_dir, site)
-        if elevation_m is not None:
+        if elevation_m is not None and has_global_radiation:
             screen = radiation_screen.radiation_consistency_frame(
                 cleaned_df,
                 elevation_m=float(elevation_m),
@@ -408,6 +472,41 @@ def cmd_metrics(args: argparse.Namespace) -> None:
             ref_col=ref_col,
             compared=compared,
         )
+
+
+def _limited_data_results_dir(input_dir: Path, results_input: str | None) -> Path | None:
+    if results_input is not None:
+        return Path(results_input)
+    if input_dir.resolve() == DATA_CLEANED.resolve():
+        return OUTPUTS_RESULTS
+    return None
+
+
+def cmd_limited_data(args: argparse.Namespace) -> None:
+    input_dir = Path(args.input)
+    output_dir = Path(args.output)
+    _ensure_dir(output_dir)
+    explicit_results = getattr(args, "results_input", None) is not None
+    results_dir = _limited_data_results_dir(input_dir, getattr(args, "results_input", None))
+
+    for site, meta in _selected_sites(args).items():
+        weather = pd.read_csv(input_dir / cleaned_daily_filename(site), parse_dates=["date"])
+        settings = limited_data.resolve_limited_data_settings(
+            meta,
+            k_rs=getattr(args, "k_rs", None),
+            wind_2m_m_s=getattr(args, "wind_2m", None),
+        )
+        table = limited_data.limited_data_metrics_table(
+            weather,
+            site=site,
+            site_meta=meta,
+            settings=settings,
+            results_dir=results_dir,
+            require_results_file=explicit_results,
+        )
+        output_path = output_dir / limited_data_metrics_filename(site)
+        table.to_csv(output_path, index=False)
+        logger.info("wrote limited-data metrics for %s to %s", site, output_path)
 
 
 def _calibration_results_dir(input_dir: Path, results_input: str | None) -> Path | None:
@@ -659,6 +758,8 @@ def cmd_analyze_uncertainty(args: argparse.Namespace) -> None:
             n_boot=int(uncertainty_kwargs["bootstrap_samples"]),
             confidence=float(uncertainty_kwargs["confidence"]),
             random_state=int(uncertainty_kwargs["random_state"]),
+            scheme=str(uncertainty_kwargs["bootstrap"]),
+            block_length=int(uncertainty_kwargs["block_length"]),
         )
         seasonal = uncertainty.seasonal_error_metrics(
             df,
@@ -718,6 +819,7 @@ def cmd_sensitivity(args: argparse.Namespace) -> None:
 
 
 def cmd_all(args: argparse.Namespace) -> None:
+    _selected_sites(args, allow_limited=False)
     clean_args = argparse.Namespace(
         input=args.input,
         output=args.output,
@@ -853,6 +955,7 @@ def _parse_run_site_steps(steps: str | None) -> tuple[str, ...]:
 
 
 def cmd_run_site(args: argparse.Namespace) -> None:
+    _selected_sites(args, allow_limited=False)
     steps = _parse_run_site_steps(getattr(args, "steps", None))
     site_kwargs = _pipeline_site_kwargs(args)
 
@@ -948,6 +1051,7 @@ def cmd_run_site(args: argparse.Namespace) -> None:
 
 def cmd_quickstart(args: argparse.Namespace) -> None:
     _require_input_workbook(Path(args.input))
+    _selected_sites(args, allow_limited=False)
     cmd_reproduce_core(args)
     for site in _selected_sites(args).keys():
         cmd_inspect(
@@ -1178,6 +1282,36 @@ def build_parser() -> argparse.ArgumentParser:
     _add_site_selection(metrics_parser)
     metrics_parser.set_defaults(func=cmd_metrics)
 
+    limited_parser = subparsers.add_parser(
+        "limited-data",
+        help="Score Penman-Monteith after FAO-56 substitutes for missing wind, humidity, or radiation",
+    )
+    limited_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
+    limited_parser.add_argument("--input", default=str(DATA_CLEANED))
+    limited_parser.add_argument(
+        "--results-input",
+        default=None,
+        help=(
+            "Directory containing the full-data pipeline Penman-Monteith series. "
+            "Defaults to outputs/results when --input is data/cleaned."
+        ),
+    )
+    limited_parser.add_argument("--output", default=str(OUTPUTS_TABLES))
+    limited_parser.add_argument(
+        "--k-rs",
+        type=float,
+        default=None,
+        help="Override the FAO-56 temperature-radiation coefficient kRs",
+    )
+    limited_parser.add_argument(
+        "--wind-2m",
+        type=float,
+        default=None,
+        help="Override the 2 m wind substitute in m s-1 (default 2, or the site regional value)",
+    )
+    _add_site_selection(limited_parser)
+    limited_parser.set_defaults(func=cmd_limited_data)
+
     compute_parser = subparsers.add_parser(
         "compute-eto",
         help="Compute ET0 methods from standardized cleaned meteorological variables",
@@ -1261,6 +1395,25 @@ def build_parser() -> argparse.ArgumentParser:
         help="Bootstrap resamples (default: configs/pipeline.yml)",
     )
     uncertainty_parser.add_argument(
+        "--bootstrap",
+        choices=["iid", "moving-block"],
+        default=None,
+        help=(
+            "Interval resampling: iid draws exchangeable days (default); "
+            "moving-block keeps contiguous daily blocks. Default: configs/pipeline.yml"
+        ),
+    )
+    uncertainty_parser.add_argument(
+        "--block-length",
+        type=int,
+        default=None,
+        help=(
+            "Block length for moving-block resampling, recorded in the interval table. "
+            "The iid default records 1. Default length when moving-block is selected: "
+            "configs/pipeline.yml"
+        ),
+    )
+    uncertainty_parser.add_argument(
         "--confidence",
         type=float,
         default=None,
@@ -1319,7 +1472,7 @@ def build_parser() -> argparse.ArgumentParser:
         choices=summary.RANKING_RULES,
         default=summary.DEFAULT_RANKING,
         help=(
-            "Ranking rule for selecting best methods: rmse, mae, c, willmott_d, "
+            "Ranking rule for selecting best methods: rmse, mae, c, willmott_d, kge, "
             "or composite (default: composite)"
         ),
     )
