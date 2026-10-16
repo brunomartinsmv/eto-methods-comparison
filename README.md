@@ -43,13 +43,14 @@ Run the pipeline to generate:
 
 **Metric tables** (`outputs/tables/`)
 - `summary_rankings.csv`, All methods ranked by site (Manaus, Piracicaba), scale (daily, monthly), and selected ranking rule
-- `{site}_daily_metrics.csv`, RMSE, MAE, MBE, Pearson r, R², Willmott d, confidence c, and performance classification for daily estimates
+- `{site}_daily_metrics.csv`, RMSE, MAE, MBE, Pearson r, R², Willmott d, confidence c, Kling–Gupta efficiency (`kge`), percent bias (`pbias`), and performance classification for daily estimates
 - `{site}_daily_metrics_radiation_screen.csv`, The same daily metrics on days inside the FAO-56/ASCE radiation envelope. The full-year table is unchanged
 - `{site}_monthly_metrics.csv`, Same metrics aggregated monthly
 - `{site}_bootstrap_metric_intervals.csv`, Bootstrap confidence intervals for RMSE, MAE, and MBE. The default draws days independently and records `block_length` 1. `--bootstrap moving-block` keeps contiguous daily blocks and records the length used.
 - `{site}_seasonal_error_metrics.csv`, Seasonal error diagnostics
 - `{site}_bias_by_eto_bin.csv`, Bias summarized by Penman-Monteith ETo range
 - `{site}_limited_data_metrics.csv`, Penman-Monteith with FAO-56 substitutes for missing wind, humidity, or radiation, plus Hargreaves-Samani and Turc, scored against the full-data reference on the same days (`limited-data`)
+- `{site}_sensitivity_penman_monteith_relative.csv`, Monthly and annual Penman-Monteith relative sensitivity coefficients. `sensitivity --method penman_monteith` writes this table from a ±1% central difference. The ±50% one-at-a-time sweep is `{site}_sensitivity_{method}.csv`
 - Start with `summary_rankings.csv` to compare methods at each site.
 
 **Figures** (`outputs/figures/{site}/`)
@@ -228,11 +229,13 @@ python -m scripts.cli clean      # Clean raw data → data/cleaned/
 python -m scripts.cli compute-eto --year 2024  # Compute ET0 from cleaned weather variables → outputs/results/
 python -m scripts.cli calibrate --site manaus --method hargreaves_samani  # Optional local calibration
 python -m scripts.cli aggregate  # Create aggregations → outputs/results/
-python -m scripts.cli metrics    # Compute RMSE, r, R², Willmott d, c, etc. → outputs/tables/ (prefers computed ET0 if available)
+python -m scripts.cli metrics    # Compute RMSE, r, R², Willmott d, c, KGE, pbias → outputs/tables/ (prefers computed ET0 if available)
+python -m scripts.cli limited-data  # FAO-56 wind, humidity, and radiation substitutes vs full-data Penman-Monteith
 python -m scripts.cli plots      # Generate all figures → outputs/figures/
 python -m scripts.cli pca        # Optional PCA on meteorological drivers
 python -m scripts.cli analyze-uncertainty  # Day-exchangeable bootstrap, seasonal, and bias-bin diagnostics
 python -m scripts.cli analyze-uncertainty --bootstrap moving-block --block-length 7  # Optional moving-block intervals
+python -m scripts.cli sensitivity --site manaus --method penman_monteith  # Optional ±50% sweep; Penman-Monteith also writes relative coefficients
 python -m scripts.cli validate-data  # Audit dates, missing values, interpolation traces
 python -m scripts.cli summarize      # Rank methods with the default composite rule
 python -m scripts.cli summarize --ranking rmse       # Rank by lowest RMSE
@@ -290,10 +293,12 @@ regional exponent or regional coefficients from another climate. The original
 series keeps coefficient 0.0023 and exponent 0.5, and train/test metrics are
 still reported separately.
 
-With two or more configured sites, `calibrate` also writes
+When the run selects two or more full-data sites, `calibrate` also writes
 `outputs/tables/{method}_calibration_transfer.csv`: parameters fit on one
-site's training window, scored at each other site, with the original and
-calibrated equations side by side on every finite day.
+site's training window, scored at each other selected site, with the original and
+calibrated equations side by side on every finite day. `--all-sites` selects
+Manaus and Piracicaba. Petrolina remains a temperature-humidity-wind case
+(`full_penman_monteith: false`).
 
 A lower test RMSE against calculated Penman-Monteith is not a lysimeter
 validation. The target remains the calculated `et_penman_monteith` series.
@@ -551,7 +556,7 @@ The repository configuration targets **20 alternative ET0 estimation methods** p
 
 **Computed 15-method comparison scope:** Camargo, Hargreaves-Samani, Makkink, McCloud, Priestley-Taylor, Turc, Global Radiation, Ivanov, Jensen-Heise, Garcia-Lopez, Net Radiation, Radiation-Temperature, Lungeon, Stephens-Stewart, and Hicks-Hess.
 
-The configuration also preserves existing computed legacy/auxiliary method columns: Thornthwaite, Thornthwaite-Camargo, and locally corrected Hargreaves-Samani.
+The configuration also keeps the precomputed spreadsheet columns Thornthwaite, Thornthwaite-Camargo, and locally corrected Hargreaves-Samani (`status: precomputed_only`).
 
 **For detailed equations, assumptions, limitations, and climate suitability of each method, see [`docs/methodology.md`](docs/methodology.md).**
 
