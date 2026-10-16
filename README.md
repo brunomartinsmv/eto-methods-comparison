@@ -46,6 +46,7 @@ Run the pipeline to generate:
 - `{site}_bootstrap_metric_intervals.csv`, Bootstrap confidence intervals for method metrics
 - `{site}_seasonal_error_metrics.csv`, Seasonal error diagnostics
 - `{site}_bias_by_eto_bin.csv`, Bias summarized by Penman-Monteith ETo range
+- `{site}_limited_data_metrics.csv`, Penman-Monteith with FAO-56 substitutes for missing wind, humidity, or radiation, plus Hargreaves-Samani and Turc, scored against the full-data reference on the same days (`limited-data`)
 - Start with `summary_rankings.csv` to compare methods at each site.
 
 **Figures** (`outputs/figures/{site}/`)

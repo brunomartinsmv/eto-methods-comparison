@@ -12,6 +12,7 @@ Official preprint tables live directly in `outputs/tables/`, outside `legacy/`.
 
 ## Resultados oficiais / Official results
 - `summary_rankings.csv` — ranked comparison across sites and temporal scales
+- `{site}_limited_data_metrics.csv` — Penman-Monteith with FAO-56 substitutes for missing wind, humidity, or radiation, plus Hargreaves-Samani and Turc, scored on the same days against the full-data pipeline reference
 - `manaus_daily_metrics.csv`
 - `manaus_monthly_metrics.csv`
 - `piracicaba_daily_metrics.csv`
@@ -24,5 +25,6 @@ and the c-based performance classification.
 ## Como reproduzir / How to reproduce
 ```bash
 python -m scripts.cli metrics --input data/cleaned --output outputs/tables
+python -m scripts.cli limited-data --input data/cleaned --output outputs/tables
 python -m scripts.cli summarize --input outputs/tables --output outputs/reports
 ```

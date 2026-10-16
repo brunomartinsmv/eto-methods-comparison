@@ -26,6 +26,21 @@ Relative humidity inputs are standardized as daily mean, maximum, and minimum co
 
 The daily bootstrap resamples method-reference pairs without perturbing humidity. The separate optional OAT sensitivity command can perturb humidity inputs. Temperature-only methods omit this control on atmospheric demand.
 
+## Limited-data Penman-Monteith
+
+`python -m scripts.cli limited-data` writes `outputs/tables/{site}_limited_data_metrics.csv`. It recomputes FAO-56 Penman-Monteith after replacing wind, humidity, radiation, or all three, and scores those series against the full-data pipeline Penman-Monteith. Hargreaves-Samani and Turc are on the same table. They keep their usual inputs. They are not filled with the Penman-Monteith substitutes.
+
+The reference is `et_penman_monteith` from `outputs/results/{site}_daily_eto.csv` when that file exists and `--input` is `data/cleaned`. A custom `--results-input` must contain the file. Without a pipeline file, the reference is the full-data equation recomputed from the cleaned weather. Every row uses the days on which the reference and all seven series are finite (`comparison_days = common_finite`).
+
+Substitutes follow Allen et al. (1998):
+
+- Wind, when replaced, is the site value `regional_wind_2m_ms` if it is set, otherwise 2 m s⁻¹. That substitute is already at 2 m and is not converted from the measurement height. Values below 0.5 m s⁻¹ are raised to 0.5 m s⁻¹ before they enter equation 6. Measured wind is still converted with equation 47 and is not floored.
+- Humidity, when replaced, uses dewpoint equal to daily minimum temperature, so actual vapor pressure is saturation vapor pressure at Tmin (equation 48). Measured relative humidity is not used in that scenario. Saturation vapor pressure in the aerodynamic term stays es(Tmean), as in the full-data pipeline. The measured net-radiation column is kept, so this scenario changes only the aerodynamic humidity term.
+- Radiation, when replaced, uses Rs = kRs √(Tmax − Tmin) Ra (equation 50). kRs is 0.16 for an interior site unless the site sets `k_rs` or `radiation_setting: coastal` (0.19). Estimated Rs is limited to clear-sky radiation Rso = (0.75 + 2×10⁻⁵ z) Ra (equation 37). Net radiation is then rebuilt as Rns − Rnl with albedo 0.23 (equations 38–40). Rs/Rso in the longwave term is limited to ≤ 1. Replacing radiation does not keep `rad_net_mj_m2_d`.
+- The temperature approach (scenario `pm_pmt`) replaces all three. Estimated actual vapor pressure enters both the aerodynamic term and the longwave term.
+
+Row order is the scenario list: full Penman-Monteith, wind replaced, humidity replaced, radiation replaced, all three replaced, Hargreaves-Samani, Turc. The table does not sort by error. Manaus and Piracicaba are humid demonstration climates. Agreement with calculated Penman-Monteith in this table is not a ranking taken from another climate.
+
 ## Missing days and interpolation
 
 Cleaning produces one daily table per site for the target year. The data-quality reports in `outputs/reports/*_data_quality.csv` document missingness and interpolation counts by variable. The metrics functions use pairwise finite observations for each method-reference comparison, so rows with missing values in either the reference or the method are excluded for that method.

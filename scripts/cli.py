@@ -15,6 +15,7 @@ from . import (
     compute_eto,
     feasibility,
     io,
+    limited_data,
     metrics,
     pca_analysis,
     plots,
@@ -49,6 +50,7 @@ from .naming import (
     cleaned_daily_filename,
     daily_eto_filename,
     figure_filename,
+    limited_data_metrics_filename,
     method_only_filename,
     metrics_filename,
     monthly_totals_filename,
@@ -301,6 +303,41 @@ def cmd_metrics(args: argparse.Namespace) -> None:
         monthly_metrics = metrics.compute_metrics(monthly_df, ref_col, [c for c in method_cols if c != ref_col])
         monthly_metrics.to_csv(output_dir / metrics_filename(site, "monthly"), index=False)
         logger.info("wrote daily and monthly metrics for %s (%d methods)", site, len(method_cols) - 1)
+
+
+def _limited_data_results_dir(input_dir: Path, results_input: str | None) -> Path | None:
+    if results_input is not None:
+        return Path(results_input)
+    if input_dir.resolve() == DATA_CLEANED.resolve():
+        return OUTPUTS_RESULTS
+    return None
+
+
+def cmd_limited_data(args: argparse.Namespace) -> None:
+    input_dir = Path(args.input)
+    output_dir = Path(args.output)
+    _ensure_dir(output_dir)
+    explicit_results = getattr(args, "results_input", None) is not None
+    results_dir = _limited_data_results_dir(input_dir, getattr(args, "results_input", None))
+
+    for site, meta in _selected_sites(args).items():
+        weather = pd.read_csv(input_dir / cleaned_daily_filename(site), parse_dates=["date"])
+        settings = limited_data.resolve_limited_data_settings(
+            meta,
+            k_rs=getattr(args, "k_rs", None),
+            wind_2m_m_s=getattr(args, "wind_2m", None),
+        )
+        table = limited_data.limited_data_metrics_table(
+            weather,
+            site=site,
+            site_meta=meta,
+            settings=settings,
+            results_dir=results_dir,
+            require_results_file=explicit_results,
+        )
+        output_path = output_dir / limited_data_metrics_filename(site)
+        table.to_csv(output_path, index=False)
+        logger.info("wrote limited-data metrics for %s to %s", site, output_path)
 
 
 def _calibration_results_dir(input_dir: Path, results_input: str | None) -> Path | None:
@@ -1070,6 +1107,36 @@ def build_parser() -> argparse.ArgumentParser:
     metrics_parser.add_argument("--output", default=str(OUTPUTS_TABLES))
     _add_site_selection(metrics_parser)
     metrics_parser.set_defaults(func=cmd_metrics)
+
+    limited_parser = subparsers.add_parser(
+        "limited-data",
+        help="Score Penman-Monteith after FAO-56 substitutes for missing wind, humidity, or radiation",
+    )
+    limited_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
+    limited_parser.add_argument("--input", default=str(DATA_CLEANED))
+    limited_parser.add_argument(
+        "--results-input",
+        default=None,
+        help=(
+            "Directory containing the full-data pipeline Penman-Monteith series. "
+            "Defaults to outputs/results when --input is data/cleaned."
+        ),
+    )
+    limited_parser.add_argument("--output", default=str(OUTPUTS_TABLES))
+    limited_parser.add_argument(
+        "--k-rs",
+        type=float,
+        default=None,
+        help="Override the FAO-56 temperature-radiation coefficient kRs",
+    )
+    limited_parser.add_argument(
+        "--wind-2m",
+        type=float,
+        default=None,
+        help="Override the 2 m wind substitute in m s-1 (default 2, or the site regional value)",
+    )
+    _add_site_selection(limited_parser)
+    limited_parser.set_defaults(func=cmd_limited_data)
 
     compute_parser = subparsers.add_parser(
         "compute-eto",
