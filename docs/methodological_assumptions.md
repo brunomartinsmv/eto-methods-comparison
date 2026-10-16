@@ -24,7 +24,7 @@ The metrics stage compares the resulting ET₀ series without another wind conve
 
 Relative humidity inputs are standardized as daily mean, maximum, and minimum columns. The reference calculation estimates actual vapor pressure from minimum/maximum temperature and humidity when those columns exist, or from mean temperature and humidity otherwise. Saturation vapor pressure is calculated from mean temperature. These choices are implemented in `scripts/compute_eto.py` and `scripts/derived_meteo.py`.
 
-The daily bootstrap resamples method-reference pairs without perturbing humidity. The separate optional OAT sensitivity command can perturb humidity inputs. Temperature-only methods omit this control on atmospheric demand.
+The daily bootstrap resamples method-reference pairs without perturbing humidity. The default draw treats those pairs as exchangeable days. A moving-block option, described below, keeps short runs of days together. The separate optional OAT sensitivity command can perturb humidity inputs. Temperature-only methods omit this control on atmospheric demand.
 
 ## Missing days and interpolation
 
@@ -48,9 +48,13 @@ This rule applies the same descriptive classification to both sites without pres
 
 ## Bootstrap uncertainty
 
-Bootstrap confidence intervals use paired resampling of daily Penman-Monteith and method values. The implemented intervals cover RMSE, MAE, and MBE. The resampling is reproducible through a fixed random seed.
+Bootstrap confidence intervals use paired resampling of daily Penman-Monteith and method values. The implemented intervals cover RMSE, MAE, and MBE. The resampling is reproducible through a fixed random seed. Each row of the interval table records the scheme in `resampling` and the block length in `block_length`.
 
-The method does not explicitly model temporal autocorrelation, instrument error, uncertainty in physical constants, or uncertainty from calibration. Intervals should be read as descriptive uncertainty for the available paired daily records.
+The default scheme, `iid`, draws paired days independently and records `block_length` 1. Those intervals describe sampling variability under day exchangeability. They do not model temporal autocorrelation.
+
+`analyze-uncertainty --bootstrap moving-block` draws a moving-block bootstrap from the same pairwise-complete series and records the block length that was used. Overlapping blocks of that length are drawn with replacement, concatenated, and trimmed to the paired sample size. Blocks do not wrap around the ends of the series. The configured length is `uncertainty.block_length` in `configs/pipeline.yml` (7 daily steps), a fixed weekly length for the optional scheme. For one year of daily data, 7 is about the cube root of the sample size. The pipeline uses that configured value for the whole run. Blocks follow the order of pairwise-complete days, so a missing day stays outside the block.
+
+Moving-block intervals keep dependence inside each block and treat blocks as exchangeable. Neither scheme propagates instrument error, uncertainty in physical constants, or uncertainty from calibration. Intervals should be read as descriptive uncertainty for the available paired daily records.
 
 ## Bias by ETo range
 

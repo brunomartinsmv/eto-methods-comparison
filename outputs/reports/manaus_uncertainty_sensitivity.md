@@ -5,28 +5,28 @@ Wet/dry grouping is data-driven from the median monthly rainfall within the anal
 
 ## Bootstrap intervals
 
-| method | metric | estimate | ci_lower | ci_upper | n | n_boot | confidence |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| et_thornthwaite | rmse | 4.1902 | 4.1570 | 4.2246 | 366 | 1000 | 0.9500 |
-| et_thornthwaite | mae | 4.1763 | 4.1422 | 4.2124 | 366 | 1000 | 0.9500 |
-| et_thornthwaite | mbe | 4.1763 | 4.1422 | 4.2124 | 366 | 1000 | 0.9500 |
-| et_thornthwaite_camargo | rmse | 4.0750 | 4.0214 | 4.1256 | 366 | 1000 | 0.9500 |
-| et_thornthwaite_camargo | mae | 4.0376 | 3.9794 | 4.0917 | 366 | 1000 | 0.9500 |
-| et_thornthwaite_camargo | mbe | 4.0376 | 3.9794 | 4.0917 | 366 | 1000 | 0.9500 |
-| et_camargo | rmse | 1.0691 | 1.0350 | 1.1010 | 366 | 1000 | 0.9500 |
-| et_camargo | mae | 0.9969 | 0.9555 | 1.0366 | 366 | 1000 | 0.9500 |
-| et_camargo | mbe | 0.9732 | 0.9250 | 1.0187 | 366 | 1000 | 0.9500 |
-| et_hargreaves_samani | rmse | 1.1537 | 1.1202 | 1.1853 | 366 | 1000 | 0.9500 |
-| et_hargreaves_samani | mae | 1.0857 | 1.0443 | 1.1261 | 366 | 1000 | 0.9500 |
-| et_hargreaves_samani | mbe | 1.0741 | 1.0294 | 1.1162 | 366 | 1000 | 0.9500 |
-| et_hargreaves_samani_corr | rmse | 1.5976 | 1.5622 | 1.6362 | 366 | 1000 | 0.9500 |
-| et_hargreaves_samani_corr | mae | 1.5418 | 1.5005 | 1.5855 | 366 | 1000 | 0.9500 |
-| et_hargreaves_samani_corr | mbe | 1.5418 | 1.5005 | 1.5855 | 366 | 1000 | 0.9500 |
-| et_priestley_taylor | rmse | 1.0344 | 0.9709 | 1.1002 | 366 | 1000 | 0.9500 |
-| et_priestley_taylor | mae | 0.8910 | 0.8356 | 0.9460 | 366 | 1000 | 0.9500 |
-| et_priestley_taylor | mbe | -0.8910 | -0.9460 | -0.8356 | 366 | 1000 | 0.9500 |
-| et_garcia_lopez | rmse | 1.0496 | 0.9871 | 1.1157 | 366 | 1000 | 0.9500 |
-| et_garcia_lopez | mae | 0.9230 | 0.8686 | 0.9780 | 366 | 1000 | 0.9500 |
+| method | metric | estimate | ci_lower | ci_upper | n | n_boot | confidence | resampling | block_length |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| et_thornthwaite | rmse | 4.1902 | 4.1570 | 4.2246 | 366 | 1000 | 0.9500 | iid | 1 |
+| et_thornthwaite | mae | 4.1763 | 4.1422 | 4.2124 | 366 | 1000 | 0.9500 | iid | 1 |
+| et_thornthwaite | mbe | 4.1763 | 4.1422 | 4.2124 | 366 | 1000 | 0.9500 | iid | 1 |
+| et_thornthwaite_camargo | rmse | 4.0750 | 4.0214 | 4.1256 | 366 | 1000 | 0.9500 | iid | 1 |
+| et_thornthwaite_camargo | mae | 4.0376 | 3.9794 | 4.0917 | 366 | 1000 | 0.9500 | iid | 1 |
+| et_thornthwaite_camargo | mbe | 4.0376 | 3.9794 | 4.0917 | 366 | 1000 | 0.9500 | iid | 1 |
+| et_camargo | rmse | 1.0691 | 1.0350 | 1.1010 | 366 | 1000 | 0.9500 | iid | 1 |
+| et_camargo | mae | 0.9969 | 0.9555 | 1.0366 | 366 | 1000 | 0.9500 | iid | 1 |
+| et_camargo | mbe | 0.9732 | 0.9250 | 1.0187 | 366 | 1000 | 0.9500 | iid | 1 |
+| et_hargreaves_samani | rmse | 1.1537 | 1.1202 | 1.1853 | 366 | 1000 | 0.9500 | iid | 1 |
+| et_hargreaves_samani | mae | 1.0857 | 1.0443 | 1.1261 | 366 | 1000 | 0.9500 | iid | 1 |
+| et_hargreaves_samani | mbe | 1.0741 | 1.0294 | 1.1162 | 366 | 1000 | 0.9500 | iid | 1 |
+| et_hargreaves_samani_corr | rmse | 1.5976 | 1.5622 | 1.6362 | 366 | 1000 | 0.9500 | iid | 1 |
+| et_hargreaves_samani_corr | mae | 1.5418 | 1.5005 | 1.5855 | 366 | 1000 | 0.9500 | iid | 1 |
+| et_hargreaves_samani_corr | mbe | 1.5418 | 1.5005 | 1.5855 | 366 | 1000 | 0.9500 | iid | 1 |
+| et_priestley_taylor | rmse | 1.0344 | 0.9709 | 1.1002 | 366 | 1000 | 0.9500 | iid | 1 |
+| et_priestley_taylor | mae | 0.8910 | 0.8356 | 0.9460 | 366 | 1000 | 0.9500 | iid | 1 |
+| et_priestley_taylor | mbe | -0.8910 | -0.9460 | -0.8356 | 366 | 1000 | 0.9500 | iid | 1 |
+| et_garcia_lopez | rmse | 1.0496 | 0.9871 | 1.1157 | 366 | 1000 | 0.9500 | iid | 1 |
+| et_garcia_lopez | mae | 0.9230 | 0.8686 | 0.9780 | 366 | 1000 | 0.9500 | iid | 1 |
 
 Showing first 20 of 54 rows. See CSV outputs for complete tables.
 
