@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added an optional Hargreaves-Samani temperature-range exponent to `calibrate` (`--free-exponent`), with the same train/test metrics as the scalar fit. The published exponent 0.5 stays fixed when the flag is omitted.
+- Added a cross-site transfer table, `outputs/tables/{method}_calibration_transfer.csv`, when two or more configured sites are calibrated. Parameters are fit on one site's training window and scored at the other, with the original and calibrated equations side by side.
+
+### Changed
+
+- Documented that a lower test RMSE against calculated Penman-Monteith is not a lysimeter validation.
+
 ## [2.2.0] - 2026-10-08
 
 ### Added

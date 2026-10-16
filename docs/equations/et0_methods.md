@@ -160,7 +160,7 @@ Hargreaves & Samani (1985) aproximam a radiação de onda curta a partir da ampl
 
 $$\mathrm{ET_0} = c \cdot \frac{R_a}{\lambda} \cdot (T_{max} - T_{min})^{0{,}5} \cdot (T_{mean} + 17{,}8)$$
 
-com \(c = 0{,}0023\) (padrão). O código aplica \(\max(T_{max} - T_{min},\, 0)\) antes da raiz.
+com \(c = 0{,}0023\) e expoente \(0{,}5\) (padrão publicado). O código aplica \(\max(T_{max} - T_{min},\, 0)\) antes da potência. Com `calibrate --free-exponent`, o expoente pode ser estimado no período de treino junto com \(c\); o padrão publicado permanece quando a opção é omitida. O ajuste não embute um expoente regional nem coeficientes de outra região. Um RMSE de teste menor contra o Penman-Monteith calculado não é validação em lisímetro.
 
 ---
 

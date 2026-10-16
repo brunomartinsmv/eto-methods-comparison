@@ -3,6 +3,7 @@ from scripts.naming import (
     bootstrap_filename,
     calibration_coefficients_filename,
     calibration_metrics_filename,
+    calibration_transfer_filename,
     cleaned_daily_filename,
     daily_eto_filename,
     figure_filename,
@@ -59,6 +60,10 @@ def test_calibration_filenames() -> None:
     assert (
         calibration_metrics_filename("manaus", "hargreaves_samani")
         == "manaus_hargreaves_samani_calibration_metrics.csv"
+    )
+    assert (
+        calibration_transfer_filename("hargreaves_samani")
+        == "hargreaves_samani_calibration_transfer.csv"
     )
 
 

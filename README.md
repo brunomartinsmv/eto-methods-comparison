@@ -267,12 +267,27 @@ python -m scripts.cli calibrate --site manaus --method hargreaves_samani \
   --results-input outputs/results \
   --train-start 2024-01-01 --train-end 2024-06-30 \
   --test-start 2024-07-01 --test-end 2024-12-31
+
+python -m scripts.cli calibrate --all-sites --method hargreaves_samani --free-exponent
 ```
 
 The outputs are `outputs/tables/{site}_{method}_calibration_coefficients.csv`
 and `outputs/tables/{site}_{method}_calibration_metrics.csv`, including
 train/test periods, the `minimize_train_rmse` objective, fitted coefficients,
-and before/after metrics.
+and before/after metrics. For Hargreaves-Samani, `--free-exponent` also
+estimates the temperature-range exponent on the training period. The published
+exponent 0.5 is used when the flag is omitted. The search does not insert a
+regional exponent or regional coefficients from another climate. The original
+series keeps coefficient 0.0023 and exponent 0.5, and train/test metrics are
+still reported separately.
+
+With two or more configured sites, `calibrate` also writes
+`outputs/tables/{method}_calibration_transfer.csv`: parameters fit on one
+site's training window, scored at each other site, with the original and
+calibrated equations side by side on every finite day.
+
+A lower test RMSE against calculated Penman-Monteith is not a lysimeter
+validation. The target remains the calculated `et_penman_monteith` series.
 
 ---
 
