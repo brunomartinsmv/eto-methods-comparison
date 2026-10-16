@@ -78,7 +78,7 @@ $$\mathrm{ET_m} = 16\left(\frac{10\,T_m}{I}\right)^a$$
 
 ### Desagregação diária (legado)
 
-A planilha `Evapo.xlsx` e o notebook `notebooks/legacy/calculo_piracicaba.ipynb` aplicam ajuste por fotoperíodo \(N\) (horas de luz médias do mês) e número de dias \(N_d\):
+A planilha `Evapo.xlsx` aplica ajuste por fotoperíodo \(N\) (horas de luz médias do mês) e número de dias \(N_d\):
 
 $$\mathrm{ET_0}_{dia} = \mathrm{ET_m} \cdot \frac{N}{12} \cdot \frac{N_d}{30}$$
 
@@ -108,9 +108,9 @@ Substituindo \(R_{a,\mathrm{mm}} = R_a / \lambda\):
 
 $$\mathrm{ET_0} = c \cdot R_{a,\mathrm{mm}} \cdot T_{mean}$$
 
-### Variante legada (notebook exploratório)
+### Variante legada
 
-O notebook `calculo_piracicaba.ipynb` registra outra forma calibrada localmente:
+Uma forma exploratória antiga, fora do pipeline, usa:
 
 $$\mathrm{ET_{CAM,legado}} = K \cdot R_s \cdot (T_{mean} + 20), \qquad K = 0{,}01$$
 

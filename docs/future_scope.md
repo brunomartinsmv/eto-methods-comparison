@@ -61,7 +61,7 @@ multicity meta-analysis are not automated.
 ### ERA5 ingestion inside this repository
 
 ERA5 download remains in the companion `era5-daily-statistics-data-download` repository.
-This project accepts ERA5-derived CSVs through the generic reader configuration.
+This project accepts a new site as CSV through `reader.format: csv`. ERA5-derived CSV files use that reader or the generic reader.
 
 ## Recommended next steps
 

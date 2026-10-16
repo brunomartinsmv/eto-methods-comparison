@@ -415,10 +415,13 @@ The implemented methods use the daily inputs below. Only Thornthwaite, Thornthwa
 
 ### Adding a New Site to the Pipeline
 
-**1. Prepare your data file**
-- Format as Excel (.xlsx) with one sheet per site
-- Columns must include: date, temperature variables, radiation, wind, humidity
-- See `data/raw/Evapo.xlsx` as reference
+New sites use one CSV file. `data/raw/Evapo.xlsx` stays the reproduction workbook for Manaus, Piracicaba, and Petrolina.
+
+**1. Prepare a CSV**
+- One file per site, with a header row, under `data/raw/` (for example `data/raw/cuiaba.csv`)
+- Use canonical column names, or the Evapo.xlsx headers (`DIA`, `TMED (oC)`, `TMAX (oC)`, `TMIN (oC)`, `UR MED (%)`, `Vento (m/s)`, `Rad.Glob. (MJ/m2.d)`, `Rad Liq (MJ/m2.d)`, `Q_0`)
+- A Penman-Monteith site needs date, temperature, net radiation, wind, and humidity
+- Other headers need a `column_map` in the site reader
 
 **2. Edit configuration** (`configs/sites.yml`)
 
@@ -426,7 +429,6 @@ Add your site to the `sites` mapping:
 ```yaml
 sites:
   cuiaba:
-    sheet: Cuiaba
     lat: -15.6
     lon: -56.1
     alt_m: 165.0
@@ -435,6 +437,9 @@ sites:
     region: Centro-Oeste
     country: Brazil
     state: MT
+    reader:
+      format: csv
+      path: data/raw/cuiaba.csv
 ```
 
 `biome`, `climate_class`, `region`, `country`, and `state` are optional interpretive metadata. They are useful for summaries and optional grouping, but the project does not require them and does not become a fixed regional or multicity study when they are present.
@@ -443,10 +448,16 @@ Method column mappings and short labels live in `configs/methods.yml`.
 
 **3. Run the pipeline**
 ```bash
-python -m scripts.cli all --year 2024
+python -m scripts.cli all --year 2024 --site cuiaba
 ```
 
-To run one configured site:
+`reader.path` is the weather file for that site. The default `--input data/raw/Evapo.xlsx` still feeds Manaus, Piracicaba, and Petrolina. To pass the CSV as `--input` instead of `reader.path`, set `reader.format: csv` and omit `path`:
+
+```bash
+python -m scripts.cli all --year 2024 --site cuiaba --input data/raw/cuiaba.csv
+```
+
+The existing workbook sites:
 
 ```bash
 python -m scripts.cli all --year 2024 --site manaus
@@ -460,23 +471,21 @@ The pipeline will automatically:
 - Compute performance tables in `outputs/tables/cuiaba_*.csv`
 - Write uncertainty/sensitivity diagnostics for the site
 
-### Data Format Example 
+### Data Format Example
 
+`data/raw/cuiaba.csv`:
 
-
-Your Excel sheet should look like:
-```
-date       | temp_mean | temp_min | temp_max | radiation | wind_2m | rh_mean
-2024-01-01 | 25.3      | 19.2     | 32.1     | 22.5      | 1.8     | 68.2
-2024-01-02 | 26.1      | 20.0     | 33.5     | 23.1      | 2.1     | 65.5
-...
+```csv
+date,tmed_c,tmin_c,tmax_c,rh_mean_pct,wind_mean_ms,rad_global_mj_m2_d,rad_net_mj_m2_d
+2024-01-01,25.3,19.2,32.1,68.2,1.8,22.5,12.0
+2024-01-02,26.1,20.0,33.5,65.5,2.1,23.1,12.4
 ```
 
-**Note:** Column names should match those expected by `scripts/io.py`, or configure a custom `reader` block in `configs/sites.yml` for CSV/Excel files with different headers. `reader.format: inmet_limited` reads an INMET automatic-station sheet that has temperature, humidity, and wind and may lack radiation. Set `full_penman_monteith: false` for that case so the site stays out of the Penman-Monteith comparison.
+**Note:** Those canonical names are read directly. A header that is not canonical and not one of the Evapo.xlsx names needs `column_map`. `reader.format: inmet_limited` still reads the Petrolina sheet in `Evapo.xlsx` (temperature, humidity, and wind, and it may lack radiation). Set `full_penman_monteith: false` for that case so the site stays out of the Penman-Monteith comparison.
 
 ### Flexible input readers
 
-Sites can declare a custom reader in `configs/sites.yml`:
+`reader.format: csv` is the intake for a new site. `reader.format: generic` still accepts a CSV or an Excel file when you need `column_map`:
 
 ```yaml
 sites:
@@ -485,15 +494,14 @@ sites:
     lon: -56.1
     alt_m: 165.0
     reader:
-      format: generic
+      format: csv
       path: data/raw/my_station.csv
-      skiprows: 0
       column_map:
         "Temp Média": tmed_c
         "Data": date
 ```
 
-The default `evapo_legacy` format keeps compatibility with `Evapo.xlsx` (sheet name + 4 header rows).
+The default `evapo_legacy` format keeps compatibility with `Evapo.xlsx` (sheet name + 4 header rows). A `.csv` path on that format is rejected; set `reader.format: csv`.
 ---
 
 ## Repository Structure
@@ -509,7 +517,6 @@ The default `evapo_legacy` format keeps compatibility with `Evapo.xlsx` (sheet n
 │   ├── reports/        # Data quality reports
 │   └── tables/         # **Metrics tables (RMSE, r, R², Willmott d, c) ← Start here**
 ├── scripts/            # Analysis pipeline (CLI, cleaning, metrics, plotting)
-├── notebooks/          # Educational Jupyter notebooks with step-by-step explanations
 ├── docs/               # Detailed methodology, equations, and interpretation guides
 └── requirements.txt    # Python dependencies
 ```
@@ -568,11 +575,7 @@ The configuration also keeps the precomputed spreadsheet columns Thornthwaite, T
 
 1. **Read the methodology first:** [`docs/methodology.md`](docs/methodology.md) explains each method's physics (will be more explained in the future), equations, and when to use them.
 
-2. **Explore the notebooks:** `notebooks/` contains step-by-step Jupyter notebooks that explain:
-   - Why we estimate ETo and what it represents
-   - How each method works conceptually
-   - How to interpret Taylor diagrams and performance metrics
-   - Common pitfalls and climate-specific considerations
+2. **Inspect the generated results:** `python -m scripts.results_overview` prints the metric tables, data-quality flags, and figure paths written by the CLI. Taylor diagrams are `outputs/figures/{site}/{site}_daily_taylor.png`.
 
 3. **Run the pipeline:** Follow the Quick Start above to generate results for Piracicaba and Manaus.
 
