@@ -17,6 +17,8 @@ _RANKING_COLUMNS = [
     "r2",
     "willmott_d",
     "c",
+    "kge",
+    "pbias",
     "classification",
 ]
 
@@ -34,8 +36,31 @@ _META_LABELS = {
     "state": "State",
 }
 
-_METRIC_COLUMNS = ["method", "rmse", "mae", "mbe", "r", "r2", "willmott_d", "c", "classification"]
-_NUMERIC_COLUMNS = {"rmse", "mae", "mbe", "r", "r2", "willmott_d", "c", "valid_day_fraction"}
+_METRIC_COLUMNS = [
+    "method",
+    "rmse",
+    "mae",
+    "mbe",
+    "r",
+    "r2",
+    "willmott_d",
+    "c",
+    "kge",
+    "pbias",
+    "classification",
+]
+_NUMERIC_COLUMNS = {
+    "rmse",
+    "mae",
+    "mbe",
+    "r",
+    "r2",
+    "willmott_d",
+    "c",
+    "kge",
+    "pbias",
+    "valid_day_fraction",
+}
 
 _HTML_STYLE = """
 @import url("https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap");
@@ -885,6 +910,8 @@ def build_rankings_html(
         "<p class=\"eyebrow\">Global summary</p>",
         "<h1>Method rankings</h1>",
         "<p class=\"lede\">Composite ranks within each site and temporal scale. "
+        "Every rank measures agreement with calculated Penman–Monteith "
+        "(Martí et al., 2015; López-Urrea et al., 2006). "
         "Monthly scale is listed before daily.</p>",
         "</div>",
         "<div class=\"section\">",
@@ -953,7 +980,7 @@ def _rankings_table_html(df: pd.DataFrame) -> str:
 
     header = "".join(f"<th>{html.escape(column)}</th>" for column in columns)
     rows: list[str] = []
-    numeric = {"rmse", "mae", "mbe", "r", "r2", "willmott_d", "c"}
+    numeric = {"rmse", "mae", "mbe", "r", "r2", "willmott_d", "c", "kge", "pbias"}
     for _, row in df.iterrows():
         cells: list[str] = []
         for column in columns:
