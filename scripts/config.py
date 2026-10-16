@@ -75,9 +75,18 @@ class PipelineConfig:
     sensitivity_perturbation_step_pct: int = 10
     uncertainty_bootstrap_samples: int = 1000
     uncertainty_confidence: float = 0.95
+    uncertainty_bootstrap: str = "iid"
+    uncertainty_block_length: int = 7
     uncertainty_eto_bins: int = 4
     uncertainty_rainfall_column: str = "rain_mm"
     cleaning_max_gap_days: int | None = 7
+
+
+def _normalize_bootstrap_scheme(value: object) -> str:
+    scheme = str(value).strip().lower().replace("-", "_")
+    if scheme not in {"iid", "moving_block"}:
+        raise ValueError("uncertainty.bootstrap must be 'iid' or 'moving_block'")
+    return scheme
 
 
 def _read_yaml(path: Path) -> dict:
@@ -127,6 +136,10 @@ def load_pipeline_config(path: Path = PIPELINE_CONFIG) -> PipelineConfig:
     if not all(isinstance(section, dict) for section in (calibration, sensitivity, uncertainty, cleaning)):
         raise ValueError(f"Expected section mappings in {path}")
     max_gap = cleaning.get("max_gap_days")
+    bootstrap_scheme = _normalize_bootstrap_scheme(uncertainty.get("bootstrap", "iid"))
+    block_length = int(uncertainty.get("block_length", 7))
+    if block_length < 1:
+        raise ValueError("uncertainty.block_length must be at least 1")
     return PipelineConfig(
         calibration_train_fraction=float(calibration.get("train_fraction", 0.7)),
         sensitivity_perturbation_min_pct=int(sensitivity.get("perturbation_min_pct", -50)),
@@ -134,6 +147,8 @@ def load_pipeline_config(path: Path = PIPELINE_CONFIG) -> PipelineConfig:
         sensitivity_perturbation_step_pct=int(sensitivity.get("perturbation_step_pct", 10)),
         uncertainty_bootstrap_samples=int(uncertainty.get("bootstrap_samples", 1000)),
         uncertainty_confidence=float(uncertainty.get("confidence", 0.95)),
+        uncertainty_bootstrap=bootstrap_scheme,
+        uncertainty_block_length=block_length,
         uncertainty_eto_bins=int(uncertainty.get("eto_bins", 4)),
         uncertainty_rainfall_column=str(uncertainty.get("rainfall_column", "rain_mm")),
         cleaning_max_gap_days=None if max_gap is None else int(max_gap),
@@ -181,6 +196,11 @@ def load_methods_config(path: Path = METHODS_CONFIG) -> MethodsConfig:
         reference_column=reference_column,
         default_ranking_by_name=default_ranking_by_name,
     )
+
+
+def site_is_full_penman_monteith(meta: dict) -> bool:
+    """Return whether the site is a full-data Penman-Monteith comparison site."""
+    return bool(meta.get("full_penman_monteith", True))
 
 
 def select_sites(

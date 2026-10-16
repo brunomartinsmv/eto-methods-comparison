@@ -2,13 +2,24 @@
 
 import pandas as pd
 
-from scripts.config import OUTPUTS_FIGURES, OUTPUTS_REPORTS, OUTPUTS_TABLES, SITES
+from scripts.config import (
+    OUTPUTS_FIGURES,
+    OUTPUTS_REPORTS,
+    OUTPUTS_TABLES,
+    SITES,
+    site_is_full_penman_monteith,
+)
+
+
+def _comparison_sites() -> list[str]:
+    return [site for site, meta in SITES.items() if site_is_full_penman_monteith(meta)]
 
 
 def main() -> None:
+    sites = _comparison_sites()
     required_paths = [
         path
-        for site in SITES
+        for site in sites
         for path in (
             OUTPUTS_TABLES / f"{site}_daily_metrics.csv",
             OUTPUTS_TABLES / f"{site}_monthly_metrics.csv",
@@ -25,7 +36,7 @@ def main() -> None:
             + ", ".join(str(path) for path in missing)
         )
 
-    for site in SITES:
+    for site in sites:
         print(f"\n{site.upper()} daily metrics")
         daily = pd.read_csv(OUTPUTS_TABLES / f"{site}_daily_metrics.csv")
         print(daily.sort_values("rmse").to_string(index=False))

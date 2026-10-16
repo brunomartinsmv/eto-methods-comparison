@@ -6,7 +6,7 @@
 
 ## Leitura recomendada
 
-1. [`derived_meteorology.md`](derived_meteorology.md) — pressão de vapor, constante psicrométrica, radiação extraterrestre, conversão energia→profundidade e vento a 2 m.
+1. [`derived_meteorology.md`](derived_meteorology.md) — pressão de vapor, constante psicrométrica, radiação extraterrestre, conversão energia→profundidade, vento a 2 m e substitutos FAO-56 para dados ausentes.
 2. [`et0_methods.md`](et0_methods.md) — derivação e equação final de cada um dos 21 métodos, com coeficientes padrão do código e status (`computed`, `reference`, `precomputed_only`).
 
 ## Relação com outros documentos

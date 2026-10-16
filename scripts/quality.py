@@ -65,6 +65,7 @@ def _quality_row(
     row_count: int,
     interpolated_values: int = 0,
     status: str = "available",
+    source_present: bool | None = None,
 ) -> dict[str, object]:
     parsed_dates = pd.to_datetime(dates, errors="coerce")
     normalized_dates = parsed_dates.dt.normalize()
@@ -95,7 +96,7 @@ def _quality_row(
         "stage": stage,
         "variable": variable,
         "status": status,
-        "source_present": values is not None,
+        "source_present": values is not None if source_present is None else source_present,
         "row_count": row_count,
         "expected_days": expected_days,
         "valid_days": finite_days,
@@ -112,6 +113,43 @@ def _quality_row(
     }
 
 
+def _station_status_row(
+    *,
+    site: str,
+    station_status: str,
+    dates: pd.Series,
+    expected_dates: pd.DatetimeIndex,
+    row_count: int,
+) -> dict[str, object]:
+    parsed_dates = pd.to_datetime(dates, errors="coerce")
+    normalized_dates = parsed_dates.dt.normalize()
+    in_expected_range = normalized_dates.isin(expected_dates)
+    return {
+        "site": site,
+        "stage": "station",
+        "variable": "station_status",
+        "status": station_status,
+        "source_present": True,
+        "row_count": row_count,
+        "expected_days": len(expected_dates),
+        "valid_days": pd.NA,
+        "valid_fraction": pd.NA,
+        "finite_values": pd.NA,
+        "non_finite_values": pd.NA,
+        "start_date": normalized_dates.loc[in_expected_range].min().strftime("%Y-%m-%d")
+        if in_expected_range.any()
+        else "",
+        "end_date": normalized_dates.loc[in_expected_range].max().strftime("%Y-%m-%d")
+        if in_expected_range.any()
+        else "",
+        "missing_dates": "",
+        "duplicate_dates": "",
+        "missing_values": pd.NA,
+        "interpolated_values": pd.NA,
+        "physical_limit_violations": pd.NA,
+    }
+
+
 def build_quality_report(
     site: str,
     raw_df: pd.DataFrame,
@@ -119,6 +157,8 @@ def build_quality_report(
     year: int,
     interpolated_by_variable: dict[str, int] | None = None,
     calculated_df: pd.DataFrame | None = None,
+    station_status: str | None = None,
+    include_computed_methods: bool = True,
 ) -> pd.DataFrame:
     interpolated_by_variable = interpolated_by_variable or {}
 
@@ -141,6 +181,16 @@ def build_quality_report(
     ]
 
     rows: list[dict[str, object]] = []
+    if station_status:
+        rows.append(
+            _station_status_row(
+                site=site,
+                station_status=station_status,
+                dates=raw_dates,
+                expected_dates=expected_dates,
+                row_count=len(cleaned_df),
+            )
+        )
     for variable in variables:
         stage = "precomputed_et0" if variable in METHOD_COLUMNS else "input"
         rows.append(
@@ -156,6 +206,28 @@ def build_quality_report(
             )
         )
 
+    if include_computed_methods:
+        rows.extend(
+            _computed_method_rows(
+                site=site,
+                expected_dates=expected_dates,
+                calculated_df=calculated_df,
+            )
+        )
+
+    report = pd.DataFrame(rows)
+    if station_status:
+        report["station_status"] = station_status
+    return report
+
+
+def _computed_method_rows(
+    *,
+    site: str,
+    expected_dates: pd.DatetimeIndex,
+    calculated_df: pd.DataFrame | None,
+) -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
     for variable in sorted(METHOD_COLUMNS - METHODS.precomputed_only_columns):
         source_present = calculated_df is not None and variable in calculated_df.columns
         if calculated_df is None:
@@ -181,7 +253,7 @@ def build_quality_report(
             )
         )
 
-    return pd.DataFrame(rows)
+    return rows
 
 
 def write_quality_report(report: pd.DataFrame, output_dir: Path, site: str) -> Path:
