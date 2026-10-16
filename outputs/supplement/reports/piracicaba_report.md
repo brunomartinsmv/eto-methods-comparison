@@ -19,6 +19,8 @@ Mata Atlantica · Cwa · SP · Brazil
 
 Coverage and QC flags by input variable.
 
+Clear-sky screen for global radiation: 14 days outside the envelope, 352 inside, 0 unevaluable. A day is inside when 0.25 ≤ Rs/Rso ≤ 1.0 and Rs ≤ Ra. Rso = (0.75 + 2×10⁻⁵ z) Ra (FAO-56 eq. 37; ASCE-EWRI 2005 eq. 18–19). Net radiation is not replaced.
+
 | site | stage | variable | status | source_present | row_count | expected_days | valid_days | valid_fraction | finite_values | non_finite_values | start_date | end_date | missing_dates | duplicate_dates | missing_values | interpolated_values | physical_limit_violations |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | piracicaba | input | tmed_c | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
@@ -57,6 +59,7 @@ Coverage and QC flags by input variable.
 | piracicaba | computed_et0 | et_radiation_temperature | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
 | piracicaba | computed_et0 | et_stephens_stewart | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
 | piracicaba | computed_et0 | et_turc | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| piracicaba | radiation_envelope | rad_global_mj_m2_d | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
 
 ## Method feasibility
 
@@ -190,6 +193,31 @@ Error and agreement metrics versus Penman–Monteith.
 | Thornthwaite | 1.2325 | 0.9596 | 0.0793 | 0.4486 | 0.2013 | 0.6655 | 0.2986 | Very Poor |
 | Lungeon | 2.8668 | 2.6243 | -2.6235 | 0.6175 | 0.3813 | 0.4277 | 0.2641 | Very Poor |
 | Thornthwaite Camargo | 3.4196 | 3.1605 | -3.1604 | — | — | 0.3670 | — | — |
+
+## Daily metrics inside the radiation envelope
+
+Same statistics as the full-year daily table, restricted to days with 0.25 ≤ Rs/Rso ≤ 1.0 and Rs ≤ Ra. Ra is FAO-56 equation 21 and Rso is FAO-56 equation 37. The full-year tables are unchanged. Days inside the envelope: 352.
+
+| method | rmse | mae | mbe | r | r2 | willmott_d | c | classification |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Stephens Stewart | 0.3747 | 0.2391 | -0.0600 | 0.9525 | 0.9072 | 0.9746 | 0.9283 | Excellent |
+| Makkink | 0.4141 | 0.2856 | 0.0044 | 0.9414 | 0.8862 | 0.9669 | 0.9103 | Excellent |
+| Priestley Taylor | 0.5035 | 0.3990 | 0.1237 | 0.9427 | 0.8887 | 0.9627 | 0.9075 | Excellent |
+| Radiation Temperature | 0.5296 | 0.4020 | -0.3374 | 0.9506 | 0.9035 | 0.9438 | 0.8971 | Excellent |
+| Net Radiation | 0.6513 | 0.5386 | 0.3799 | 0.9342 | 0.8728 | 0.9395 | 0.8777 | Excellent |
+| Jensen Heise | 0.8391 | 0.7076 | 0.6511 | 0.9497 | 0.9020 | 0.9097 | 0.8640 | Excellent |
+| Turc | 0.7636 | 0.6992 | 0.6691 | 0.9531 | 0.9084 | 0.9046 | 0.8622 | Excellent |
+| Hicks Hess | 0.7932 | 0.5294 | 0.3305 | 0.8833 | 0.7803 | 0.9129 | 0.8064 | Very Good |
+| Global Radiation | 0.8913 | 0.7963 | 0.7432 | 0.9165 | 0.8399 | 0.8734 | 0.8004 | Very Good |
+| Garcia Lopez | 1.4273 | 1.2260 | -1.0962 | 0.7690 | 0.5913 | 0.7497 | 0.5765 | Poor |
+| Hargreaves Samani Corr | 1.8544 | 1.7213 | 1.7123 | 0.8231 | 0.6774 | 0.6340 | 0.5219 | Poor |
+| Hargreaves Samani | 1.5819 | 1.3690 | -1.3175 | 0.8231 | 0.6774 | 0.5874 | 0.4834 | Bad |
+| Mccloud | 1.8667 | 1.4753 | 1.3571 | 0.6631 | 0.4397 | 0.6466 | 0.4287 | Bad |
+| Ivanov | 1.8494 | 1.3477 | 0.8621 | 0.5560 | 0.3091 | 0.6409 | 0.3563 | Very Poor |
+| Thornthwaite | 1.1312 | 0.8946 | -0.0208 | 0.4823 | 0.2326 | 0.6883 | 0.3319 | Very Poor |
+| Camargo | 2.2051 | 1.9906 | -1.9580 | 0.6588 | 0.4340 | 0.4772 | 0.3144 | Very Poor |
+| Lungeon | 2.9205 | 2.7114 | -2.7114 | 0.5669 | 0.3214 | 0.4065 | 0.2305 | Very Poor |
+| Thornthwaite Camargo | 3.4838 | 3.2653 | -3.2653 | — | — | 0.3503 | — | — |
 
 ## Uncertainty and sensitivity
 

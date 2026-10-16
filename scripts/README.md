@@ -35,7 +35,8 @@ Sites are configured in `configs/sites.yml`. Method column mappings and short la
 `--use-precomputed-eto` is the current default for cleaning raw spreadsheets and preserves the legacy-compatible pipeline. The `compute-eto` command calculates ET0 from standardized cleaned meteorological variables and writes `outputs/results/{site}_daily_eto.csv`; `metrics` prefers that computed file when available.
 
 ## Comandos cientificos / Scientific commands
-- `validate-data`: gera relatorios auditaveis de qualidade em `outputs/reports/`.
+- `validate-data`: gera relatorios auditaveis de qualidade em `outputs/reports/`, incluindo a contagem de dias fora da envoltoria de radiacao FAO-56/ASCE e `{site}_radiation_screen.csv`.
+- `metrics`: mantem as tabelas do ano completo e acrescenta `{site}_daily_metrics_radiation_screen.csv` nos dias dentro da envoltoria. `rad_net_mj_m2_d` nao e recalculada.
 - `compute-eto`: calcula ET0 diaria a partir de variaveis meteorologicas limpas e escreve `outputs/results/{site}_daily_eto.csv`.
 - `pca`: roda uma analise PCA opcional e exporta loadings, variancia explicada e biplot em `outputs/tables/` e `outputs/figures/`.
 - `analyze-uncertainty`: gera intervalos bootstrap, erros sazonais e analise de viés por faixa de ETo.
@@ -54,6 +55,7 @@ Sites are configured in `configs/sites.yml`. Method column mappings and short la
 - `cleaning.py`: tratamento de falhas
 - `aggregate.py`: agregacoes
 - `metrics.py`: metricas estatisticas
+- `radiation_screen.py`: envoltoria FAO-56/ASCE de radiacao global e contagem de dias fora dela
 - `plots.py`: figuras
 - `pca_analysis.py`: analise PCA opcional
 - `summary.py`: sintese dos principais resultados

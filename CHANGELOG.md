@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added a FAO-56/ASCE radiation-consistency screen. The quality report counts days outside the clear-sky envelope, and `{site}_daily_metrics_radiation_screen.csv` repeats the daily metrics on days inside it. Full-year metric tables stay in place, and `rad_net_mj_m2_d` is not recomputed.
+
 ## [2.2.0] - 2026-10-08
 
 ### Added

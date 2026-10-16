@@ -36,12 +36,18 @@ def main() -> None:
 
         print(f"\n{site.upper()} variables with audit flags")
         report = pd.read_csv(OUTPUTS_REPORTS / f"{site}_data_quality.csv")
+        outside_envelope = (
+            pd.to_numeric(report["envelope_days_outside"], errors="coerce").fillna(0)
+            if "envelope_days_outside" in report.columns
+            else 0
+        )
         flagged = report.loc[
             (report["missing_values"] > 0)
             | (report["interpolated_values"] > 0)
             | (report["physical_limit_violations"] > 0)
             | report["missing_dates"].fillna("").ne("")
             | report["duplicate_dates"].fillna("").ne("")
+            | (outside_envelope > 0)
         ]
         print(flagged.to_string(index=False) if not flagged.empty else "No audit flags")
 

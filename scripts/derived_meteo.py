@@ -55,6 +55,21 @@ def wind_speed_at_2m(
     return pd.to_numeric(wind_m_s, errors="coerce") * factor
 
 
+def clear_sky_radiation_mj_m2_day(
+    ra_mj_m2_day: pd.Series | np.ndarray | float,
+    elevation_m: float,
+) -> pd.Series:
+    """Return clear-sky solar radiation Rso in MJ m-2 day-1 (FAO-56 eq. 37).
+
+    Rso = (0.75 + 2e-5 * z) * Ra, with station elevation z in metres.
+    """
+    ra = pd.to_numeric(pd.Series(ra_mj_m2_day), errors="coerce")
+    transmissivity = 0.75 + 2e-5 * float(elevation_m)
+    rso = transmissivity * ra
+    rso.name = "rso_clear_sky_mj_m2_d"
+    return rso
+
+
 def extraterrestrial_radiation_mj_m2_day(
     day_of_year: pd.Series | np.ndarray,
     latitude_deg: float,

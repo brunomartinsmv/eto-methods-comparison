@@ -2,6 +2,7 @@
   "manaus_bias_by_eto_bin.csv": "d739bce9d468719aae8b3f442701f8685381e2caf7f236d21aded2c7846a4cdd",
   "manaus_bootstrap_metric_intervals.csv": "da0afbec082d3cde533b48b856e9e42ed845fbc5f8ed5772ac44d054a5178c45",
   "manaus_daily_metrics.csv": "ab837656df1cc5716dd3c086851a00b7da27d5675cc5518ae4a0809f1e7c52ce",
+  "manaus_daily_metrics_radiation_screen.csv": "0766f2f81b7362fa070334d51ee913758215734aa4aaef5bfe063085b8459aaa",
   "manaus_hargreaves_samani_calibration_coefficients.csv": "db1ebfbf3a79ff2ee495adbd0feb7dba7b0c7638960374792e7f2336e6ddacfd",
   "manaus_hargreaves_samani_calibration_metrics.csv": "e88e099aa1b19e037472372792b932b8063b7e8007ba9cb618953237fd26bd30",
   "manaus_monthly_metrics.csv": "d01c530fd71574464426268982a0c50c7267ca4405112c5ddb73d0aeb5d81bbb",
@@ -12,6 +13,7 @@
   "piracicaba_bias_by_eto_bin.csv": "2f4d21ecd174a15d008206969e12dc17dcdc0c695e8f109476db51a240e951fe",
   "piracicaba_bootstrap_metric_intervals.csv": "c51954ad23817ef41ee520a481bb917f333586202da0b990dfdc91fcd586e92a",
   "piracicaba_daily_metrics.csv": "b1585559e9cd2d069f896ca208bd154f1819f78c6b958307d317627a16ef9cb6",
+  "piracicaba_daily_metrics_radiation_screen.csv": "236424481cc7a3c93b4bb39a6524a834d733979d16b24639ccb73a00b149ddf5",
   "piracicaba_monthly_metrics.csv": "311a07a30e539fce71aadb1c75edbb2e78b76d6a5d4e972fd169d1f5f989d908",
   "piracicaba_seasonal_error_metrics.csv": "f44994e691819c0e7e5a7ccb26d1029480e20e8d3ecf6e36cc99f6cbd9dab1db",
   "summary_rankings.csv": "10e7410bacc2f93b4553d3170e8a667e93a744d4cc1dcef9f1a1570a99b52f21"

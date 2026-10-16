@@ -16,8 +16,10 @@ Official preprint tables live directly in `outputs/tables/`, outside `legacy/`.
 - `manaus_monthly_metrics.csv`
 - `piracicaba_daily_metrics.csv`
 - `piracicaba_monthly_metrics.csv`
+- `{site}_daily_metrics_radiation_screen.csv` — daily metrics on days inside the FAO-56/ASCE radiation envelope
 
 Padrao / Pattern: `<site>_daily_metrics.csv` and `<site>_monthly_metrics.csv`.
+`<site>_daily_metrics_radiation_screen.csv` uses the same metric columns on the days that pass the radiation screen. The full-year tables are unchanged.
 Metric columns include RMSE, MAE, MBE, Pearson r, R², Willmott d, confidence c,
 and the c-based performance classification.
 

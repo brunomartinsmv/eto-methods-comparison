@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 
 from scripts.derived_meteo import (
+    clear_sky_radiation_mj_m2_day,
     extraterrestrial_radiation_mj_m2_day,
     psychrometric_constant_kpa_c,
     saturation_vapor_pressure_kpa,
@@ -29,6 +30,15 @@ def test_wind_speed_at_2m_reduces_10m_wind() -> None:
     assert converted < 5.0
     expected = 5.0 * 4.87 / math.log(67.8 * 10 - 5.42)
     assert converted == pytest.approx(expected)
+
+
+def test_clear_sky_radiation_follows_fao56_elevation_term() -> None:
+    ra = pd.Series([16.7, 30.0])
+    sea_level = clear_sky_radiation_mj_m2_day(ra, elevation_m=0.0)
+    elevated = clear_sky_radiation_mj_m2_day(ra, elevation_m=1000.0)
+    assert sea_level.tolist() == pytest.approx([0.75 * 16.7, 0.75 * 30.0])
+    assert elevated.tolist() == pytest.approx([(0.75 + 0.02) * 16.7, (0.75 + 0.02) * 30.0])
+    assert float(elevated.iloc[0]) > float(sea_level.iloc[0])
 
 
 def test_extraterrestrial_radiation_mid_year_tropics() -> None:

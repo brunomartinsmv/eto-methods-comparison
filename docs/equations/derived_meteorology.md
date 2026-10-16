@@ -108,7 +108,27 @@ com constante solar \(G_{sc} = 0{,}0820\) MJ m⁻² min⁻¹.
 
 ---
 
-## 6. Conversão de vento para 2 m (FAO-56 eq. 47)
+## 6. Radiação de céu claro \(R_{so}\)
+
+### Definição
+
+\(R_{so}\) é a radiação solar de ondas curtas que chegaria à superfície em dia sem nuvens. A FAO-56 (eq. 37), também a equação 19 de ASCE-EWRI (2005), estima essa envoltória a partir da radiação extraterrestre e da altitude da estação quando não há coeficientes de Ångström calibrados localmente:
+
+$$R_{so} = (0{,}75 + 2 \times 10^{-5}\,z)\,R_a$$
+
+com \(z\) em metros. O termo em altitude aumenta a transmissividade da atmosfera mais rarefeita.
+
+### Envoltória usada na triagem
+
+ASCE-EWRI (2005, eq. 18) limita a razão de nebulosidade \(R_s/R_{so}\) ao intervalo \(0{,}25 \le R_s/R_{so} \le 1{,}0\). O pipeline também marca o dia quando \(R_s > R_a\). Dias fora dessa envoltória entram na contagem do relatório de qualidade. As tabelas de métricas do ano completo permanecem. A radiação líquida `rad_net_mj_m2_d` não é recalculada.
+
+\(R_a\) na triagem é a equação 21, a partir da latitude e do dia do ano. A coluna limpa `ra_extraterrestre_mj_m2_d` só entra se a latitude não estiver disponível.
+
+**Implementação:** `clear_sky_radiation_mj_m2_day` em `scripts/derived_meteo.py` e `scripts/radiation_screen.py`.
+
+---
+
+## 7. Conversão de vento para 2 m (FAO-56 eq. 47)
 
 ### Perfil logarítmico do vento
 
@@ -124,7 +144,7 @@ $$u_2 = u_{z_m} \cdot \frac{4{,}87}{\ln(67{,}8\,z_m - 5{,}42)}$$
 
 ---
 
-## 7. Conversão de fluxo de energia em profundidade de água
+## 8. Conversão de fluxo de energia em profundidade de água
 
 ### Balanço energético
 
@@ -140,7 +160,7 @@ $$\frac{1}{\lambda} \approx 0{,}408\ \mathrm{mm\ (MJ\ m^{-2})^{-1}}$$
 
 ---
 
-## 8. Conversão MJ m⁻² d⁻¹ → cal cm⁻² d⁻¹ (método Turc)
+## 9. Conversão MJ m⁻² d⁻¹ → cal cm⁻² d⁻¹ (método Turc)
 
 O método Turc histórico usa radiação em cal cm⁻² d⁻¹. O pipeline converte:
 
@@ -153,3 +173,4 @@ $$R_{s,\mathrm{cal\ cm^{-2}\ d^{-1}}} = R_{s,\mathrm{MJ\ m^{-2}\ d^{-1}}} \times
 ## Referências
 
 - Allen, R. G., Pereira, L. S., Raes, D., & Smith, M. (1998). *Crop Evapotranspiration* (FAO-56). FAO Irrigation and Drainage Paper 56.
+- ASCE-EWRI. (2005). *The ASCE standardized reference evapotranspiration equation*. American Society of Civil Engineers. https://doi.org/10.1061/9780784408056

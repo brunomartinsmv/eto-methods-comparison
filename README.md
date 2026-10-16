@@ -42,6 +42,7 @@ Run the pipeline to generate:
 **Metric tables** (`outputs/tables/`)
 - `summary_rankings.csv`, All methods ranked by site (Manaus, Piracicaba), scale (daily, monthly), and selected ranking rule
 - `{site}_daily_metrics.csv`, RMSE, MAE, MBE, Pearson r, R², Willmott d, confidence c, and performance classification for daily estimates
+- `{site}_daily_metrics_radiation_screen.csv`, The same daily metrics on days inside the FAO-56/ASCE radiation envelope. The full-year table is unchanged
 - `{site}_monthly_metrics.csv`, Same metrics aggregated monthly
 - `{site}_bootstrap_metric_intervals.csv`, Bootstrap confidence intervals for method metrics
 - `{site}_seasonal_error_metrics.csv`, Seasonal error diagnostics
@@ -63,7 +64,8 @@ Run the pipeline to generate:
 - Computed daily ETo series: `outputs/results/{site}_daily_eto.csv`
 
 **Reports** (`outputs/reports/`)
-- `{site}_data_quality.csv` and `data_quality_summary.csv`, Missing-value, date-range, and interpolation audits
+- `{site}_data_quality.csv` and `data_quality_summary.csv`, Missing-value, date-range, interpolation, and radiation-envelope audits
+- `{site}_radiation_screen.csv`, Daily Rs/Ra and Rs/Rso flags for the clear-sky envelope
 - `{site}_uncertainty_sensitivity.md`, Site-level uncertainty and sensitivity narrative
 - `summary.csv` and `summary.md`, Best method by site, temporal scale, rank, and ranking rule
 - `summary_rankings.md`, Readable version of the ranked method table
