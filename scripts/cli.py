@@ -1212,7 +1212,7 @@ def build_parser() -> argparse.ArgumentParser:
         choices=summary.RANKING_RULES,
         default=summary.DEFAULT_RANKING,
         help=(
-            "Ranking rule for selecting best methods: rmse, mae, c, willmott_d, "
+            "Ranking rule for selecting best methods: rmse, mae, c, willmott_d, kge, "
             "or composite (default: composite)"
         ),
     )

@@ -225,6 +225,47 @@ def test_build_rankings_adds_optional_site_metadata_when_available(tmp_path: Pat
     assert rankings.loc[0, "climate_class"] == "Af"
 
 
+def test_build_rankings_orders_methods_by_kge(tmp_path: Path) -> None:
+    tables_dir = tmp_path / "tables"
+    tables_dir.mkdir()
+    pd.DataFrame(
+        {
+            "method": ["et_high_c", "et_high_kge"],
+            "rmse": [0.2, 1.5],
+            "mae": [0.1, 1.2],
+            "mbe": [0.0, -0.4],
+            "r2": [0.99, 0.7],
+            "willmott_d": [0.98, 0.8],
+            "c": [0.95, 0.55],
+            "kge": [0.2, 0.9],
+            "pbias": [0.0, -12.0],
+            "classification": ["Excellent", "Poor"],
+        }
+    ).to_csv(tables_dir / "manaus_daily_metrics.csv", index=False)
+
+    rankings = build_rankings(tables_dir, sites=["manaus"], ranking="kge")
+
+    assert rankings[["rank", "selection_rule", "method", "kge", "classification"]].to_dict("records") == [
+        {
+            "rank": 1,
+            "selection_rule": "kge",
+            "method": "et_high_kge",
+            "kge": 0.9,
+            "classification": "Poor",
+        },
+        {
+            "rank": 2,
+            "selection_rule": "kge",
+            "method": "et_high_c",
+            "kge": 0.2,
+            "classification": "Excellent",
+        },
+    ]
+    assert rankings.loc[rankings["method"] == "et_high_kge", "rank_kge"].iloc[0] == 1
+    assert rankings.loc[rankings["method"] == "et_high_kge", "rank_pbias"].iloc[0] == 2
+    assert rankings.loc[rankings["method"] == "et_high_c", "rank_c"].iloc[0] == 1
+
+
 def test_write_rankings_creates_csv_and_markdown(tmp_path: Path) -> None:
     rankings = pd.DataFrame(
         {
@@ -255,6 +296,9 @@ def test_write_rankings_creates_csv_and_markdown(tmp_path: Path) -> None:
     assert "Manaus" in text
     assert "composite" in text
     assert "Monthly scale is listed before daily" in text
+    assert "agreement with calculated Penman–Monteith" in text
+    assert "Martí et al., 2015" in text
+    assert "López-Urrea et al., 2006" in text
     assert (tmp_path / "reports" / "summary_rankings.html").exists()
 
 

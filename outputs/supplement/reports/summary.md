@@ -2,9 +2,9 @@
 
 Best methods are selected by `composite` (highest c, then lowest RMSE, lowest MAE, highest Willmott d, and lowest absolute MBE) for each site and temporal scale.
 
-| site | biome | climate_class | region | country | state | scale | rank | selection_rule | best_method | rmse | mae | mbe | r | r2 | willmott_d | c | classification |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| manaus | Amazonia | Af | North | Brazil | AM | daily | 1 | composite | et_lungeon | 0.46322156548829 | 0.360330848878176 | -0.3555821936212242 | 0.9137756720148588 | 0.8349859787662065 | 0.7582682994824561 | 0.6928871249271454 | Good |
-| manaus | Amazonia | Af | North | Brazil | AM | monthly | 1 | composite | et_lungeon | 11.600391237100771 | 10.845256905447336 | -10.845256905447336 | 0.9768260607666795 | 0.9541891529929488 | 0.7045952593313154 | 0.6882670116074859 | Good |
-| piracicaba | Mata Atlantica | Cwa | Southeast | Brazil | SP | daily | 1 | composite | et_stephens_stewart | 0.3825333067542915 | 0.246587100406859 | -0.0509208450683757 | 0.9570717935940016 | 0.9159864180932392 | 0.9769473250706606 | 0.9350087286522392 | Excellent |
-| piracicaba | Mata Atlantica | Cwa | Southeast | Brazil | SP | monthly | 1 | composite | et_stephens_stewart | 5.5158954767434 | 4.322255909208477 | -1.5530857745854576 | 0.9683435110469606 | 0.9376891553867552 | 0.9815619444131656 | 0.9504891395631264 | Excellent |
+| site | biome | climate_class | region | country | state | scale | rank | selection_rule | best_method | rmse | mae | mbe | r | r2 | willmott_d | c | kge | pbias | classification |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| manaus | Amazonia | Af | North | Brazil | AM | daily | 1 | composite | et_lungeon | 0.46322156548829 | 0.360330848878176 | -0.3555821936212242 | 0.9137756720148588 | 0.8349859787662065 | 0.7582682994824561 | 0.6928871249271454 | 0.42588692850446075 | -35.78607243341772 | Good |
+| manaus | Amazonia | Af | North | Brazil | AM | monthly | 1 | composite | et_lungeon | 11.600391237100771 | 10.845256905447336 | -10.845256905447336 | 0.9768260607666795 | 0.9541891529929488 | 0.7045952593313154 | 0.6882670116074859 | 0.5053109605552841 | -35.78607243341772 | Good |
+| piracicaba | Mata Atlantica | Cwa | Southeast | Brazil | SP | daily | 1 | composite | et_stephens_stewart | 0.3825333067542915 | 0.246587100406859 | -0.0509208450683757 | 0.9570717935940016 | 0.9159864180932392 | 0.9769473250706606 | 0.9350087286522392 | 0.9250747806867223 | -1.6112042408966807 | Excellent |
+| piracicaba | Mata Atlantica | Cwa | Southeast | Brazil | SP | monthly | 1 | composite | et_stephens_stewart | 5.5158954767434 | 4.322255909208477 | -1.5530857745854576 | 0.9683435110469606 | 0.9376891553867552 | 0.9815619444131656 | 0.9504891395631264 | 0.928101422127066 | -1.6112042408966785 | Excellent |

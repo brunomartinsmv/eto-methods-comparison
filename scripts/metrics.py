@@ -58,6 +58,50 @@ def confidence_c(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return float(r * d)
 
 
+def kge(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """Kling–Gupta efficiency (Gupta et al., 2009).
+
+    ``1 - sqrt((r - 1)^2 + (alpha - 1)^2 + (beta - 1)^2)``, where ``r`` is the
+    Pearson correlation, ``alpha`` is ``sd(pred) / sd(true)``, and ``beta`` is
+    ``mean(pred) / mean(true)``. Standard deviations use the same divisor as
+    ``pearson_r``. A perfect match is 1.
+    """
+    if len(y_true) < 2:
+        return float("nan")
+    r = pearson_r(y_true, y_pred)
+    if not np.isfinite(r):
+        return float("nan")
+    sd_true = float(np.std(y_true, ddof=1))
+    if sd_true == 0:
+        return float("nan")
+    mean_true = float(np.mean(y_true))
+    if mean_true == 0 or not np.isfinite(mean_true):
+        return float("nan")
+    alpha = float(np.std(y_pred, ddof=1)) / sd_true
+    beta = float(np.mean(y_pred)) / mean_true
+    if not np.isfinite(alpha) or not np.isfinite(beta):
+        return float("nan")
+    distance = np.sqrt((r - 1.0) ** 2 + (alpha - 1.0) ** 2 + (beta - 1.0) ** 2)
+    return float(1.0 - distance)
+
+
+def pbias(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """Percent bias, ``100 * sum(pred - true) / sum(true)``.
+
+    The sign matches ``mbe``: positive values mean the method is higher than
+    the reference.
+    """
+    if len(y_true) == 0:
+        return float("nan")
+    denominator = float(np.sum(y_true))
+    if denominator == 0 or not np.isfinite(denominator):
+        return float("nan")
+    value = 100.0 * float(np.sum(y_pred - y_true)) / denominator
+    if not np.isfinite(value):
+        return float("nan")
+    return float(value)
+
+
 def classify_confidence(c: float) -> str:
     if not np.isfinite(c):
         return ""
@@ -96,6 +140,8 @@ def compute_metrics(df: pd.DataFrame, ref_col: str, method_cols: list[str]) -> p
                 "r2": r2_score(ref, series),
                 "willmott_d": willmott_d(ref, series),
                 "c": c,
+                "kge": kge(ref, series),
+                "pbias": pbias(ref, series),
                 "classification": classify_confidence(c),
             }
         )

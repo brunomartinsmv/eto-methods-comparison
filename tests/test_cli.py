@@ -141,6 +141,8 @@ def test_scientific_cli_commands_are_available() -> None:
 
     summarize_by_rmse = parser.parse_args(["summarize", "--ranking", "rmse"])
     assert summarize_by_rmse.ranking == "rmse"
+    summarize_by_kge = parser.parse_args(["summarize", "--ranking", "kge"])
+    assert summarize_by_kge.ranking == "kge"
 
     reproduce = parser.parse_args(["reproduce-paper"])
     assert reproduce.year == DEFAULT_YEAR

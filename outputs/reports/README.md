@@ -37,10 +37,11 @@ They report the best-performing method for each site and temporal scale using
 the selected ranking rule and the current metrics tables in `outputs/tables/`.
 The default is `--ranking composite`: highest confidence coefficient c, then
 lowest RMSE, lowest MAE, highest Willmott d, and lowest absolute MBE. You can
-also choose `--ranking rmse`, `--ranking mae`, `--ranking c`, or
-`--ranking willmott_d`. Ranking outputs include `rank`, `selection_rule`, and
-per-metric ranks for MAE, MBE, Pearson r, R², Willmott d, and the confidence
-coefficient c.
+also choose `--ranking rmse`, `--ranking mae`, `--ranking c`,
+`--ranking willmott_d`, or `--ranking kge`. Ranking outputs include `rank`,
+`selection_rule`, and per-metric ranks for MAE, MBE, Pearson r, R², Willmott d,
+the confidence coefficient c, Kling–Gupta efficiency, and percent bias.
+Every rank measures agreement with calculated Penman–Monteith.
 
 `summary_rankings.md` is generated alongside `outputs/tables/summary_rankings.csv`
 and lists every method ranked within each site and temporal scale.
