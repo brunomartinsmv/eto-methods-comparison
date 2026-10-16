@@ -122,6 +122,8 @@ def test_scientific_cli_commands_are_available() -> None:
     assert analyze.reports_output.endswith("outputs/reports")
     assert analyze.figures_output.endswith("outputs/figures")
     assert analyze.bootstrap_samples is None
+    assert analyze.bootstrap is None
+    assert analyze.block_length is None
     assert analyze.confidence is None
     assert analyze.random_state is None
     assert analyze.rainfall_column is None
@@ -133,6 +135,12 @@ def test_scientific_cli_commands_are_available() -> None:
     )
     assert analyze_override.bootstrap_samples == 42
     assert analyze_override.eto_bins == 3
+
+    moving_block = parser.parse_args(
+        ["analyze-uncertainty", "--bootstrap", "moving-block", "--block-length", "5"]
+    )
+    assert moving_block.bootstrap == "moving-block"
+    assert moving_block.block_length == 5
 
     summarize = parser.parse_args(["summarize"])
     assert summarize.input.endswith("outputs/tables")
@@ -245,6 +253,8 @@ cleaning:
         "random_state": 2024,
         "rainfall_column": "precip_mm",
         "eto_bins": 3,
+        "bootstrap": "iid",
+        "block_length": 1,
     }
 
     overridden = argparse.Namespace(
@@ -261,6 +271,8 @@ cleaning:
         "random_state": 99,
         "rainfall_column": "rain_mm",
         "eto_bins": 5,
+        "bootstrap": "iid",
+        "block_length": 1,
     }
 
     # Standalone analyze-uncertainty argparse defaults are None → YAML fallback.
@@ -271,6 +283,48 @@ cleaning:
     assert from_parser["random_state"] == 2023
     assert from_parser["rainfall_column"] == "precip_mm"
     assert from_parser["eto_bins"] == 3
+    assert from_parser["bootstrap"] == "iid"
+    assert from_parser["block_length"] == 1
+
+
+def test_pipeline_uncertainty_kwargs_resolve_moving_block(tmp_path, monkeypatch) -> None:
+    from scripts.cli import _pipeline_uncertainty_kwargs
+    from scripts.config import load_pipeline_config
+
+    config_path = tmp_path / "pipeline.yml"
+    config_path.write_text(
+        """
+calibration:
+  train_fraction: 0.7
+sensitivity:
+  perturbation_min_pct: -50
+  perturbation_max_pct: 50
+  perturbation_step_pct: 10
+uncertainty:
+  bootstrap_samples: 42
+  confidence: 0.9
+  bootstrap: moving_block
+  block_length: 5
+  eto_bins: 3
+  rainfall_column: precip_mm
+cleaning:
+  max_gap_days: 7
+""".strip()
+    )
+    monkeypatch.setattr(cli, "PIPELINE", load_pipeline_config(config_path))
+
+    resolved = _pipeline_uncertainty_kwargs(argparse.Namespace(year=2024))
+    assert resolved["bootstrap"] == "moving_block"
+    assert resolved["block_length"] == 5
+
+    overridden = _pipeline_uncertainty_kwargs(
+        argparse.Namespace(year=2024, bootstrap="moving-block", block_length=9)
+    )
+    assert overridden["bootstrap"] == "moving_block"
+    assert overridden["block_length"] == 9
+
+    with pytest.raises(ValueError, match="block_length"):
+        _pipeline_uncertainty_kwargs(argparse.Namespace(year=2024, bootstrap="iid", block_length=5))
 
 
 def test_cmd_all_skips_compute_in_precomputed_mode(monkeypatch) -> None:

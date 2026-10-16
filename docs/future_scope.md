@@ -39,8 +39,10 @@ scope unless a separate distribution layer is added.
 
 ### Autocorrelated uncertainty
 
-Bootstrap confidence intervals resample paired days but do not model temporal
-autocorrelation explicitly.
+The default bootstrap still resamples paired days independently (`resampling=iid`,
+`block_length=1`). `analyze-uncertainty --bootstrap moving-block` writes a
+moving-block interval on the same table and records the block length. Instrument
+error and interpolation uncertainty remain outside both schemes.
 
 ### Multi-year and cross-site synthesis
 
