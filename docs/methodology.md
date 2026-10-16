@@ -53,6 +53,8 @@ As tabelas em `outputs/tables/{site}_{daily|monthly}_metrics.csv` comparam cada 
 
 A classificacao segue estes limiares: `Excellent` para `c > 0.85`; `Very Good` para `0.75 < c <= 0.85`; `Good` para `0.65 < c <= 0.75`; `Average` para `0.60 < c <= 0.65`; `Poor` para `0.50 < c <= 0.60`; `Bad` para `0.40 < c <= 0.50`; e `Very Poor` para `c <= 0.40`. Quando `r`, `d` ou `c` nao podem ser estimados, a classe fica vazia. `kge` e `pbias` nao alteram essa classe. O comando `summarize` pode ordenar por `--ranking kge`; a regra padrao continua sendo `composite`, baseada em `c`. Todo ranking mede concordancia com o Penman–Monteith calculado, nao com evapotranspiracao de lisimetro (Martí et al., 2015; López-Urrea et al., 2006).
 
+O comando `limited-data` escreve `outputs/tables/{site}_limited_data_metrics.csv`. Cada linha e Penman-Monteith com vento, umidade, radiacao ou os tres substituidos pelas regras FAO-56, mais Hargreaves-Samani e Turc, todos contra a Penman-Monteith de dados completos nos mesmos dias. A ordem das linhas e a lista de cenarios. Os pressupostos estao em [`methodological_assumptions.md`](methodological_assumptions.md).
+
 ## Calibracao local opcional
 
 O comando `calibrate` ajusta coeficientes locais sem substituir silenciosamente os metodos originais. As series originais mantem seus nomes (`et_hargreaves_samani`, `et_turc`, `et_radiation_temperature`); as series calibradas usam nomes separados como `et_hargreaves_samani_calibrated`.
