@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- New sites are read from CSV (`reader.format: csv`). `data/raw/Evapo.xlsx` remains the reproduction workbook for Manaus, Piracicaba, and Petrolina.
 - Added monthly and annual relative sensitivity coefficients for Penman-Monteith (`outputs/tables/{site}_sensitivity_penman_monteith_relative.csv`). The coefficient is a ±1% central difference for temperature, vapor-pressure deficit, 2 m wind, and net radiation. The ±50% one-at-a-time sweep is unchanged, and each site keeps its own table.
 - Added an optional Hargreaves-Samani temperature-range exponent to `calibrate` (`--free-exponent`), with the same train/test metrics as the scalar fit. The published exponent 0.5 stays fixed when the flag is omitted.
 - Added a cross-site transfer table, `outputs/tables/{method}_calibration_transfer.csv`, when two or more configured sites are calibrated. Parameters are fit on one site's training window and scored at the other, with the original and calibrated equations side by side.
@@ -22,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Documented that a lower test RMSE against calculated Penman-Monteith is not a lysimeter validation.
+
+### Removed
+
+- Removed the Jupyter notebooks. Result inspection is `python -m scripts.results_overview`. Cleaning, ET₀ calculation, metrics, Taylor diagrams, and calibration stay in the CLI.
 
 ## [2.2.0] - 2026-10-08
 

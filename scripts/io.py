@@ -62,7 +62,7 @@ def resolve_reader_config(site_meta: dict, default_input: Path) -> ReaderConfig:
     merged_format = str(merged_reader.get("format", default_format))
     if "skiprows" in reader:
         skiprows = int(reader["skiprows"])
-    elif merged_format == "generic":
+    elif merged_format in {"generic", "csv"}:
         skiprows = 0
     else:
         skiprows = int(merged_reader.get("skiprows", int(default_reader.get("skiprows", 4))))
@@ -270,6 +270,15 @@ def read_inmet_limited_table(path: Path, sheet: str) -> SiteTable:
     return SiteTable(frame=body.reset_index(drop=True), station_status=status)
 
 
+def _resolve_reader_path(path_value: str | None, default_input: Path) -> Path:
+    if not path_value:
+        return default_input
+    path = Path(path_value)
+    if not path.is_absolute():
+        path = BASE_DIR / path
+    return path
+
+
 def read_site_table(
     default_input: Path,
     site_meta: dict,
@@ -278,12 +287,21 @@ def read_site_table(
 ) -> SiteTable:
     reader = resolve_reader_config(site_meta, default_input)
     station_status: str | None = None
-    if reader.format == "generic":
+    if reader.format == "csv":
+        path = _resolve_reader_path(reader.path, default_input)
+        if path.suffix.lower() != ".csv":
+            raise ValueError(
+                "CSV reader expects a .csv weather file. "
+                "Keep Evapo.xlsx on reader.format evapo_legacy."
+            )
+        if not path.exists():
+            shown = reader.path or str(default_input)
+            raise FileNotFoundError(f"Configured data path not found: {shown}")
+        df = read_generic_table(path, skiprows=reader.skiprows, column_map=reader.column_map)
+    elif reader.format == "generic":
         if not reader.path:
             raise ValueError("Generic reader requires reader.path in site configuration")
-        path = Path(reader.path)
-        if not path.is_absolute():
-            path = BASE_DIR / path
+        path = _resolve_reader_path(reader.path, default_input)
         if not path.exists():
             raise FileNotFoundError(f"Configured data path not found: {reader.path}")
         df = read_generic_table(path, skiprows=reader.skiprows, column_map=reader.column_map)
@@ -291,9 +309,7 @@ def read_site_table(
         sheet = reader.sheet or site_meta.get("sheet")
         if not sheet:
             raise ValueError("INMET limited reader requires 'sheet' or reader.sheet")
-        path = Path(reader.path) if reader.path else default_input
-        if reader.path and not path.is_absolute():
-            path = BASE_DIR / path
+        path = _resolve_reader_path(reader.path, default_input)
         table = read_inmet_limited_table(path, sheet)
         df = table.frame
         station_status = table.station_status
@@ -301,7 +317,12 @@ def read_site_table(
         sheet = reader.sheet or site_meta.get("sheet")
         if not sheet:
             raise ValueError("Site configuration must define 'sheet' or reader.sheet")
-        path = Path(reader.path) if reader.path else default_input
+        path = _resolve_reader_path(reader.path, default_input)
+        if path.suffix.lower() == ".csv":
+            raise ValueError(
+                "A .csv weather file needs reader.format: csv. "
+                "evapo_legacy reads the Evapo.xlsx workbook."
+            )
         df = pd.read_excel(path, sheet_name=sheet, skiprows=reader.skiprows)
         df = df.loc[:, [c for c in df.columns if not str(c).startswith("Unnamed")]]
         df = _apply_column_map(df, reader.column_map)
