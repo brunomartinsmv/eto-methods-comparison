@@ -99,6 +99,8 @@ Piracicaba represents a subtropical/agricultural setting with stronger seasonali
 
 The study uses 2024 data. Single-year results should be interpreted as a reproducible case study rather than a definitive climatological ranking.
 
+Petrolina (INMET A307) is in `Evapo.xlsx` with temperature, humidity, wind, pressure, and rain. The sheet records station status Pane and has no radiation columns. `configs/sites.yml` reads that sheet only as a temperature-humidity-wind case (`full_penman_monteith: false`). The quality report labels the station-status flag from the sheet. A fair semiarid Penman-Monteith comparison still needs a radiation-bearing series from another year or station. Until that series exists, rankings for Manaus and Piracicaba do not test a semiarid or advective contrast.
+
 ## References
 
 - Allen, R. G., Pruitt, W. O., Wright, J. L., Howell, T. A., Ventura, F., Snyder, R., Itenfisu, D., Steduto, P., Berengena, J., Baselga Yrisarry, J., Smith, M., Pereira, L. S., Raes, D., Perrier, A., Alves, I., Walter, I., & Elliott, R. (2006). A recommendation on standardized surface resistance for hourly calculation of reference ETo by the FAO56 Penman-Monteith method. *Agricultural Water Management*, 81(1–2), 1–22. https://doi.org/10.1016/j.agwat.2005.03.007

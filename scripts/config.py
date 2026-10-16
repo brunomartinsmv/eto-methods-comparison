@@ -180,6 +180,11 @@ def load_methods_config(path: Path = METHODS_CONFIG) -> MethodsConfig:
     )
 
 
+def site_is_full_penman_monteith(meta: dict) -> bool:
+    """Return whether the site is a full-data Penman-Monteith comparison site."""
+    return bool(meta.get("full_penman_monteith", True))
+
+
 def select_sites(
     sites: dict[str, dict],
     site: str | None = None,

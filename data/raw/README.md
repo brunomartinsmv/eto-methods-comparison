@@ -10,7 +10,7 @@ Original files with no modification. Do not edit these files; any treatment shou
 
 | Arquivo / File | Uso / Use |
 | --- | --- |
-| `Evapo.xlsx` | Entrada bruta padrao da CLI para Manaus e Piracicaba em 2024. / Default raw CLI input for Manaus and Piracicaba in 2024. |
+| `Evapo.xlsx` | Entrada bruta padrao da CLI para Manaus e Piracicaba em 2024. A aba `Petrolina` e um caso limitado (temperatura, umidade, vento, pressao e chuva; situacao Pane; sem radiacao) e nao entra na comparacao Penman-Monteith. / Default raw CLI input for Manaus and Piracicaba in 2024. The `Petrolina` sheet is a limited-data case (temperature, humidity, wind, pressure, and rain; status Pane; no radiation) and is not a Penman-Monteith comparison site. |
 | `Evapo_2.xlsx` | Arquivo auxiliar/legado com variaveis meteorologicas basicas. / Auxiliary/legacy workbook with basic meteorological variables. |
 
 Checksums SHA-256 dos arquivos versionados:

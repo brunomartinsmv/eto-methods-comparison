@@ -5,7 +5,13 @@ from pathlib import Path
 
 import pandas as pd
 
-from .config import OUTPUTS_FIGURES, OUTPUTS_REPORTS, OUTPUTS_TABLES, SITES
+from .config import (
+    OUTPUTS_FIGURES,
+    OUTPUTS_REPORTS,
+    OUTPUTS_TABLES,
+    SITES,
+    site_is_full_penman_monteith,
+)
 
 _RANKING_COLUMNS = [
     "rank",
@@ -902,7 +908,7 @@ def build_rankings_html(
         if rankings is not None and "site" in rankings.columns:
             sites = list(dict.fromkeys(rankings["site"].astype(str).tolist()))
         else:
-            sites = list(SITES.keys())
+            sites = [name for name, meta in SITES.items() if site_is_full_penman_monteith(meta)]
 
     parts = [
         "<p class=\"back\"><a href=\"../index.html\">← Back to results index</a></p>",

@@ -46,6 +46,40 @@ em `configs/sites.yml`.
 | Manaus, AM | `Manaus` | -3.1019 | -60.0164 | 61.25 m | 2024-01-01 a 2024-12-31 |
 | Piracicaba, SP | `Piracicaba` | -22.7083 | -47.6333 | 546.0 m | 2024-01-01 a 2024-12-31 |
 
+## Petrolina como caso de dados limitados
+
+A aba `Petrolina` de `Evapo.xlsx` é um export de estação automática do INMET
+(código A307). O bloco de metadados da própria aba traz latitude -9.38833333,
+longitude -40.52333332, altitude 372.72 m e `Situacao: Pane`. As colunas diárias
+são precipitação, pressão atmosférica (mbar, equivalente a hPa), temperatura
+máxima, média e mínima, umidade relativa média e mínima, e velocidade média do
+vento. Não há colunas de radiação.
+
+O leitor `inmet_limited`, declarado no bloco `reader` de `petrolina` em
+`configs/sites.yml`, padroniza essa aba como caso `temperature_humidity_wind`.
+`full_penman_monteith: false` deixa Petrolina fora de `quickstart`, `all`,
+`metrics` e das demais etapas que comparam métodos com Penman-Monteith. O
+leitor copia temperatura, umidade, vento, pressão e chuva quando essas colunas
+existem e não estima radiação.
+
+Uma comparação semiárida justa com Penman-Monteith ainda precisa de outra série,
+de outro ano ou de outra estação, que inclua radiação. Essa é uma decisão de
+dados, não uma mudança de fórmula.
+
+Para gravar o indicador de situação da estação no relatório de qualidade:
+
+```bash
+python -m scripts.cli validate-data --site petrolina --year 2024
+```
+
+`outputs/reports/petrolina_data_quality.csv` recebe a coluna `station_status`
+e uma linha `stage=station` com `status` igual ao texto da aba (Pane na
+planilha versionada). A limpeza da mesma aba, sem entrar na comparação, fica em:
+
+```bash
+python -m scripts.cli clean --site petrolina --year 2024
+```
+
 Codigo exato da estacao INMET e data original de download nao estao registrados
 nos arquivos atualmente versionados. Para auditoria futura, esses campos devem
 ser preenchidos no momento do download ou da substituicao do arquivo bruto.

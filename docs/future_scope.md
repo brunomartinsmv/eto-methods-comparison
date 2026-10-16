@@ -44,6 +44,15 @@ The default bootstrap still resamples paired days independently (`resampling=iid
 moving-block interval on the same table and records the block length. Instrument
 error and interpolation uncertainty remain outside both schemes.
 
+### Semiarid Penman-Monteith contrast
+
+`python -m scripts.cli validate-data --site petrolina` reads the Petrolina sheet
+as a temperature-humidity-wind case and writes the INMET station-status flag
+into the quality report. The same sheet can be standardized with
+`clean --site petrolina`. The reader does not estimate radiation, and the site
+stays out of the Penman-Monteith comparison. A fair semiarid comparison against
+that reference still needs a radiation-bearing series.
+
 ### Multi-year and cross-site synthesis
 
 The default workflow targets one analysis year per run. Cross-year pooling and formal

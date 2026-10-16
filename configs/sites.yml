@@ -25,3 +25,19 @@ sites:
     region: Southeast
     country: Brazil
     state: SP
+  petrolina:
+    sheet: Petrolina
+    lat: -9.38833333
+    lon: -40.52333332
+    alt_m: 372.72
+    biome: Caatinga
+    climate_class: BSh
+    region: Northeast
+    country: Brazil
+    state: PE
+    station_code: A307
+    full_penman_monteith: false
+    data_case: temperature_humidity_wind
+    reader:
+      format: inmet_limited
+      sheet: Petrolina

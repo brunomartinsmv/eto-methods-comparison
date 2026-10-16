@@ -417,7 +417,7 @@ def test_quickstart_reruns_full_onboarding_pipeline(monkeypatch) -> None:
     monkeypatch.setattr(cli, "cmd_export_supplement", fake_supplement)
     monkeypatch.setattr(cli, "cmd_build_index", fake_index)
     monkeypatch.setattr(cli, "_require_input_workbook", lambda path: None)
-    monkeypatch.setattr(cli, "_selected_sites", lambda args: {"manaus": {}, "piracicaba": {}})
+    monkeypatch.setattr(cli, "_selected_sites", lambda *args, **kwargs: {"manaus": {}, "piracicaba": {}})
 
     args = argparse.Namespace(
         input="data/raw/Evapo.xlsx",

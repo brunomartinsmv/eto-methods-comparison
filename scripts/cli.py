@@ -41,6 +41,7 @@ from .config import (
     REFERENCE_COLUMN,
     SITES,
     select_sites,
+    site_is_full_penman_monteith,
 )
 from .eto_io import read_eto_frame
 from .logging_config import get_logger, setup_logging
@@ -100,8 +101,32 @@ def _maybe_compute_eto_after_clean(args: argparse.Namespace) -> None:
     cmd_compute_eto(compute_args)
 
 
-def _selected_sites(args: argparse.Namespace) -> dict[str, dict]:
-    return select_sites(SITES, site=getattr(args, "site", None), all_sites=getattr(args, "all_sites", True))
+def _limited_site_message(site: str, meta: dict) -> str:
+    case = str(meta.get("data_case", "limited-data")).replace("_", "-")
+    return (
+        f"{site} is configured as a {case} case, not a full-data Penman-Monteith site. "
+        "The reader keeps temperature, humidity, wind, pressure, and rain when those "
+        "columns are on the sheet, and it does not estimate radiation. "
+        "A fair semiarid Penman-Monteith comparison still needs a radiation-bearing series. "
+        f"Read this sheet with `python -m scripts.cli validate-data --site {site}` "
+        f"or `python -m scripts.cli clean --site {site}`."
+    )
+
+
+def _selected_sites(args: argparse.Namespace, *, allow_limited: bool = False) -> dict[str, dict]:
+    sites = select_sites(SITES, site=getattr(args, "site", None), all_sites=getattr(args, "all_sites", True))
+    selected: dict[str, dict] = {}
+    explicit_site = getattr(args, "site", None)
+    for name, meta in sites.items():
+        if site_is_full_penman_monteith(meta):
+            selected[name] = meta
+            continue
+        if allow_limited and explicit_site == name:
+            selected[name] = meta
+            continue
+        if explicit_site == name:
+            raise ValueError(_limited_site_message(name, meta))
+    return selected
 
 
 def _pipeline_site_kwargs(args: argparse.Namespace) -> dict[str, int | str | bool | None]:
@@ -224,7 +249,7 @@ def cmd_clean(args: argparse.Namespace) -> None:
     if max_gap is None:
         max_gap = PIPELINE.cleaning_max_gap_days
 
-    for site, meta in _selected_sites(args).items():
+    for site, meta in _selected_sites(args, allow_limited=True).items():
         df = io.select_cleaned_columns(io.read_site_data(input_path, meta, year=args.year))
         cleaned_df, audit = cleaning.clean_daily_with_audit(df, max_gap=max_gap)
         output_path = output_dir / cleaned_daily_filename(site)
@@ -254,13 +279,17 @@ def cmd_validate_data(args: argparse.Namespace) -> None:
         max_gap = PIPELINE.cleaning_max_gap_days
 
     reports = []
-    for site, meta in _selected_sites(args).items():
-        raw_df = io.read_site_data(input_path, meta, year=args.year)
+    for site, meta in _selected_sites(args, allow_limited=True).items():
+        table = io.read_site_table(input_path, meta, year=args.year)
+        raw_df = table.frame
         canonical_df = io.select_cleaned_columns(raw_df)
         cleaned_df, audit = cleaning.clean_daily_with_audit(canonical_df, max_gap=max_gap)
+        full_site = site_is_full_penman_monteith(meta)
         calculated_path = OUTPUTS_RESULTS / daily_eto_filename(site)
         default_input = (DATA_RAW / "Evapo.xlsx").resolve()
-        include_calculated = getattr(args, "use_calculated_results", input_path.resolve() == default_input)
+        include_calculated = full_site and getattr(
+            args, "use_calculated_results", input_path.resolve() == default_input
+        )
         calculated_df = (
             pd.read_csv(calculated_path, parse_dates=["date"])
             if include_calculated and calculated_path.exists()
@@ -275,6 +304,8 @@ def cmd_validate_data(args: argparse.Namespace) -> None:
             year=args.year,
             interpolated_by_variable=audit.interpolated_by_variable,
             calculated_df=calculated_df,
+            station_status=table.station_status,
+            include_computed_methods=full_site,
         )
         quality.write_quality_report(report, output_dir, site)
         reports.append(report)
@@ -670,6 +701,7 @@ def cmd_sensitivity(args: argparse.Namespace) -> None:
 
 
 def cmd_all(args: argparse.Namespace) -> None:
+    _selected_sites(args, allow_limited=False)
     clean_args = argparse.Namespace(
         input=args.input,
         output=args.output,
@@ -805,6 +837,7 @@ def _parse_run_site_steps(steps: str | None) -> tuple[str, ...]:
 
 
 def cmd_run_site(args: argparse.Namespace) -> None:
+    _selected_sites(args, allow_limited=False)
     steps = _parse_run_site_steps(getattr(args, "steps", None))
     site_kwargs = _pipeline_site_kwargs(args)
 
@@ -900,6 +933,7 @@ def cmd_run_site(args: argparse.Namespace) -> None:
 
 def cmd_quickstart(args: argparse.Namespace) -> None:
     _require_input_workbook(Path(args.input))
+    _selected_sites(args, allow_limited=False)
     cmd_reproduce_core(args)
     for site in _selected_sites(args).keys():
         cmd_inspect(
