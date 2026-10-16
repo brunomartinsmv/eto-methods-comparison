@@ -33,6 +33,8 @@ def test_pipeline_config_loads_defaults() -> None:
     assert pipeline.sensitivity_relative_perturbation_pct == pytest.approx(1)
     assert pipeline.uncertainty_bootstrap_samples == 1000
     assert pipeline.uncertainty_confidence == pytest.approx(0.95)
+    assert pipeline.uncertainty_bootstrap == "iid"
+    assert pipeline.uncertainty_block_length == 7
     assert pipeline.uncertainty_eto_bins == 4
     assert pipeline.uncertainty_rainfall_column == "rain_mm"
     assert pipeline.cleaning_max_gap_days == 7

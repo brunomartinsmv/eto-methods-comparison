@@ -14,7 +14,7 @@ from .derived_meteo import (
     vapor_pressure_slope_kpa_c,
     wind_speed_at_2m,
 )
-from .fao56 import penman_monteith_fao56
+from .fao56 import fao56_pmt, penman_monteith_fao56
 from .logging_config import get_logger
 
 DEFAULT_ALTITUDE_M = 0.0
@@ -193,6 +193,33 @@ def compute_daily_eto(
         report.computed.append("et_penman_monteith")
     else:
         _record_skip(report, "et_penman_monteith", missing)
+
+    missing = _missing_columns(df, ["tmin_c", "tmax_c", "ra_extraterrestre_mj_m2_d"])
+    if not missing:
+        result["et_fao56_pmt"] = fao56_pmt(
+            t_min_c=df["tmin_c"],
+            t_max_c=df["tmax_c"],
+            ra_mj_m2_day=df["ra_extraterrestre_mj_m2_d"],
+            altitude_m=altitude_m,
+        )
+        report.computed.append("et_fao56_pmt")
+    else:
+        _record_skip(report, "et_fao56_pmt", missing)
+
+    missing = _missing_columns(df, ["tmed_c", "tmin_c", "rad_global_mj_m2_d"])
+    latitude = site_meta.get("lat")
+    if not missing and latitude is not None:
+        result["et_valiantzas"] = eto_methods.valiantzas(
+            t_mean_c=df["tmed_c"],
+            t_min_c=df["tmin_c"],
+            rs_mj_m2_day=df["rad_global_mj_m2_d"],
+            latitude_deg=float(latitude),
+        )
+        report.computed.append("et_valiantzas")
+    else:
+        if latitude is None:
+            missing = [*missing, "lat"]
+        _record_skip(report, "et_valiantzas", missing)
 
     missing = _missing_columns(df, ["tmed_c", "ra_extraterrestre_mj_m2_d"])
     if not missing:

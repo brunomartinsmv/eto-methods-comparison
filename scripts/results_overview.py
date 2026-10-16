@@ -2,13 +2,24 @@
 
 import pandas as pd
 
-from scripts.config import OUTPUTS_FIGURES, OUTPUTS_REPORTS, OUTPUTS_TABLES, SITES
+from scripts.config import (
+    OUTPUTS_FIGURES,
+    OUTPUTS_REPORTS,
+    OUTPUTS_TABLES,
+    SITES,
+    site_is_full_penman_monteith,
+)
+
+
+def _comparison_sites() -> list[str]:
+    return [site for site, meta in SITES.items() if site_is_full_penman_monteith(meta)]
 
 
 def main() -> None:
+    sites = _comparison_sites()
     required_paths = [
         path
-        for site in SITES
+        for site in sites
         for path in (
             OUTPUTS_TABLES / f"{site}_daily_metrics.csv",
             OUTPUTS_TABLES / f"{site}_monthly_metrics.csv",
@@ -25,7 +36,7 @@ def main() -> None:
             + ", ".join(str(path) for path in missing)
         )
 
-    for site in SITES:
+    for site in sites:
         print(f"\n{site.upper()} daily metrics")
         daily = pd.read_csv(OUTPUTS_TABLES / f"{site}_daily_metrics.csv")
         print(daily.sort_values("rmse").to_string(index=False))
@@ -36,12 +47,18 @@ def main() -> None:
 
         print(f"\n{site.upper()} variables with audit flags")
         report = pd.read_csv(OUTPUTS_REPORTS / f"{site}_data_quality.csv")
+        outside_envelope = (
+            pd.to_numeric(report["envelope_days_outside"], errors="coerce").fillna(0)
+            if "envelope_days_outside" in report.columns
+            else 0
+        )
         flagged = report.loc[
             (report["missing_values"] > 0)
             | (report["interpolated_values"] > 0)
             | (report["physical_limit_violations"] > 0)
             | report["missing_dates"].fillna("").ne("")
             | report["duplicate_dates"].fillna("").ne("")
+            | (outside_envelope > 0)
         ]
         print(flagged.to_string(index=False) if not flagged.empty else "No audit flags")
 

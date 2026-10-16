@@ -8,15 +8,17 @@
 [![Results](https://img.shields.io/badge/results-summary_rankings.csv-informational.svg)](outputs/tables/summary_rankings.csv)
 [![Contact](https://img.shields.io/badge/contact-GitHub%20Issues-lightgrey.svg)](https://github.com/brunomartinsmv/eto-methods-comparison/issues)
 
-This repository compares 18 alternative ET₀ methods with FAO-56 Penman-Monteith. It includes the Python pipeline, method rankings, data-quality reports, uncertainty and sensitivity analyses, optional PCA, and instructions for reproducing the outputs.
+This repository compares 20 alternative ET₀ methods with FAO-56 Penman-Monteith. It includes the Python pipeline, method rankings, data-quality reports, uncertainty and sensitivity analyses, optional PCA, and instructions for reproducing the outputs.
 
 ## Demonstration results
 
-This repository now configures **18 alternative ET0 methods plus Penman-Monteith FAO-56 as reference**. The current demonstration workflow runs end to end for two contrasting Brazilian climates:
+This repository now configures **20 alternative ET0 methods plus Penman-Monteith FAO-56 as reference**. FAO-56 PMT and the Valiantzas temperature-radiation equation are calculated and kept out of the default ranking. The current demonstration workflow runs end to end for two contrasting Brazilian climates:
 - **Piracicaba, SP** (Cwa, humid subtropical with dry winter)
 - **Manaus, AM** (Af, tropical rainforest)
 
-Manaus and Piracicaba are demonstration sites, not a fixed multicity study design. Additional sites can be added through `configs/sites.yml` without changing the code structure.
+Manaus and Piracicaba are demonstration sites, not a fixed multicity study design. Additional full-data sites can be added through `configs/sites.yml` without changing the code structure.
+
+Petrolina (INMET A307) is in the same workbook with station status Pane and with temperature, humidity, wind, pressure, and rain. It is configured as a temperature-humidity-wind case, not as a third Penman-Monteith site. The reader does not estimate radiation. A fair semiarid Penman-Monteith comparison still needs a radiation-bearing series. `python -m scripts.cli validate-data --site petrolina --year 2024` labels that station-status flag in the quality report. See `docs/data_provenance.md`.
 
 The current 2024 daily tables give Priestley-Taylor an RMSE of 1.03 mm d⁻¹ in Manaus and 0.50 mm d⁻¹ in Piracicaba. Makkink has an RMSE of 0.42 mm d⁻¹ in Piracicaba. Camargo overestimates the reference in Manaus (MBE +0.97 mm d⁻¹) and underestimates it in Piracicaba (MBE −1.86 mm d⁻¹).
 
@@ -42,10 +44,12 @@ Run the pipeline to generate:
 **Metric tables** (`outputs/tables/`)
 - `summary_rankings.csv`, All methods ranked by site (Manaus, Piracicaba), scale (daily, monthly), and selected ranking rule
 - `{site}_daily_metrics.csv`, RMSE, MAE, MBE, Pearson r, R², Willmott d, confidence c, and performance classification for daily estimates
+- `{site}_daily_metrics_radiation_screen.csv`, The same daily metrics on days inside the FAO-56/ASCE radiation envelope. The full-year table is unchanged
 - `{site}_monthly_metrics.csv`, Same metrics aggregated monthly
-- `{site}_bootstrap_metric_intervals.csv`, Bootstrap confidence intervals for method metrics
+- `{site}_bootstrap_metric_intervals.csv`, Bootstrap confidence intervals for RMSE, MAE, and MBE. The default draws days independently and records `block_length` 1. `--bootstrap moving-block` keeps contiguous daily blocks and records the length used.
 - `{site}_seasonal_error_metrics.csv`, Seasonal error diagnostics
 - `{site}_bias_by_eto_bin.csv`, Bias summarized by Penman-Monteith ETo range
+- `{site}_limited_data_metrics.csv`, Penman-Monteith with FAO-56 substitutes for missing wind, humidity, or radiation, plus Hargreaves-Samani and Turc, scored against the full-data reference on the same days (`limited-data`)
 - Start with `summary_rankings.csv` to compare methods at each site.
 
 **Figures** (`outputs/figures/{site}/`)
@@ -63,7 +67,8 @@ Run the pipeline to generate:
 - Computed daily ETo series: `outputs/results/{site}_daily_eto.csv`
 
 **Reports** (`outputs/reports/`)
-- `{site}_data_quality.csv` and `data_quality_summary.csv`, Missing-value, date-range, and interpolation audits
+- `{site}_data_quality.csv` and `data_quality_summary.csv`, Missing-value, date-range, interpolation, and radiation-envelope audits
+- `{site}_radiation_screen.csv`, Daily Rs/Ra and Rs/Rso flags for the clear-sky envelope
 - `{site}_uncertainty_sensitivity.md`, Site-level uncertainty and sensitivity narrative
 - `summary.csv` and `summary.md`, Best method by site, temporal scale, rank, and ranking rule
 - `summary_rankings.md`, Readable version of the ranked method table
@@ -226,10 +231,12 @@ python -m scripts.cli aggregate  # Create aggregations → outputs/results/
 python -m scripts.cli metrics    # Compute RMSE, r, R², Willmott d, c, etc. → outputs/tables/ (prefers computed ET0 if available)
 python -m scripts.cli plots      # Generate all figures → outputs/figures/
 python -m scripts.cli pca        # Optional PCA on meteorological drivers
-python -m scripts.cli analyze-uncertainty  # Bootstrap, seasonal, and bias-bin diagnostics
+python -m scripts.cli analyze-uncertainty  # Day-exchangeable bootstrap, seasonal, and bias-bin diagnostics
+python -m scripts.cli analyze-uncertainty --bootstrap moving-block --block-length 7  # Optional moving-block intervals
 python -m scripts.cli validate-data  # Audit dates, missing values, interpolation traces
 python -m scripts.cli summarize      # Rank methods with the default composite rule
 python -m scripts.cli summarize --ranking rmse       # Rank by lowest RMSE
+python -m scripts.cli summarize --ranking kge        # Rank by highest Kling–Gupta efficiency
 python -m scripts.cli summarize --ranking composite  # Rank by the documented multi-metric rule
 python -m scripts.cli quickstart --year 2024       # Full pipeline + reports + index + supplement
 python -m scripts.cli inspect --site manaus        # Pre-flight method feasibility report
@@ -242,12 +249,14 @@ python -m scripts.cli export-supplement             # Collect supplemental outpu
 ```
 
 `summarize` accepts `--ranking rmse`, `--ranking mae`, `--ranking c`,
-`--ranking willmott_d`, or `--ranking composite`. The default is
+`--ranking willmott_d`, `--ranking kge`, or `--ranking composite`. The default is
 `composite`, which ranks methods within each site and temporal scale by:
 highest confidence coefficient `c`, then lowest `rmse`, lowest `mae`,
-highest `willmott_d`, and lowest absolute `mbe`. The selected rule is written
+highest `willmott_d`, and lowest absolute `mbe`. `--ranking kge` orders by
+highest Kling–Gupta efficiency. The selected rule is written
 to `selection_rule`, and the chosen order is written to `rank` in both
 `outputs/reports/summary.csv` and `outputs/tables/summary_rankings.csv`.
+Every rank measures agreement with calculated Penman–Monteith.
 
 `metrics` remains backward compatible: if `outputs/results/{site}_daily_eto.csv`
 does not exist, it falls back to `data/cleaned/{site}_daily.csv` and uses the
@@ -267,12 +276,27 @@ python -m scripts.cli calibrate --site manaus --method hargreaves_samani \
   --results-input outputs/results \
   --train-start 2024-01-01 --train-end 2024-06-30 \
   --test-start 2024-07-01 --test-end 2024-12-31
+
+python -m scripts.cli calibrate --all-sites --method hargreaves_samani --free-exponent
 ```
 
 The outputs are `outputs/tables/{site}_{method}_calibration_coefficients.csv`
 and `outputs/tables/{site}_{method}_calibration_metrics.csv`, including
 train/test periods, the `minimize_train_rmse` objective, fitted coefficients,
-and before/after metrics.
+and before/after metrics. For Hargreaves-Samani, `--free-exponent` also
+estimates the temperature-range exponent on the training period. The published
+exponent 0.5 is used when the flag is omitted. The search does not insert a
+regional exponent or regional coefficients from another climate. The original
+series keeps coefficient 0.0023 and exponent 0.5, and train/test metrics are
+still reported separately.
+
+With two or more configured sites, `calibrate` also writes
+`outputs/tables/{method}_calibration_transfer.csv`: parameters fit on one
+site's training window, scored at each other site, with the original and
+calibrated equations side by side on every finite day.
+
+A lower test RMSE against calculated Penman-Monteith is not a lysimeter
+validation. The target remains the calculated `et_penman_monteith` series.
 
 ---
 
@@ -443,7 +467,7 @@ date       | temp_mean | temp_min | temp_max | radiation | wind_2m | rh_mean
 ...
 ```
 
-**Note:** Column names should match those expected by `scripts/io.py`, or configure a custom `reader` block in `configs/sites.yml` for CSV/Excel files with different headers.
+**Note:** Column names should match those expected by `scripts/io.py`, or configure a custom `reader` block in `configs/sites.yml` for CSV/Excel files with different headers. `reader.format: inmet_limited` reads an INMET automatic-station sheet that has temperature, humidity, and wind and may lack radiation. Set `full_penman_monteith: false` for that case so the site stays out of the Penman-Monteith comparison.
 
 ### Flexible input readers
 
@@ -520,7 +544,7 @@ The repository also includes [`CITATION.cff`](CITATION.cff), which GitHub can us
 
 ## Methods Overview
 
-The repository configuration targets **18 alternative ET0 estimation methods** plus **Penman-Monteith FAO-56** as the reference. The `compute-eto` command calculates the **15 methods with `status: computed`** from standardized meteorological variables and writes daily calculated series to `outputs/results/{site}_daily_eto.csv`.
+The repository configuration targets **20 alternative ET0 estimation methods** plus **Penman-Monteith FAO-56** as the reference. The `compute-eto` command calculates the **17 methods with `status: computed`** from standardized meteorological variables and writes daily calculated series to `outputs/results/{site}_daily_eto.csv`. FAO-56 PMT (`et_fao56_pmt`) and Valiantzas (`et_valiantzas`) are computed with `default_ranking: false`, so they stay out of the default metrics and rankings.
 
 **Reference standard:**
 - **Penman-Monteith (FAO-56)**, Energy balance + aerodynamic approach, requires full met data

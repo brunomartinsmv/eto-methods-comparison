@@ -3,11 +3,14 @@ from scripts.naming import (
     bootstrap_filename,
     calibration_coefficients_filename,
     calibration_metrics_filename,
+    calibration_transfer_filename,
     cleaned_daily_filename,
     daily_eto_filename,
     figure_filename,
     metrics_filename,
     monthly_totals_filename,
+    radiation_screen_filename,
+    radiation_screen_metrics_filename,
     relative_sensitivity_filename,
     rolling_7d_filename,
     seasonal_filename,
@@ -34,6 +37,14 @@ def test_daily_eto_filename() -> None:
 def test_metrics_filename() -> None:
     assert metrics_filename("manaus", "daily") == "manaus_daily_metrics.csv"
     assert metrics_filename("manaus", "monthly") == "manaus_monthly_metrics.csv"
+
+
+def test_radiation_screen_filenames() -> None:
+    assert radiation_screen_filename("manaus") == "manaus_radiation_screen.csv"
+    assert (
+        radiation_screen_metrics_filename("manaus")
+        == "manaus_daily_metrics_radiation_screen.csv"
+    )
 
 
 def test_bootstrap_filename() -> None:
@@ -68,6 +79,10 @@ def test_calibration_filenames() -> None:
     assert (
         calibration_metrics_filename("manaus", "hargreaves_samani")
         == "manaus_hargreaves_samani_calibration_metrics.csv"
+    )
+    assert (
+        calibration_transfer_filename("hargreaves_samani")
+        == "hargreaves_samani_calibration_transfer.csv"
     )
 
 

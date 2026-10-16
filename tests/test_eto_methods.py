@@ -26,6 +26,7 @@ PUBLIC_METHODS = [
     "lungeon",
     "stephens_stewart",
     "hicks_hess",
+    "valiantzas",
 ]
 
 SYNTHETIC_WEATHER = {
@@ -161,6 +162,16 @@ METHOD_CASES = {
         },
         np.array([3.3942857143, 5.1884081633, 7.5114285714]),
     ),
+    "valiantzas": (
+        eto_methods.valiantzas,
+        {
+            "t_mean_c": SYNTHETIC_WEATHER["t_mean_c"],
+            "t_min_c": SYNTHETIC_WEATHER["t_min_c"],
+            "rs_mj_m2_day": SYNTHETIC_WEATHER["rs_mj_m2_day"],
+            "latitude_deg": -22.7,
+        },
+        np.array([3.3369135159, 4.1804917945, 5.0849294621]),
+    ),
 }
 
 
@@ -190,6 +201,24 @@ def test_public_methods_have_synthetic_regression_values(method_name: str) -> No
     assert np.allclose(result, expected, rtol=1e-10, atol=1e-10)
 
 
+def test_jensen_heise_keeps_configured_temperature_intercept() -> None:
+    t_mean = np.array([20.0, 25.0, 30.0])
+    rs_mj = np.array([16.0, 18.0, 20.0])
+    rs_mm = rs_mj / 2.45
+    configured = rs_mm * 0.025 * (t_mean - 3.0)
+    cited_with_negative_intercept = rs_mm * 0.025 * (t_mean + 3.0)
+    cited_metric_intercept = rs_mm * (0.025 * t_mean + 0.08)
+
+    result = np.asarray(
+        eto_methods.jensen_heise(t_mean_c=t_mean, rs_mj_m2_day=rs_mj),
+        dtype=float,
+    )
+
+    assert np.allclose(result, configured, rtol=0.0, atol=1e-12)
+    assert np.max(np.abs(result - cited_with_negative_intercept)) > 0.5
+    assert np.max(np.abs(result - cited_metric_intercept)) > 0.5
+
+
 def test_hargreaves_samani_is_zero_when_temperature_range_is_zero() -> None:
     result = eto_methods.hargreaves_samani(
         t_min_c=np.array([25.0]),
@@ -199,6 +228,44 @@ def test_hargreaves_samani_is_zero_when_temperature_range_is_zero() -> None:
     )
 
     assert np.allclose(result, np.array([0.0]), rtol=0.0, atol=1e-12)
+
+
+def test_hargreaves_samani_default_exponent_matches_square_root() -> None:
+    kwargs = {
+        "t_min_c": np.array([20.0, 21.0]),
+        "t_max_c": np.array([30.0, 33.0]),
+        "t_mean_c": np.array([25.0, 27.0]),
+        "ra_mj_m2_day": np.array([34.0, 36.0]),
+    }
+
+    default = np.asarray(eto_methods.hargreaves_samani(**kwargs), dtype=float)
+    explicit = np.asarray(eto_methods.hargreaves_samani(**kwargs, exponent=0.5), dtype=float)
+
+    assert explicit == pytest.approx(default, rel=0.0, abs=0.0)
+
+
+def test_hargreaves_samani_exponent_changes_temperature_range_power() -> None:
+    result = eto_methods.hargreaves_samani(
+        t_min_c=20.0,
+        t_max_c=30.0,
+        t_mean_c=25.0,
+        ra_mj_m2_day=24.5,
+        coefficient=0.0023,
+        exponent=1.0,
+    )
+    # Ra_mm = 24.5 / 2.45 = 10; range = 10; (Tmean + 17.8) = 42.8
+    assert result == pytest.approx(0.0023 * 10.0 * 10.0 * 42.8)
+
+
+def test_hargreaves_samani_rejects_non_positive_exponent() -> None:
+    with pytest.raises(ValueError, match="greater than 0"):
+        eto_methods.hargreaves_samani(
+            t_min_c=20.0,
+            t_max_c=30.0,
+            t_mean_c=25.0,
+            ra_mj_m2_day=30.0,
+            exponent=0.0,
+        )
 
 
 def test_penman_monteith_fao56_matches_reference_scalar_calculation() -> None:

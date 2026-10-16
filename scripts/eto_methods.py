@@ -5,6 +5,8 @@ Coefficients are explicit keyword defaults so callers can document local calibra
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 import pandas as pd
 
@@ -45,14 +47,16 @@ def hargreaves_samani(
     t_mean_c: ArrayLike,
     ra_mj_m2_day: ArrayLike,
     coefficient: float = 0.0023,
+    exponent: float = 0.5,
 ) -> float | np.ndarray | pd.Series:
-    """Hargreaves-Samani ET0 = c * Ra_mm * sqrt(Tmax - Tmin) * (Tmean + 17.8).
+    """Hargreaves-Samani ET0 = c * Ra_mm * (Tmax - Tmin)**exponent * (Tmean + 17.8).
 
     Parameters
     ----------
     t_min_c, t_max_c, t_mean_c: daily minimum, maximum, and mean air temperature, degrees C.
     ra_mj_m2_day: extraterrestrial radiation, MJ m-2 day-1, converted to mm day-1.
-    coefficient: empirical coefficient.
+    coefficient: empirical coefficient. Published default is 0.0023.
+    exponent: power on daily temperature range. Published default is 0.5.
 
     Units
     -----
@@ -62,10 +66,26 @@ def hargreaves_samani(
     -------
     float, numpy.ndarray, or pandas.Series.
     """
+    if not np.isfinite(exponent) or exponent <= 0.0:
+        raise ValueError("Hargreaves-Samani exponent must be finite and greater than 0")
     temp_range = np.maximum(as_array(t_max_c) - as_array(t_min_c), 0)
     ra_mm = as_array(mj_m2_day_to_mm_day(ra_mj_m2_day))
-    result = coefficient * ra_mm * np.sqrt(temp_range) * (as_array(t_mean_c) + 17.8)
+    powered = _temperature_range_power(temp_range, exponent)
+    result = coefficient * ra_mm * powered * (as_array(t_mean_c) + 17.8)
     return restore_from_inputs(result, t_min_c, t_max_c, t_mean_c, ra_mj_m2_day)
+
+
+def _temperature_range_power(temp_range: np.ndarray, exponent: float) -> np.ndarray:
+    if exponent == 0.5:
+        return np.sqrt(temp_range)
+    range_values = np.asarray(temp_range, dtype=float)
+    if range_values.ndim == 0:
+        value = float(range_values)
+        return np.asarray(value**exponent if value > 0.0 else 0.0)
+    powered = np.zeros(range_values.shape, dtype=float)
+    positive = range_values > 0.0
+    powered[positive] = np.power(range_values[positive], exponent)
+    return powered
 
 
 def makkink(
@@ -428,6 +448,54 @@ def stephens_stewart(
         * as_array(mj_m2_day_to_mm_day(rs_mj_m2_day))
     )
     return restore_from_inputs(result, t_mean_c, rs_mj_m2_day)
+
+
+def valiantzas(
+    *,
+    t_mean_c: ArrayLike,
+    t_min_c: ArrayLike,
+    rs_mj_m2_day: ArrayLike,
+    latitude_deg: float,
+    radiation_coefficient: float = 0.0393,
+    latitude_coefficient: float = 0.19,
+    aerodynamic_coefficient: float = 0.0061,
+) -> float | np.ndarray | pd.Series:
+    """Valiantzas temperature-radiation ET0 (2013a).
+
+    ET0 = 0.0393 Rs sqrt(T + 9.5) - 0.19 Rs^0.6 |phi|^0.15
+    + 0.0061 (T + 20) (1.12 T - Tmin - 2)^0.7.
+
+    Parameters
+    ----------
+    t_mean_c: daily mean air temperature, degrees C.
+    t_min_c: daily minimum air temperature, degrees C.
+    rs_mj_m2_day: global solar radiation, MJ m-2 day-1. Not a millimeter equivalent.
+    latitude_deg: station latitude, degrees. The published factor uses |phi| in radians.
+    radiation_coefficient: leading coefficient on Rs sqrt(T + 9.5).
+    latitude_coefficient: coefficient on the latitude-radiation term.
+    aerodynamic_coefficient: coefficient on the temperature-only aerodynamic term.
+
+    Units
+    -----
+    Rs is MJ m-2 day-1. Latitude is degrees and is converted to radians inside the function.
+    ET0 is mm day-1.
+
+    Returns
+    -------
+    float, numpy.ndarray, or pandas.Series.
+    """
+    t_mean = as_array(t_mean_c)
+    t_min = as_array(t_min_c)
+    rs = np.maximum(as_array(rs_mj_m2_day), 0.0)
+    phi = abs(math.radians(float(latitude_deg)))
+    latitude_factor = 0.0 if phi == 0.0 else phi**0.15
+    aerodynamic_base = np.maximum(1.12 * t_mean - t_min - 2.0, 0.0)
+    result = (
+        radiation_coefficient * rs * np.sqrt(np.maximum(t_mean + 9.5, 0.0))
+        - latitude_coefficient * np.power(rs, 0.6) * latitude_factor
+        + aerodynamic_coefficient * (t_mean + 20.0) * np.power(aerodynamic_base, 0.7)
+    )
+    return restore_from_inputs(result, t_mean_c, t_min_c, rs_mj_m2_day)
 
 
 def hicks_hess(

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -34,6 +34,15 @@ class MethodsConfig:
     short_names: dict[str, str]
     status_by_name: dict[str, str]
     reference_column: str = "et_penman_monteith"
+    default_ranking_by_name: dict[str, bool] = field(default_factory=dict)
+
+    @property
+    def excluded_from_default_ranking(self) -> frozenset[str]:
+        return frozenset(
+            column
+            for name, column in self.columns.items()
+            if not self.default_ranking_by_name.get(name, True)
+        )
 
     @property
     def precomputed_only_columns(self) -> frozenset[str]:
@@ -67,9 +76,18 @@ class PipelineConfig:
     sensitivity_relative_perturbation_pct: float = 1.0
     uncertainty_bootstrap_samples: int = 1000
     uncertainty_confidence: float = 0.95
+    uncertainty_bootstrap: str = "iid"
+    uncertainty_block_length: int = 7
     uncertainty_eto_bins: int = 4
     uncertainty_rainfall_column: str = "rain_mm"
     cleaning_max_gap_days: int | None = 7
+
+
+def _normalize_bootstrap_scheme(value: object) -> str:
+    scheme = str(value).strip().lower().replace("-", "_")
+    if scheme not in {"iid", "moving_block"}:
+        raise ValueError("uncertainty.bootstrap must be 'iid' or 'moving_block'")
+    return scheme
 
 
 def _read_yaml(path: Path) -> dict:
@@ -119,6 +137,10 @@ def load_pipeline_config(path: Path = PIPELINE_CONFIG) -> PipelineConfig:
     if not all(isinstance(section, dict) for section in (calibration, sensitivity, uncertainty, cleaning)):
         raise ValueError(f"Expected section mappings in {path}")
     max_gap = cleaning.get("max_gap_days")
+    bootstrap_scheme = _normalize_bootstrap_scheme(uncertainty.get("bootstrap", "iid"))
+    block_length = int(uncertainty.get("block_length", 7))
+    if block_length < 1:
+        raise ValueError("uncertainty.block_length must be at least 1")
     return PipelineConfig(
         calibration_train_fraction=float(calibration.get("train_fraction", 0.7)),
         sensitivity_perturbation_min_pct=int(sensitivity.get("perturbation_min_pct", -50)),
@@ -127,6 +149,8 @@ def load_pipeline_config(path: Path = PIPELINE_CONFIG) -> PipelineConfig:
         sensitivity_relative_perturbation_pct=float(sensitivity.get("relative_perturbation_pct", 1)),
         uncertainty_bootstrap_samples=int(uncertainty.get("bootstrap_samples", 1000)),
         uncertainty_confidence=float(uncertainty.get("confidence", 0.95)),
+        uncertainty_bootstrap=bootstrap_scheme,
+        uncertainty_block_length=block_length,
         uncertainty_eto_bins=int(uncertainty.get("eto_bins", 4)),
         uncertainty_rainfall_column=str(uncertainty.get("rainfall_column", "rain_mm")),
         cleaning_max_gap_days=None if max_gap is None else int(max_gap),
@@ -142,6 +166,7 @@ def load_methods_config(path: Path = METHODS_CONFIG) -> MethodsConfig:
     columns: dict[str, str] = {}
     short_names: dict[str, str] = {}
     status_by_name: dict[str, str] = {}
+    default_ranking_by_name: dict[str, bool] = {}
     reference_column = "et_penman_monteith"
     for method_name, meta in methods.items():
         if not isinstance(meta, dict) or "column" not in meta:
@@ -154,6 +179,13 @@ def load_methods_config(path: Path = METHODS_CONFIG) -> MethodsConfig:
             allowed = ", ".join(sorted(VALID_METHOD_STATUSES))
             raise ValueError(f"Method '{method_name}' in {path} has invalid status '{status}'. Expected: {allowed}")
         status_by_name[name] = status
+        include_in_default_ranking = meta.get("default_ranking", True)
+        if not isinstance(include_in_default_ranking, bool):
+            raise ValueError(
+                f"Method '{method_name}' in {path} has invalid default_ranking "
+                f"'{include_in_default_ranking}'. Expected true or false."
+            )
+        default_ranking_by_name[name] = include_in_default_ranking
         if "short" in meta:
             short_names[column] = str(meta["short"])
         if bool(meta.get("reference")):
@@ -164,7 +196,13 @@ def load_methods_config(path: Path = METHODS_CONFIG) -> MethodsConfig:
         short_names=short_names,
         status_by_name=status_by_name,
         reference_column=reference_column,
+        default_ranking_by_name=default_ranking_by_name,
     )
+
+
+def site_is_full_penman_monteith(meta: dict) -> bool:
+    """Return whether the site is a full-data Penman-Monteith comparison site."""
+    return bool(meta.get("full_penman_monteith", True))
 
 
 def select_sites(

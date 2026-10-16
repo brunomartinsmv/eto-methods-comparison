@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added monthly and annual relative sensitivity coefficients for Penman-Monteith (`outputs/tables/{site}_sensitivity_penman_monteith_relative.csv`). The coefficient is a ±1% central difference for temperature, vapor-pressure deficit, 2 m wind, and net radiation. The ±50% one-at-a-time sweep is unchanged, and each site keeps its own table.
+- Added an optional Hargreaves-Samani temperature-range exponent to `calibrate` (`--free-exponent`), with the same train/test metrics as the scalar fit. The published exponent 0.5 stays fixed when the flag is omitted.
+- Added a cross-site transfer table, `outputs/tables/{method}_calibration_transfer.csv`, when two or more configured sites are calibrated. Parameters are fit on one site's training window and scored at the other, with the original and calibrated equations side by side.
+- Added a FAO-56/ASCE radiation-consistency screen. The quality report counts days outside the clear-sky envelope, and `{site}_daily_metrics_radiation_screen.csv` repeats the daily metrics on days inside it. Full-year metric tables stay in place, and `rad_net_mj_m2_d` is not recomputed.
+- Added the FAO-56 temperature Penman-Monteith method (`et_fao56_pmt`) and the Valiantzas temperature-radiation equation (`et_valiantzas`), both `status: computed` and excluded from the default ranking.
+- Added an `inmet_limited` reader for the Petrolina sheet as a temperature-humidity-wind case. The quality report labels the INMET station-status flag (Pane on the versioned sheet). Petrolina stays out of the Penman-Monteith comparison; a fair semiarid comparison still needs a radiation-bearing series.
+- Added `limited-data`, which scores FAO-56 Penman-Monteith after wind, humidity, radiation, or all three are replaced by the FAO-56 substitutes, together with Hargreaves-Samani and Turc, against the full-data pipeline reference. Writes `outputs/tables/{site}_limited_data_metrics.csv`.
+- Added Kling–Gupta efficiency (`kge`) and percent bias (`pbias`) to daily and monthly metric tables, with `summarize --ranking kge`. The Camargo–Sentelhas `c` classification is unchanged. Rankings state that they measure agreement with calculated Penman–Monteith.
+- Added an optional moving-block bootstrap for RMSE, MAE, and MBE intervals (`analyze-uncertainty --bootstrap moving-block`). The default remains day-exchangeable resampling. Interval tables record `resampling` and `block_length`.
+
+### Changed
+
+- Documented that a lower test RMSE against calculated Penman-Monteith is not a lysimeter validation.
 
 ## [2.2.0] - 2026-10-08
 

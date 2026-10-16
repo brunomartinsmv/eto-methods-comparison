@@ -160,7 +160,7 @@ Hargreaves & Samani (1985) aproximam a radiação de onda curta a partir da ampl
 
 $$\mathrm{ET_0} = c \cdot \frac{R_a}{\lambda} \cdot (T_{max} - T_{min})^{0{,}5} \cdot (T_{mean} + 17{,}8)$$
 
-com \(c = 0{,}0023\) (padrão). O código aplica \(\max(T_{max} - T_{min},\, 0)\) antes da raiz.
+com \(c = 0{,}0023\) e expoente \(0{,}5\) (padrão publicado). O código aplica \(\max(T_{max} - T_{min},\, 0)\) antes da potência. Com `calibrate --free-exponent`, o expoente pode ser estimado no período de treino junto com \(c\); o padrão publicado permanece quando a opção é omitida. O ajuste não embute um expoente regional nem coeficientes de outra região. Um RMSE de teste menor contra o Penman-Monteith calculado não é validação em lisímetro.
 
 ---
 
@@ -364,6 +364,24 @@ Forma linear em \(T\) condicionada a \(R_s\), com limiar \(T_x\) de atividade ev
 
 **Nota de implementação:** a função `jensen_heise` em `scripts/eto_methods.py` avalia \((T_{mean} - T_x)\) sem clamp; valores negativos de ET₀ são possíveis quando \(T_{mean} < T_x\). A formula acima descreve a forma empírica, não um truncamento no código.
 
+### Origem de \(C_T = 0{,}025\) e de \(3\) °C
+
+A chave configurada permanece Jensen-Heise (`jensen_heise`, coluna `et_jensen_heise`). O produto calculado permanece
+
+$$\mathrm{ET_0} = 0{,}025\,(T_{mean} - 3)\,\frac{R_s}{\lambda} = (0{,}025\,T_{mean} - 0{,}075)\,\frac{R_s}{\lambda},$$
+
+com \(\lambda = 2{,}45\) MJ kg⁻¹ (`mj_m2_day_to_mm_day`).
+
+Na literatura de Jensen–Haise, \(0{,}025\) é o coeficiente \(C_t\) e \(3\) °C é o módulo de \(T_x = -3\) °C. Xu e Singh (2000) escrevem a relação de Jensen e Haise (1963) como \(\lambda\,\mathrm{ET} = C_t\,(T - T_x)\,R_s\), com \(C_t = 0{,}025\) e \(T_x = -3\) °C. Usta (2022) explicita os mesmos valores no texto: \(C_T = 0{,}025\) e \(T_x = -3\) °C, de modo que \(T - T_x = T + 3\), e coloca ao lado a forma \((0{,}025\,T + 0{,}08)\,R_s/\lambda\). Kim et al. (2024, eq. 5) publicam
+
+$$\mathrm{ET_0} = 0{,}025\,(T + 3)\,\frac{R_s}{\lambda}.$$
+
+Raja et al. (2024, Tabela 2) publicam
+
+$$\mathrm{ET_0} = \frac{R_s}{\lambda}\,(0{,}025\,T_{mean} + 0{,}08).$$
+
+\(0{,}025 \times 3{,}2 = 0{,}08\), logo \(0{,}08\) aproxima \(0{,}025\,(T + 3{,}2)\). Nessas formas a radiação entra como \(R_s/\lambda\), no mesmo lugar que no código. O fator de temperatura do código é \(T_{mean} - (+3)\). Os fatores citados são \(T + 3\) e \(0{,}025\,T + 0{,}08\). As duas famílias de produto diferem, e a chave configurada continua Jensen-Heise. A série numérica continua a do produto configurado.
+
 ---
 
 ## 15. Net Radiation (`computed`)
@@ -471,6 +489,37 @@ com \(c = 0{,}0055\) (padrão).
 
 ---
 
+## 20. FAO-56 PMT (`computed`, fora do ranking padrão)
+
+**Implementação:** `scripts/fao56.py` → `fao56_pmt`
+
+Penman–Monteith FAO-56 (equação 6) com umidade, radiação solar e vento ausentes preenchidos como em Allen et al. (1998), Capítulo 3 e Exemplo 20:
+
+- \(T_{dew} = T_{min}\), logo \(e_a = e^\circ(T_{min})\) e \(e_s = [e^\circ(T_{max}) + e^\circ(T_{min})]/2\);
+- \(R_s = 0{,}16 \sqrt{T_{max} - T_{min}}\, R_a\) (interior);
+- \(u_2 = 2\) m s⁻¹;
+- \(R_n\) é recalculada dessa \(R_s\) (equações 37–39), com \(R_s/R_{so} \le 1\).
+
+O Exemplo 20 (Lyon, julho, \(T_{max} = 26{,}6\) °C, \(T_{min} = 14{,}8\) °C, altitude 200 m, \(R_a = 40{,}55\) MJ m⁻² d⁻¹) publica 4,56 mm d⁻¹. Vento de 1 m s⁻¹ e 3 m s⁻¹ publica 4,2 e 4,8 mm d⁻¹.
+
+A coluna `et_fao56_pmt` é calculada por `compute-eto` e omitida do ranking padrão (`default_ranking: false`).
+
+---
+
+## 21. Valiantzas, temperatura e radiação (`computed`, fora do ranking padrão)
+
+**Implementação:** `scripts/eto_methods.py` → `valiantzas`
+
+Valiantzas (2013a) reduz a equação de Penman a temperatura e radiação solar medida:
+
+$$\mathrm{ET_0} = 0{,}0393\, R_s \sqrt{T + 9{,}5} - 0{,}19\, R_s^{0{,}6}\, |\varphi|^{0{,}15} + 0{,}0061\, (T + 20)\, (1{,}12\, T - T_{min} - 2)^{0{,}7}$$
+
+\(R_s\) fica em MJ m⁻² d⁻¹, \(T\) e \(T_{min}\) em °C, \(\varphi\) é a latitude em radianos e \(\mathrm{ET_0}\) sai em mm d⁻¹. O código usa \(|\varphi|\) para que a potência 0,15 permaneça real no hemisfério sul. Para \(R_s = 15\) MJ m⁻² d⁻¹, \(T = 25\) °C, \(T_{min} = 12\) °C e latitude 40°, a expressão vale 4,289550556627 mm d⁻¹.
+
+A coluna `et_valiantzas` também fica fora do ranking padrão.
+
+---
+
 ## Tabela resumo de coeficientes padrão
 
 | Método | Coeficientes padrão no código |
@@ -491,12 +540,15 @@ com \(c = 0{,}0055\) (padrão).
 | Lungeon | \(c = 0{,}001\) |
 | Stephens-Stewart | \(c = 0{,}01476\), \(T_0 = 5\) °C |
 | Hicks-Hess | \(c = 0{,}0055\) |
+| FAO-56 PMT | \(k_{Rs} = 0{,}16\), \(u_2 = 2\) m s⁻¹, albedo \(0{,}23\) |
+| Valiantzas | \(0{,}0393\), \(0{,}19\), \(0{,}0061\); \(R_s\) em MJ m⁻² d⁻¹ |
 
 ---
 
 ## Referências bibliográficas
 
 - Allen, R. G., Pereira, L. S., Raes, D., & Smith, M. (1998). *Crop Evapotranspiration* (FAO-56).
+- Valiantzas, J. D. (2013a). Simple ET0 forms of Penman's equation without wind and/or humidity data. I: Theoretical development. *Journal of Irrigation and Drainage Engineering*, 139(1), 1–8. https://doi.org/10.1061/(ASCE)IR.1943-4774.0000520
 - Thornthwaite, C. W. (1948). An approach toward a rational classification of climate. *Geographical Review*.
 - Camargo, A. P. (1971). Necessidade de calor para evapotranspiração. Publicações técnicas brasileiras.
 - Hargreaves, G. H., & Samani, Z. A. (1985). Reference crop evapotranspiration from temperature. *Applied Engineering in Agriculture*.
@@ -504,3 +556,8 @@ com \(c = 0{,}0055\) (padrão).
 - Makkink, G. F. (1957). Testing the Penman formula by means of lysimeters. *Journal of the Institution of Water Engineers*.
 - Turc, L. (1961). Evaluation des besoins en eau d'irrigation, évapotranspiration potentielle. *Ann. Agron.*
 - Garcia-Lopez, J. (1976). Medición y estimación de la evapotranspiración. *Revista de Agroquímica y Tecnología de Alimentos*.
+- Jensen, M. E., & Haise, H. R. (1963). Estimating evapotranspiration from solar radiation. *Journal of the Irrigation and Drainage Division*, 89(IR4), 15–41. https://doi.org/10.1061/JRCEA4.0000287
+- Xu, C.-Y., & Singh, V. P. (2000). Evaluation and generalization of radiation-based methods for calculating evaporation. *Hydrological Processes*, 14(2), 339–349. https://doi.org/10.1002/(SICI)1099-1085(20000215)14:2<339::AID-HYP928>3.0.CO;2-O
+- Usta, S. (2022). Karadeniz Bölgesi iklim koşullarına uygun Jensen Haise yöntemi referans evapotranspirasyon tahmin eşitliklerinin geliştirilmesi. *Avrupa Bilim ve Teknoloji Dergisi*, (38), 415–427. https://doi.org/10.31590/ejosat.1130701
+- Kim, C.-G., Lee, J., Lee, J.-E., & Chung, I.-M. (2024). Calibration and evaluation of alternative methods for reliable estimation of reference evapotranspiration in South Korea. *Water*, 16(17), 2471. https://doi.org/10.3390/w16172471
+- Raja, P., Sona, F., Surendran, U., Srinivas, C. V., Kannan, K., Madhu, M., Mahesh, P., Annepu, S. K., Ahmed, M., Chandrasekar, K., Suguna, A. R., Kumar, V., & Jagadesh, M. (2024). Performance evaluation of different empirical models for reference evapotranspiration estimation over Udhagamandalm, The Nilgiris, India. *Scientific Reports*. https://doi.org/10.1038/s41598-024-60952-4

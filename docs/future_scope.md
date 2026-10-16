@@ -39,8 +39,19 @@ scope unless a separate distribution layer is added.
 
 ### Autocorrelated uncertainty
 
-Bootstrap confidence intervals resample paired days but do not model temporal
-autocorrelation explicitly.
+The default bootstrap still resamples paired days independently (`resampling=iid`,
+`block_length=1`). `analyze-uncertainty --bootstrap moving-block` writes a
+moving-block interval on the same table and records the block length. Instrument
+error and interpolation uncertainty remain outside both schemes.
+
+### Semiarid Penman-Monteith contrast
+
+`python -m scripts.cli validate-data --site petrolina` reads the Petrolina sheet
+as a temperature-humidity-wind case and writes the INMET station-status flag
+into the quality report. The same sheet can be standardized with
+`clean --site petrolina`. The reader does not estimate radiation, and the site
+stays out of the Penman-Monteith comparison. A fair semiarid comparison against
+that reference still needs a radiation-bearing series.
 
 ### Multi-year and cross-site synthesis
 
@@ -56,5 +67,5 @@ This project accepts ERA5-derived CSVs through the generic reader configuration.
 
 1. Implement Thornthwaite-family methods with cited equations and regression fixtures.
 2. Resolve or document the Garcia-Lopez unit/scale mismatch with the legacy spreadsheet.
-3. Add optional cross-validation for calibration beyond temporal train/test splits.
+3. Add repeated temporal cross-validation for calibration beyond the single train/test split. Cross-site transfer of a fitted coefficient, including an optional Hargreaves-Samani exponent, is available through `calibrate`.
 4. Publish a Zenodo release when preprint-linked outputs stabilize.
