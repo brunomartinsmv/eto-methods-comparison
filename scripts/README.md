@@ -32,6 +32,7 @@ python -m scripts.cli export-supplement
 ```
 
 Sites are configured in `configs/sites.yml`. Method column mappings and short labels are configured in `configs/methods.yml`.
+Petrolina uses `reader.format: inmet_limited` and `full_penman_monteith: false`. Read it with `validate-data --site petrolina` or `clean --site petrolina`. Those commands label the station-status flag and do not estimate radiation. Comparison commands reject that site. A fair semiarid Penman-Monteith comparison still needs a radiation-bearing series.
 `--use-precomputed-eto` is the current default for cleaning raw spreadsheets and preserves the legacy-compatible pipeline. The `compute-eto` command calculates ET0 from standardized cleaned meteorological variables and writes `outputs/results/{site}_daily_eto.csv`; `metrics` prefers that computed file when available.
 
 ## Comandos cientificos / Scientific commands

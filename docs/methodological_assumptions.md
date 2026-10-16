@@ -79,3 +79,5 @@ Manaus represents a humid tropical setting where humidity, cloudiness, and limit
 Piracicaba represents a subtropical/agricultural setting with stronger seasonality and periods where water availability and atmospheric demand may diverge. Locally calibrated methods may perform well there but should not be assumed transferable.
 
 The study uses 2024 data. Single-year results should be interpreted as a reproducible case study rather than a definitive climatological ranking.
+
+Petrolina (INMET A307) is in `Evapo.xlsx` with temperature, humidity, wind, pressure, and rain. The sheet records station status Pane and has no radiation columns. `configs/sites.yml` reads that sheet only as a temperature-humidity-wind case (`full_penman_monteith: false`). The quality report labels the station-status flag from the sheet. A fair semiarid Penman-Monteith comparison still needs a radiation-bearing series from another year or station. Until that series exists, rankings for Manaus and Piracicaba do not test a semiarid or advective contrast.

@@ -42,6 +42,15 @@ scope unless a separate distribution layer is added.
 Bootstrap confidence intervals resample paired days but do not model temporal
 autocorrelation explicitly.
 
+### Semiarid Penman-Monteith contrast
+
+`python -m scripts.cli validate-data --site petrolina` reads the Petrolina sheet
+as a temperature-humidity-wind case and writes the INMET station-status flag
+into the quality report. The same sheet can be standardized with
+`clean --site petrolina`. The reader does not estimate radiation, and the site
+stays out of the Penman-Monteith comparison. A fair semiarid comparison against
+that reference still needs a radiation-bearing series.
+
 ### Multi-year and cross-site synthesis
 
 The default workflow targets one analysis year per run. Cross-year pooling and formal

@@ -16,7 +16,9 @@ This repository now configures **18 alternative ET0 methods plus Penman-Monteith
 - **Piracicaba, SP** (Cwa, humid subtropical with dry winter)
 - **Manaus, AM** (Af, tropical rainforest)
 
-Manaus and Piracicaba are demonstration sites, not a fixed multicity study design. Additional sites can be added through `configs/sites.yml` without changing the code structure.
+Manaus and Piracicaba are demonstration sites, not a fixed multicity study design. Additional full-data sites can be added through `configs/sites.yml` without changing the code structure.
+
+Petrolina (INMET A307) is in the same workbook with station status Pane and with temperature, humidity, wind, pressure, and rain. It is configured as a temperature-humidity-wind case, not as a third Penman-Monteith site. The reader does not estimate radiation. A fair semiarid Penman-Monteith comparison still needs a radiation-bearing series. `python -m scripts.cli validate-data --site petrolina --year 2024` labels that station-status flag in the quality report. See `docs/data_provenance.md`.
 
 The current 2024 daily tables give Priestley-Taylor an RMSE of 1.03 mm d⁻¹ in Manaus and 0.50 mm d⁻¹ in Piracicaba. Makkink has an RMSE of 0.42 mm d⁻¹ in Piracicaba. Camargo overestimates the reference in Manaus (MBE +0.97 mm d⁻¹) and underestimates it in Piracicaba (MBE −1.86 mm d⁻¹).
 
@@ -443,7 +445,7 @@ date       | temp_mean | temp_min | temp_max | radiation | wind_2m | rh_mean
 ...
 ```
 
-**Note:** Column names should match those expected by `scripts/io.py`, or configure a custom `reader` block in `configs/sites.yml` for CSV/Excel files with different headers.
+**Note:** Column names should match those expected by `scripts/io.py`, or configure a custom `reader` block in `configs/sites.yml` for CSV/Excel files with different headers. `reader.format: inmet_limited` reads an INMET automatic-station sheet that has temperature, humidity, and wind and may lack radiation. Set `full_penman_monteith: false` for that case so the site stays out of the Penman-Monteith comparison.
 
 ### Flexible input readers
 

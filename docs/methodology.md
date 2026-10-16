@@ -8,7 +8,7 @@ Para **derivações LaTeX completas** de cada método e das variáveis meteorol�
 
 ## Escopo configurado dos metodos
 
-O repositório configura 18 métodos alternativos de ET₀ e usa Penman-Monteith FAO-56 como referência. Manaus e Piracicaba são localidades demonstrativas em `configs/sites.yml`. Outras localidades exigem metadados e dados de entrada compatíveis.
+O repositório configura 18 métodos alternativos de ET₀ e usa Penman-Monteith FAO-56 como referência. Manaus e Piracicaba são localidades demonstrativas em `configs/sites.yml`. A aba Petrolina é lida só como caso limitado de temperatura, umidade e vento: a situação da estação na planilha é Pane e não há radiação. Uma comparação semiárida justa com Penman-Monteith ainda precisa de uma série que contenha radiação. Outras localidades de comparação exigem metadados e dados de entrada compatíveis, inclusive radiação.
 
 O comando `compute-eto` calcula os metodos com `status: computed` a partir de variaveis meteorologicas padronizadas em `data/cleaned/` e escreve `outputs/results/{site}_daily_eto.csv`. Metodos com `status: precomputed_only` sao preservados da planilha quando presentes no input limpo. As metricas preferem essas series calculadas quando o arquivo existe; caso contrario, usam as colunas `et_*` pre-calculadas dos dados limpos como fallback historico.
 

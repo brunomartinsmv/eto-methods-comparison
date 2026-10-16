@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added an `inmet_limited` reader for the Petrolina sheet as a temperature-humidity-wind case. The quality report labels the INMET station-status flag (Pane on the versioned sheet). Petrolina stays out of the Penman-Monteith comparison; a fair semiarid comparison still needs a radiation-bearing series.
+
 ## [2.2.0] - 2026-10-08
 
 ### Added
