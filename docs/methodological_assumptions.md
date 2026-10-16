@@ -4,7 +4,7 @@ This document records the assumptions used to calculate and compare ET₀. It id
 
 ## Reference treatment: FAO-56 Penman-Monteith
 
-Penman-Monteith FAO-56 is treated as the reference series for method comparison, not as an error-free physical truth. Metrics, bootstrap intervals, monthly errors, rainfall-season summaries, and ETo-bin bias tables are computed as deviations of each alternative method from `et_penman_monteith`.
+Penman-Monteith FAO-56 is treated as the reference series for method comparison, not as an error-free physical truth. The reference is 24-hour FAO-56 with the daily surface resistance, not the ASCE hourly standard (daytime 50 s m⁻¹ / nighttime 200 s m⁻¹; Allen et al., 2006; ASCE-EWRI, 2005). Metrics, bootstrap intervals, monthly errors, rainfall-season summaries, and ETo-bin bias tables are computed as deviations of each alternative method from `et_penman_monteith`.
 
 `quickstart` recalculates the reference from cleaned weather inputs and writes it to `outputs/results/{site}_daily_eto.csv`. Metrics prefer that file when it exists; otherwise, they use the spreadsheet reference retained in the cleaned data. Penman-Monteith is not calibrated. Measurement errors in radiation, humidity, wind, or temperature can affect the reference, but the metrics do not propagate those errors explicitly.
 
@@ -83,3 +83,8 @@ Manaus represents a humid tropical setting where humidity, cloudiness, and limit
 Piracicaba represents a subtropical/agricultural setting with stronger seasonality and periods where water availability and atmospheric demand may diverge. Locally calibrated methods may perform well there but should not be assumed transferable.
 
 The study uses 2024 data. Single-year results should be interpreted as a reproducible case study rather than a definitive climatological ranking.
+
+## References
+
+- Allen, R. G., Pruitt, W. O., Wright, J. L., Howell, T. A., Ventura, F., Snyder, R., Itenfisu, D., Steduto, P., Berengena, J., Baselga Yrisarry, J., Smith, M., Pereira, L. S., Raes, D., Perrier, A., Alves, I., Walter, I., & Elliott, R. (2006). A recommendation on standardized surface resistance for hourly calculation of reference ETo by the FAO56 Penman-Monteith method. *Agricultural Water Management*, 81(1–2), 1–22. https://doi.org/10.1016/j.agwat.2005.03.007
+- ASCE-EWRI. (2005). *The ASCE standardized reference evapotranspiration equation* (R. G. Allen, I. A. Walter, R. L. Elliott, T. A. Howell, D. Itenfisu, M. E. Jensen, & R. L. Snyder, Eds.). American Society of Civil Engineers. https://doi.org/10.1061/9780784408056
