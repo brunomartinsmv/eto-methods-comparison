@@ -9,6 +9,8 @@ sensitivity:
 uncertainty:
   bootstrap_samples: 1000
   confidence: 0.95
+  bootstrap: iid
+  block_length: 7
   eto_bins: 4
   rainfall_column: rain_mm
 

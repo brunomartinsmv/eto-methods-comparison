@@ -42,6 +42,20 @@ methods:
     reference: true
     status: reference
 
+  FAO-56 PMT:
+    full_name: FAO-56 Penman-Monteith temperature method
+    column: et_fao56_pmt
+    short: fao56_pmt
+    status: computed
+    default_ranking: false
+
+  Valiantzas:
+    full_name: Valiantzas temperature-radiation method
+    column: et_valiantzas
+    short: valiantzas
+    status: computed
+    default_ranking: false
+
   Garcia-Lopez:
     full_name: Garcia-Lopez evapotranspiration method
     column: et_garcia_lopez

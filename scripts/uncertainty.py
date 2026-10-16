@@ -13,12 +13,55 @@ METRICS_FOR_INTERVALS = {
     "mbe": metrics.mbe,
 }
 
+BOOTSTRAP_IID = "iid"
+BOOTSTRAP_MOVING_BLOCK = "moving_block"
+BOOTSTRAP_SCHEMES = (BOOTSTRAP_IID, BOOTSTRAP_MOVING_BLOCK)
+
+INTERVAL_COLUMNS = [
+    "method",
+    "metric",
+    "estimate",
+    "ci_lower",
+    "ci_upper",
+    "n",
+    "n_boot",
+    "confidence",
+    "resampling",
+    "block_length",
+]
+
 
 def _paired_arrays(df: pd.DataFrame, ref_col: str, method_col: str) -> tuple[np.ndarray, np.ndarray]:
     ref = df[ref_col].to_numpy(dtype=float)
     series = df[method_col].to_numpy(dtype=float)
     mask = np.isfinite(ref) & np.isfinite(series)
     return ref[mask], series[mask]
+
+
+def normalize_bootstrap_scheme(scheme: str) -> str:
+    """Return ``iid`` or ``moving_block``."""
+    key = str(scheme).strip().lower().replace("-", "_")
+    if key not in BOOTSTRAP_SCHEMES:
+        raise ValueError("bootstrap scheme must be 'iid' or 'moving_block'")
+    return key
+
+
+def _resample_indices(
+    n: int,
+    block_length: int,
+    n_boot: int,
+    rng: np.random.Generator,
+) -> np.ndarray:
+    """Draw paired-day indices. Length 1 matches independent day resampling."""
+    if block_length == 1:
+        return rng.integers(0, n, size=(n_boot, n))
+
+    n_blocks = int(np.ceil(n / block_length))
+    max_start = n - block_length
+    starts = rng.integers(0, max_start + 1, size=(n_boot, n_blocks))
+    offsets = np.arange(block_length)
+    joined = (starts[..., None] + offsets).reshape(n_boot, n_blocks * block_length)
+    return joined[:, :n]
 
 
 def bootstrap_metric_intervals(
@@ -29,12 +72,27 @@ def bootstrap_metric_intervals(
     n_boot: int = 1000,
     confidence: float = 0.95,
     random_state: int = 2024,
+    scheme: str = BOOTSTRAP_IID,
+    block_length: int = 1,
 ) -> pd.DataFrame:
-    """Estimate percentile bootstrap confidence intervals for daily metrics."""
+    """Percentile intervals for daily RMSE, MAE, and MBE.
+
+    ``iid`` resamples paired days independently and records ``block_length`` 1.
+    ``moving_block`` resamples contiguous blocks from the pairwise-complete
+    series and records the block length used.
+    """
     if n_boot < 1:
         raise ValueError("n_boot must be at least 1")
     if not 0 < confidence < 1:
         raise ValueError("confidence must be between 0 and 1")
+    scheme = normalize_bootstrap_scheme(scheme)
+    if block_length < 1:
+        raise ValueError("block_length must be at least 1")
+    if scheme == BOOTSTRAP_IID and block_length != 1:
+        raise ValueError(
+            "day-exchangeable bootstrap uses block_length 1; "
+            "use scheme 'moving_block' to resample contiguous blocks"
+        )
 
     rng = np.random.default_rng(random_state)
     alpha = 1 - confidence
@@ -44,7 +102,11 @@ def bootstrap_metric_intervals(
         n = len(ref)
         if n == 0:
             continue
-        sample_indices = rng.integers(0, n, size=(n_boot, n))
+        if block_length > n:
+            raise ValueError(
+                f"block_length {block_length} exceeds the {n} paired days available for {method_col}"
+            )
+        sample_indices = _resample_indices(n, block_length, n_boot, rng)
         for metric_name, metric_func in METRICS_FOR_INTERVALS.items():
             estimates = np.array(
                 [metric_func(ref[indices], series[indices]) for indices in sample_indices],
@@ -60,21 +122,11 @@ def bootstrap_metric_intervals(
                     "n": n,
                     "n_boot": n_boot,
                     "confidence": confidence,
+                    "resampling": scheme,
+                    "block_length": block_length,
                 }
             )
-    return pd.DataFrame(
-        rows,
-        columns=[
-            "method",
-            "metric",
-            "estimate",
-            "ci_lower",
-            "ci_upper",
-            "n",
-            "n_boot",
-            "confidence",
-        ],
-    )
+    return pd.DataFrame(rows, columns=INTERVAL_COLUMNS)
 
 
 def seasonal_error_metrics(
@@ -204,7 +256,7 @@ def write_uncertainty_report(
     lines = [
         f"# Uncertainty and sensitivity analysis: {site}",
         "",
-        "Bootstrap intervals use paired daily resampling against Penman-Monteith and are descriptive, not a substitute for measurement-error propagation.",
+        _bootstrap_intro(bootstrap),
         "Wet/dry grouping is data-driven from the median monthly rainfall within the analyzed year.",
         "",
         "## Bootstrap intervals",
@@ -221,12 +273,45 @@ def write_uncertainty_report(
         "",
         "## Limitations",
         "",
-        "- Confidence intervals resample available paired days and do not model autocorrelation explicitly.",
+        _bootstrap_limitation(bootstrap),
         "- Wet/dry labels are relative to each site's monthly rainfall distribution in the analyzed period.",
         "- Bias bins are quantile-based, so bin widths differ when the Penman-Monteith ETo distribution is uneven.",
     ]
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return path
+
+
+def _bootstrap_schemes(bootstrap: pd.DataFrame) -> set[str]:
+    if bootstrap.empty or "resampling" not in bootstrap.columns:
+        return set()
+    return set(bootstrap["resampling"].astype(str))
+
+
+def _bootstrap_intro(bootstrap: pd.DataFrame) -> str:
+    if _bootstrap_schemes(bootstrap) == {BOOTSTRAP_MOVING_BLOCK}:
+        lengths = ", ".join(str(value) for value in sorted({int(v) for v in bootstrap["block_length"]}))
+        return (
+            "Bootstrap intervals use a moving-block resample of paired daily "
+            f"Penman-Monteith and method values (block length {lengths}). "
+            "Dependence inside each block is retained. Intervals are descriptive, "
+            "not a substitute for measurement-error propagation."
+        )
+    return (
+        "Bootstrap intervals use paired daily resampling against Penman-Monteith "
+        "and are descriptive, not a substitute for measurement-error propagation."
+    )
+
+
+def _bootstrap_limitation(bootstrap: pd.DataFrame) -> str:
+    if _bootstrap_schemes(bootstrap) == {BOOTSTRAP_MOVING_BLOCK}:
+        return (
+            "- Moving-block confidence intervals keep serial dependence inside blocks "
+            "of the recorded length and treat the blocks as exchangeable."
+        )
+    return (
+        "- Confidence intervals resample available paired days and do not model "
+        "autocorrelation explicitly."
+    )
 
 
 def _markdown_table(df: pd.DataFrame, max_rows: int = 20) -> str:

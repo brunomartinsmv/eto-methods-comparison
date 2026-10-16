@@ -7,8 +7,10 @@ from scripts.metrics import (
     classify_confidence,
     compute_metrics,
     confidence_c,
+    kge,
     mae,
     mbe,
+    pbias,
     pearson_r,
     r2_score,
     rmse,
@@ -27,6 +29,8 @@ def test_metric_functions_return_manually_verifiable_values() -> None:
     assert math.isclose(r2_score(observed, estimated), 0.25)
     assert math.isclose(willmott_d(observed, estimated), 2 / 3)
     assert math.isclose(confidence_c(observed, estimated), 1 / 3)
+    assert math.isclose(kge(observed, estimated), 0.5)
+    assert math.isclose(pbias(observed, estimated), 0.0)
 
 
 def test_compute_metrics_ignores_nan_pairs_and_reports_standard_scores() -> None:
@@ -48,6 +52,8 @@ def test_compute_metrics_ignores_nan_pairs_and_reports_standard_scores() -> None
     assert math.isclose(row["r2"], 0.25)
     assert math.isclose(row["willmott_d"], 2 / 3)
     assert math.isclose(row["c"], 1 / 3)
+    assert math.isclose(row["kge"], 0.5)
+    assert math.isclose(row["pbias"], 0.0)
     assert row["classification"] == "Very Poor"
 
 
@@ -70,3 +76,16 @@ def test_classify_confidence_covers_literature_thresholds() -> None:
 def test_correlation_metrics_return_nan_safely_for_constant_or_too_short_series() -> None:
     assert math.isnan(pearson_r(np.array([1.0]), np.array([1.0])))
     assert math.isnan(confidence_c(np.array([1.0, 1.0]), np.array([2.0, 2.0])))
+    assert math.isnan(kge(np.array([1.0]), np.array([1.0])))
+    assert math.isnan(kge(np.array([1.0, 1.0]), np.array([2.0, 2.0])))
+    assert math.isnan(pbias(np.array([]), np.array([])))
+    assert math.isnan(pbias(np.array([1.0, -1.0]), np.array([0.0, 0.0])))
+
+
+def test_kge_and_pbias_follow_gupta_decomposition_and_mbe_sign() -> None:
+    observed = np.array([1.0, 2.0, 3.0])
+    estimated = np.array([0.0, 1.0, 2.0])
+
+    assert math.isclose(kge(observed, estimated), 0.5)
+    assert math.isclose(pbias(observed, estimated), -50.0)
+    assert math.isclose(mbe(observed, estimated), -1.0)

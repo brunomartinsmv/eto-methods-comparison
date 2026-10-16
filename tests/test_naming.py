@@ -9,6 +9,8 @@ from scripts.naming import (
     figure_filename,
     metrics_filename,
     monthly_totals_filename,
+    radiation_screen_filename,
+    radiation_screen_metrics_filename,
     rolling_7d_filename,
     seasonal_filename,
     sensitivity_filename,
@@ -34,6 +36,14 @@ def test_daily_eto_filename() -> None:
 def test_metrics_filename() -> None:
     assert metrics_filename("manaus", "daily") == "manaus_daily_metrics.csv"
     assert metrics_filename("manaus", "monthly") == "manaus_monthly_metrics.csv"
+
+
+def test_radiation_screen_filenames() -> None:
+    assert radiation_screen_filename("manaus") == "manaus_radiation_screen.csv"
+    assert (
+        radiation_screen_metrics_filename("manaus")
+        == "manaus_daily_metrics_radiation_screen.csv"
+    )
 
 
 def test_bootstrap_filename() -> None:
