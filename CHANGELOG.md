@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added the FAO-56 temperature Penman-Monteith method (`et_fao56_pmt`) and the Valiantzas temperature-radiation equation (`et_valiantzas`), both `status: computed` and excluded from the default ranking.
+
 ## [2.2.0] - 2026-10-08
 
 ### Added

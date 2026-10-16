@@ -24,6 +24,8 @@ WEATHER_VARIABLES = (
 
 METHOD_REQUIRED_COLUMNS: dict[str, list[str]] = {
     "et_penman_monteith": ["tmed_c", "rad_net_mj_m2_d", "wind_mean_ms"],
+    "et_fao56_pmt": ["tmin_c", "tmax_c", "ra_extraterrestre_mj_m2_d"],
+    "et_valiantzas": ["tmed_c", "tmin_c", "rad_global_mj_m2_d"],
     "et_camargo": ["tmed_c", "ra_extraterrestre_mj_m2_d"],
     "et_hargreaves_samani": ["tmin_c", "tmax_c", "tmed_c", "ra_extraterrestre_mj_m2_d"],
     "et_makkink": ["tmed_c", "rad_global_mj_m2_d"],

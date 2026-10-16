@@ -112,6 +112,15 @@ def _ordered_columns(df: pd.DataFrame, preferred: list[str]) -> list[str]:
     return [column for column in preferred if column in df.columns]
 
 
+def _without_methods_held_from_default_ranking(table: pd.DataFrame) -> pd.DataFrame:
+    from .config import METHODS
+
+    excluded = METHODS.excluded_from_default_ranking
+    if table.empty or "method" not in table.columns or not excluded:
+        return table
+    return table.loc[~table["method"].astype(str).isin(excluded)].reset_index(drop=True)
+
+
 def build_rankings(
     tables_dir: Path,
     sites: list[str],
@@ -125,7 +134,7 @@ def build_rankings(
             metrics_path = tables_dir / f"{site}_{scale}_metrics.csv"
             if not metrics_path.exists():
                 continue
-            table = pd.read_csv(metrics_path)
+            table = _without_methods_held_from_default_ranking(pd.read_csv(metrics_path))
             if table.empty:
                 continue
             ranked = _sort_ranked_table(_rank_metrics(table), ranking=ranking)
@@ -159,7 +168,7 @@ def build_summary(
             metrics_path = tables_dir / f"{site}_{scale}_metrics.csv"
             if not metrics_path.exists():
                 continue
-            table = pd.read_csv(metrics_path)
+            table = _without_methods_held_from_default_ranking(pd.read_csv(metrics_path))
             if table.empty:
                 continue
             best = _sort_ranked_table(_rank_metrics(table), ranking=ranking).iloc[0]

@@ -8,7 +8,7 @@ Para **derivações LaTeX completas** de cada método e das variáveis meteorol�
 
 ## Escopo configurado dos metodos
 
-O repositório configura 18 métodos alternativos de ET₀ e usa Penman-Monteith FAO-56 como referência. Manaus e Piracicaba são localidades demonstrativas em `configs/sites.yml`. Outras localidades exigem metadados e dados de entrada compatíveis.
+O repositório configura 20 métodos alternativos de ET₀ e usa Penman-Monteith FAO-56 como referência. Manaus e Piracicaba são localidades demonstrativas em `configs/sites.yml`. Outras localidades exigem metadados e dados de entrada compatíveis.
 
 O comando `compute-eto` calcula os metodos com `status: computed` a partir de variaveis meteorologicas padronizadas em `data/cleaned/` e escreve `outputs/results/{site}_daily_eto.csv`. Metodos com `status: precomputed_only` sao preservados da planilha quando presentes no input limpo. As metricas preferem essas series calculadas quando o arquivo existe; caso contrario, usam as colunas `et_*` pre-calculadas dos dados limpos como fallback historico.
 
@@ -32,6 +32,8 @@ O comando `compute-eto` calcula os metodos com `status: computed` a partir de va
 | Lungeon | `et_lungeon` | computed |
 | Stephens-Stewart | `et_stephens_stewart` | computed |
 | Hicks-Hess | `et_hicks_hess` | computed |
+| FAO-56 PMT | `et_fao56_pmt` | computed, fora do ranking padrão |
+| Valiantzas | `et_valiantzas` | computed, fora do ranking padrão |
 | Penman-Monteith FAO-56 | `et_penman_monteith` | reference |
 
 Metodos `precomputed_only` dependem de colunas historicas da planilha `Evapo.xlsx` e nao sao recalculados pelo pipeline. Thornthwaite e Thornthwaite-Camargo usam desagregacao diaria legada documentada em [`equations/et0_methods.md`](equations/et0_methods.md); Hargreaves-Samani corrigido usa coeficientes locais calibrados fora do pipeline (ver `methodological_assumptions.md`). O comando `compute-eto --include-precomputed` registra comparacoes automaticas entre series calculadas e colunas pre-calculadas quando ambas estao disponiveis.
@@ -367,6 +369,36 @@ Temperatura media, radiacao global e vento a 2 m.
 
 ---
 
+## 20. FAO-56 PMT
+
+**Equacao**
+
+Penman-Monteith FAO-56 (equação 6) com dados faltantes preenchidos pelos procedimentos do Capítulo 3: \(T_{dew} = T_{min}\), \(R_s = k_{Rs}\sqrt{T_{max}-T_{min}}\,R_a\) com \(k_{Rs} = 0{,}16\) (interior), \(u_2 = 2\) m s⁻¹ e \(R_n\) reconstruída a partir dessa \(R_s\). O exemplo 20 de Allen et al. (1998) dá 4,56 mm d⁻¹.
+
+**Requisitos de dados**
+Temperatura máxima, temperatura mínima, radiação extraterrestre e altitude. Umidade, radiação global e vento medidos não entram.
+
+**Ranking**
+`default_ranking: false`. A série é calculada, mas fica fora das métricas e do ranking padrão.
+
+---
+
+## 21. Valiantzas (temperatura e radiação)
+
+**Equacao**
+
+Forma de Valiantzas (2013a) que usa temperatura e radiação solar, com \(R_s\) em MJ m⁻² d⁻¹ e \(\varphi\) em radianos:
+
+$$\mathrm{ETo} = 0{,}0393\,R_s\sqrt{T+9{,}5} - 0{,}19\,R_s^{0{,}6}\,|\varphi|^{0{,}15} + 0{,}0061\,(T+20)\,(1{,}12\,T-T_{min}-2)^{0{,}7}$$
+
+**Requisitos de dados**
+Temperatura média, temperatura mínima, radiação global e latitude.
+
+**Ranking**
+`default_ranking: false`, pelo mesmo motivo do FAO-56 PMT.
+
+---
+
 # EN Summary (Short)
 For English readers, the methods above are the same. The key idea is that **Penman-Monteith (FAO-56)** is the reference standard, **Thornthwaite/Camargo** rely mostly on temperature, **Hargreaves-Samani** uses temperature range as a proxy for radiation, and **Priestley-Taylor** is energy-balance based with a simplifying coefficient. Each method’s suitability depends on climate and data availability.
 
@@ -397,3 +429,4 @@ Use the diagrams in `outputs/figures/<site>/<site>_daily_taylor.png` and `<site>
 - Thornthwaite, C. W. (1948). An approach toward a rational classification of climate. *Geographical Review*.
 - Hargreaves, G. H., & Samani, Z. A. (1985). Reference crop evapotranspiration from temperature. *Applied Engineering in Agriculture*.
 - Priestley, C. H. B., & Taylor, R. J. (1972). On the assessment of surface heat flux and evaporation using large-scale parameters. *Monthly Weather Review*.
+- Valiantzas, J. D. (2013a). Simple ET0 forms of Penman's equation without wind and/or humidity data. I: Theoretical development. *Journal of Irrigation and Drainage Engineering*, 139(1), 1–8. https://doi.org/10.1061/(ASCE)IR.1943-4774.0000520

@@ -471,6 +471,37 @@ com \(c = 0{,}0055\) (padrão).
 
 ---
 
+## 20. FAO-56 PMT (`computed`, fora do ranking padrão)
+
+**Implementação:** `scripts/fao56.py` → `fao56_pmt`
+
+Penman–Monteith FAO-56 (equação 6) com umidade, radiação solar e vento ausentes preenchidos como em Allen et al. (1998), Capítulo 3 e Exemplo 20:
+
+- \(T_{dew} = T_{min}\), logo \(e_a = e^\circ(T_{min})\) e \(e_s = [e^\circ(T_{max}) + e^\circ(T_{min})]/2\);
+- \(R_s = 0{,}16 \sqrt{T_{max} - T_{min}}\, R_a\) (interior);
+- \(u_2 = 2\) m s⁻¹;
+- \(R_n\) é recalculada dessa \(R_s\) (equações 37–39), com \(R_s/R_{so} \le 1\).
+
+O Exemplo 20 (Lyon, julho, \(T_{max} = 26{,}6\) °C, \(T_{min} = 14{,}8\) °C, altitude 200 m, \(R_a = 40{,}55\) MJ m⁻² d⁻¹) publica 4,56 mm d⁻¹. Vento de 1 m s⁻¹ e 3 m s⁻¹ publica 4,2 e 4,8 mm d⁻¹.
+
+A coluna `et_fao56_pmt` é calculada por `compute-eto` e omitida do ranking padrão (`default_ranking: false`).
+
+---
+
+## 21. Valiantzas, temperatura e radiação (`computed`, fora do ranking padrão)
+
+**Implementação:** `scripts/eto_methods.py` → `valiantzas`
+
+Valiantzas (2013a) reduz a equação de Penman a temperatura e radiação solar medida:
+
+$$\mathrm{ET_0} = 0{,}0393\, R_s \sqrt{T + 9{,}5} - 0{,}19\, R_s^{0{,}6}\, |\varphi|^{0{,}15} + 0{,}0061\, (T + 20)\, (1{,}12\, T - T_{min} - 2)^{0{,}7}$$
+
+\(R_s\) fica em MJ m⁻² d⁻¹, \(T\) e \(T_{min}\) em °C, \(\varphi\) é a latitude em radianos e \(\mathrm{ET_0}\) sai em mm d⁻¹. O código usa \(|\varphi|\) para que a potência 0,15 permaneça real no hemisfério sul. Para \(R_s = 15\) MJ m⁻² d⁻¹, \(T = 25\) °C, \(T_{min} = 12\) °C e latitude 40°, a expressão vale 4,289550556627 mm d⁻¹.
+
+A coluna `et_valiantzas` também fica fora do ranking padrão.
+
+---
+
 ## Tabela resumo de coeficientes padrão
 
 | Método | Coeficientes padrão no código |
@@ -491,12 +522,15 @@ com \(c = 0{,}0055\) (padrão).
 | Lungeon | \(c = 0{,}001\) |
 | Stephens-Stewart | \(c = 0{,}01476\), \(T_0 = 5\) °C |
 | Hicks-Hess | \(c = 0{,}0055\) |
+| FAO-56 PMT | \(k_{Rs} = 0{,}16\), \(u_2 = 2\) m s⁻¹, albedo \(0{,}23\) |
+| Valiantzas | \(0{,}0393\), \(0{,}19\), \(0{,}0061\); \(R_s\) em MJ m⁻² d⁻¹ |
 
 ---
 
 ## Referências bibliográficas
 
 - Allen, R. G., Pereira, L. S., Raes, D., & Smith, M. (1998). *Crop Evapotranspiration* (FAO-56).
+- Valiantzas, J. D. (2013a). Simple ET0 forms of Penman's equation without wind and/or humidity data. I: Theoretical development. *Journal of Irrigation and Drainage Engineering*, 139(1), 1–8. https://doi.org/10.1061/(ASCE)IR.1943-4774.0000520
 - Thornthwaite, C. W. (1948). An approach toward a rational classification of climate. *Geographical Review*.
 - Camargo, A. P. (1971). Necessidade de calor para evapotranspiração. Publicações técnicas brasileiras.
 - Hargreaves, G. H., & Samani, Z. A. (1985). Reference crop evapotranspiration from temperature. *Applied Engineering in Agriculture*.
