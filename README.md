@@ -231,6 +231,7 @@ python -m scripts.cli analyze-uncertainty --bootstrap moving-block --block-lengt
 python -m scripts.cli validate-data  # Audit dates, missing values, interpolation traces
 python -m scripts.cli summarize      # Rank methods with the default composite rule
 python -m scripts.cli summarize --ranking rmse       # Rank by lowest RMSE
+python -m scripts.cli summarize --ranking kge        # Rank by highest Kling–Gupta efficiency
 python -m scripts.cli summarize --ranking composite  # Rank by the documented multi-metric rule
 python -m scripts.cli quickstart --year 2024       # Full pipeline + reports + index + supplement
 python -m scripts.cli inspect --site manaus        # Pre-flight method feasibility report
@@ -243,12 +244,14 @@ python -m scripts.cli export-supplement             # Collect supplemental outpu
 ```
 
 `summarize` accepts `--ranking rmse`, `--ranking mae`, `--ranking c`,
-`--ranking willmott_d`, or `--ranking composite`. The default is
+`--ranking willmott_d`, `--ranking kge`, or `--ranking composite`. The default is
 `composite`, which ranks methods within each site and temporal scale by:
 highest confidence coefficient `c`, then lowest `rmse`, lowest `mae`,
-highest `willmott_d`, and lowest absolute `mbe`. The selected rule is written
+highest `willmott_d`, and lowest absolute `mbe`. `--ranking kge` orders by
+highest Kling–Gupta efficiency. The selected rule is written
 to `selection_rule`, and the chosen order is written to `rank` in both
 `outputs/reports/summary.csv` and `outputs/tables/summary_rankings.csv`.
+Every rank measures agreement with calculated Penman–Monteith.
 
 `metrics` remains backward compatible: if `outputs/results/{site}_daily_eto.csv`
 does not exist, it falls back to `data/cleaned/{site}_daily.csv` and uses the

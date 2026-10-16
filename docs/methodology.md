@@ -47,9 +47,11 @@ As tabelas em `outputs/tables/{site}_{daily|monthly}_metrics.csv` comparam cada 
 - `r2`: quadrado de `r`;
 - `willmott_d`: indice de concordancia de Willmott;
 - `c`: coeficiente de confianca, calculado como `r * willmott_d`;
+- `kge`: eficiencia de Kling–Gupta (Gupta et al., 2009), `1 - sqrt((r - 1)^2 + (alpha - 1)^2 + (beta - 1)^2)`, em que `alpha` e o desvio-padrao do metodo dividido pelo desvio-padrao da referencia e `beta` e a media do metodo dividida pela media da referencia;
+- `pbias`: vies percentual, `100 * soma(metodo - referencia) / soma(referencia)`; o sinal segue `mbe` (positivo quando o metodo supera a referencia);
 - `classification`: classe de desempenho derivada de `c`.
 
-A classificacao segue estes limiares: `Excellent` para `c > 0.85`; `Very Good` para `0.75 < c <= 0.85`; `Good` para `0.65 < c <= 0.75`; `Average` para `0.60 < c <= 0.65`; `Poor` para `0.50 < c <= 0.60`; `Bad` para `0.40 < c <= 0.50`; e `Very Poor` para `c <= 0.40`. Quando `r`, `d` ou `c` nao podem ser estimados, a classe fica vazia.
+A classificacao segue estes limiares: `Excellent` para `c > 0.85`; `Very Good` para `0.75 < c <= 0.85`; `Good` para `0.65 < c <= 0.75`; `Average` para `0.60 < c <= 0.65`; `Poor` para `0.50 < c <= 0.60`; `Bad` para `0.40 < c <= 0.50`; e `Very Poor` para `c <= 0.40`. Quando `r`, `d` ou `c` nao podem ser estimados, a classe fica vazia. `kge` e `pbias` nao alteram essa classe. O comando `summarize` pode ordenar por `--ranking kge`; a regra padrao continua sendo `composite`, baseada em `c`. Todo ranking mede concordancia com o Penman–Monteith calculado, nao com evapotranspiracao de lisimetro (Martí et al., 2015; López-Urrea et al., 2006).
 
 ## Calibracao local opcional
 
@@ -394,6 +396,9 @@ Use the diagrams in `outputs/figures/<site>/<site>_daily_taylor.png` and `<site>
 
 # Referencias / References
 - Allen, R. G., Pereira, L. S., Raes, D., & Smith, M. (1998). *Crop Evapotranspiration — Guidelines for computing crop water requirements* (FAO Irrigation and Drainage Paper No. 56). FAO.
+- Gupta, H. V., Kling, H., Yilmaz, K. K., & Martinez, G. F. (2009). Decomposition of the mean squared error and NSE performance criteria: Implications for improving hydrological modelling. *Journal of Hydrology*, 377(1–2), 80–91. https://doi.org/10.1016/j.jhydrol.2009.08.003
+- López-Urrea, R., Martín de Santa Olalla, F., Fabeiro, C., & Moratalla, A. (2006). Testing evapotranspiration equations using lysimeter observations in a semiarid climate. *Agricultural Water Management*, 85(1–2), 15–26. https://doi.org/10.1016/j.agwat.2006.03.014
+- Martí, P., González-Altozano, P., López-Urrea, R., Mancha, L. A., & Shiri, J. (2015). Modeling reference evapotranspiration with calculated targets. Assessment and implications. *Agricultural Water Management*, 149, 81–90. https://doi.org/10.1016/j.agwat.2014.10.028
 - Thornthwaite, C. W. (1948). An approach toward a rational classification of climate. *Geographical Review*.
 - Hargreaves, G. H., & Samani, Z. A. (1985). Reference crop evapotranspiration from temperature. *Applied Engineering in Agriculture*.
 - Priestley, C. H. B., & Taylor, R. J. (1972). On the assessment of surface heat flux and evaporation using large-scale parameters. *Monthly Weather Review*.
