@@ -11,6 +11,7 @@ from scripts.naming import (
     monthly_totals_filename,
     radiation_screen_filename,
     radiation_screen_metrics_filename,
+    relative_sensitivity_filename,
     rolling_7d_filename,
     seasonal_filename,
     sensitivity_filename,
@@ -60,6 +61,14 @@ def test_bias_bins_filename() -> None:
 
 def test_sensitivity_filename() -> None:
     assert sensitivity_filename("manaus", "penman_monteith") == "manaus_sensitivity_penman_monteith.csv"
+    assert (
+        relative_sensitivity_filename("manaus")
+        == "manaus_sensitivity_penman_monteith_relative.csv"
+    )
+    assert (
+        relative_sensitivity_filename("piracicaba")
+        == "piracicaba_sensitivity_penman_monteith_relative.csv"
+    )
 
 
 def test_calibration_filenames() -> None:

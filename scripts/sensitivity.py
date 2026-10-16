@@ -10,6 +10,14 @@ import pandas as pd
 
 from . import compute_eto
 from .config import METHODS, PIPELINE
+from .derived_meteo import (
+    actual_vapor_pressure_kpa,
+    psychrometric_constant_kpa_c,
+    saturation_vapor_pressure_kpa,
+    vapor_pressure_slope_kpa_c,
+    wind_speed_at_2m,
+)
+from .fao56 import penman_monteith_fao56
 from .feasibility import METHOD_REQUIRED_COLUMNS
 from .figure_style import PALETTE, apply_figure_style, style_axis
 
@@ -206,6 +214,261 @@ def plot_sensitivity(sensitivity: pd.DataFrame, output_path: Path, *, title: str
     fig.tight_layout(pad=2)
     fig.savefig(output_path, dpi=300, bbox_inches="tight")
     plt.close(fig)
+
+
+@dataclass(frozen=True)
+class RelativeSensitivityDriver:
+    variable: str
+    column: str
+
+
+RELATIVE_SENSITIVITY_DRIVERS = (
+    RelativeSensitivityDriver("temperature", "tmed_c"),
+    RelativeSensitivityDriver("vapor_pressure_deficit", "vpd_kpa"),
+    RelativeSensitivityDriver("wind", "wind_2m_ms"),
+    RelativeSensitivityDriver("radiation", "rad_net_mj_m2_d"),
+)
+
+
+def default_relative_perturbation_pct() -> float:
+    return float(PIPELINE.sensitivity_relative_perturbation_pct)
+
+
+def run_penman_monteith_relative_sensitivity(
+    df: pd.DataFrame,
+    *,
+    site_meta: dict,
+    perturbation_pct: float | None = None,
+    drivers: tuple[RelativeSensitivityDriver, ...] = RELATIVE_SENSITIVITY_DRIVERS,
+) -> pd.DataFrame:
+    """Monthly and annual relative sensitivity of Penman-Monteith ET0.
+
+    The daily coefficient is the central difference
+
+    S_x = (ET0(x + dx) - ET0(x - dx)) / (2 dx) * (x / ET0)
+
+    with dx/x = perturbation_pct/100. Monthly and annual values are the
+    unweighted mean of finite daily coefficients. Temperature is perturbed
+    at constant vapor-pressure deficit. One site frame per call.
+    """
+    if perturbation_pct is None:
+        perturbation_pct = default_relative_perturbation_pct()
+    step = float(perturbation_pct) / 100.0
+    if not np.isfinite(step) or step <= 0 or step >= 1:
+        raise ValueError(
+            "Relative perturbation must be a percentage strictly between 0 and 100."
+        )
+
+    _require_relative_inputs(df)
+    baseline_state = _penman_monteith_state(df, site_meta)
+    baseline = _evaluate_penman_monteith(baseline_state)
+    parsed_dates = pd.to_datetime(df["date"], errors="coerce")
+    if parsed_dates.isna().all():
+        raise ValueError("Cannot compute monthly relative sensitivity without parseable dates.")
+
+    daily: dict[str, pd.Series] = {}
+    for driver in drivers:
+        plus = _perturb_penman_monteith(baseline_state, driver.variable, 1 + step)
+        minus = _perturb_penman_monteith(baseline_state, driver.variable, 1 - step)
+        daily[driver.variable] = _daily_relative_coefficient(baseline, plus, minus, step)
+
+    rows: list[dict[str, object]] = []
+    dated = parsed_dates.notna()
+    month_labels = parsed_dates.dt.strftime("%Y-%m")
+    periods = [("month", label) for label in sorted(month_labels.dropna().unique())]
+    years = parsed_dates.dt.year.dropna().unique()
+    annual_label = str(int(years[0])) if len(years) == 1 else "annual"
+    periods.append(("annual", annual_label))
+
+    for period_type, period in periods:
+        if period_type == "month":
+            mask = dated & (month_labels == period)
+        else:
+            mask = dated
+        for driver in drivers:
+            coefficient, mean_eto, n = _summarize_coefficient(
+                daily[driver.variable], baseline, mask
+            )
+            rows.append(
+                {
+                    "method": "penman_monteith",
+                    "period_type": period_type,
+                    "period": period,
+                    "variable": driver.variable,
+                    "column": driver.column,
+                    "perturbation_pct": float(perturbation_pct),
+                    "baseline_mean_eto_mm_d": mean_eto,
+                    "sensitivity_coefficient": coefficient,
+                    "n": n,
+                }
+            )
+
+    result = pd.DataFrame(rows)
+    if result.empty or int(result["n"].sum()) == 0:
+        raise ValueError("Relative sensitivity produced no finite Penman-Monteith days.")
+    return result
+
+
+def write_relative_sensitivity_table(table: pd.DataFrame, table_path: Path) -> None:
+    table_path.parent.mkdir(parents=True, exist_ok=True)
+    table.to_csv(table_path, index=False)
+
+
+def _require_relative_inputs(df: pd.DataFrame) -> None:
+    missing = [
+        column
+        for column in ("date", "tmed_c", "rad_net_mj_m2_d", "wind_mean_ms")
+        if column not in df.columns
+    ]
+    has_humidity = "rh_mean_pct" in df.columns or {
+        "tmin_c",
+        "tmax_c",
+        "rh_min_pct",
+        "rh_max_pct",
+    } <= set(df.columns)
+    if not has_humidity:
+        missing.append("rh_mean_pct or tmin_c/tmax_c/rh_min_pct/rh_max_pct")
+    if missing:
+        joined = ", ".join(missing)
+        raise ValueError(
+            "Cannot run Penman-Monteith relative sensitivity: "
+            f"missing required column(s): {joined}"
+        )
+
+
+@dataclass(frozen=True)
+class _PenmanMonteithState:
+    t: pd.Series
+    rn: pd.Series
+    u2: pd.Series
+    es: pd.Series
+    ea: pd.Series
+    delta: pd.Series
+    gamma: float
+
+
+def _penman_monteith_state(df: pd.DataFrame, site_meta: dict) -> _PenmanMonteithState:
+    altitude_m = float(site_meta.get("alt_m", compute_eto.DEFAULT_ALTITUDE_M))
+    wind_height_m = float(site_meta.get("wind_height_m", compute_eto.DEFAULT_WIND_HEIGHT_M))
+    t = pd.to_numeric(df["tmed_c"], errors="coerce")
+    return _PenmanMonteithState(
+        t=t,
+        rn=pd.to_numeric(df["rad_net_mj_m2_d"], errors="coerce"),
+        u2=wind_speed_at_2m(
+            pd.to_numeric(df["wind_mean_ms"], errors="coerce"),
+            measurement_height_m=wind_height_m,
+        ),
+        es=saturation_vapor_pressure_kpa(t),
+        ea=actual_vapor_pressure_kpa(df),
+        delta=vapor_pressure_slope_kpa_c(t),
+        gamma=psychrometric_constant_kpa_c(altitude_m),
+    )
+
+
+def _evaluate_penman_monteith(state: _PenmanMonteithState) -> pd.Series:
+    result = penman_monteith_fao56(
+        t_mean_c=state.t,
+        rn_mj_m2_day=state.rn,
+        g_mj_m2_day=0.0,
+        wind_2m_m_s=state.u2,
+        saturation_vapor_pressure_kpa=state.es,
+        actual_vapor_pressure_kpa=state.ea,
+        delta_kpa_c=state.delta,
+        gamma_kpa_c=state.gamma,
+    )
+    if isinstance(result, pd.Series):
+        return result
+    return pd.Series(np.asarray(result, dtype=float), index=state.t.index)
+
+
+def _perturb_penman_monteith(
+    state: _PenmanMonteithState, variable: str, factor: float
+) -> pd.Series:
+    if variable == "temperature":
+        t_new = state.t * factor
+        es_new = saturation_vapor_pressure_kpa(t_new)
+        vpd = state.es - state.ea
+        return _evaluate_penman_monteith(
+            _PenmanMonteithState(
+                t=t_new,
+                rn=state.rn,
+                u2=state.u2,
+                es=es_new,
+                ea=es_new - vpd,
+                delta=vapor_pressure_slope_kpa_c(t_new),
+                gamma=state.gamma,
+            )
+        )
+    if variable == "vapor_pressure_deficit":
+        vpd_new = (state.es - state.ea) * factor
+        return _evaluate_penman_monteith(
+            _PenmanMonteithState(
+                t=state.t,
+                rn=state.rn,
+                u2=state.u2,
+                es=state.es,
+                ea=state.es - vpd_new,
+                delta=state.delta,
+                gamma=state.gamma,
+            )
+        )
+    if variable == "wind":
+        return _evaluate_penman_monteith(
+            _PenmanMonteithState(
+                t=state.t,
+                rn=state.rn,
+                u2=state.u2 * factor,
+                es=state.es,
+                ea=state.ea,
+                delta=state.delta,
+                gamma=state.gamma,
+            )
+        )
+    if variable == "radiation":
+        return _evaluate_penman_monteith(
+            _PenmanMonteithState(
+                t=state.t,
+                rn=state.rn * factor,
+                u2=state.u2,
+                es=state.es,
+                ea=state.ea,
+                delta=state.delta,
+                gamma=state.gamma,
+            )
+        )
+    known = ", ".join(driver.variable for driver in RELATIVE_SENSITIVITY_DRIVERS)
+    raise ValueError(f"Unknown relative sensitivity variable '{variable}'. Expected: {known}")
+
+
+def _daily_relative_coefficient(
+    baseline: pd.Series,
+    plus: pd.Series,
+    minus: pd.Series,
+    step: float,
+) -> pd.Series:
+    base = baseline.to_numpy(dtype=float)
+    high = plus.to_numpy(dtype=float)
+    low = minus.to_numpy(dtype=float)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        coefficient = (high - low) / (2.0 * step * base)
+    invalid = ~np.isfinite(base) | ~np.isfinite(high) | ~np.isfinite(low) | (base == 0)
+    return pd.Series(coefficient, index=baseline.index).mask(invalid)
+
+
+def _summarize_coefficient(
+    coefficient: pd.Series,
+    baseline: pd.Series,
+    mask: pd.Series,
+) -> tuple[float, float, int]:
+    valid = mask.to_numpy(dtype=bool) & np.isfinite(coefficient.to_numpy(dtype=float))
+    n = int(valid.sum())
+    if n == 0:
+        return np.nan, np.nan, 0
+    return (
+        float(coefficient.to_numpy(dtype=float)[valid].mean()),
+        float(baseline.to_numpy(dtype=float)[valid].mean()),
+        n,
+    )
 
 
 def _require_method_inputs(df: pd.DataFrame, method: str) -> None:

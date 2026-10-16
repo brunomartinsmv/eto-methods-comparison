@@ -5,6 +5,7 @@ sensitivity:
   perturbation_min_pct: -50
   perturbation_max_pct: 50
   perturbation_step_pct: 10
+  relative_perturbation_pct: 1
 
 uncertainty:
   bootstrap_samples: 1000

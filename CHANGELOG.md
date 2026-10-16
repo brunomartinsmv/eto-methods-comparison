@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added monthly and annual relative sensitivity coefficients for Penman-Monteith (`outputs/tables/{site}_sensitivity_penman_monteith_relative.csv`). The coefficient is a ±1% central difference for temperature, vapor-pressure deficit, 2 m wind, and net radiation. The ±50% one-at-a-time sweep is unchanged, and each site keeps its own table.
 - Added an optional Hargreaves-Samani temperature-range exponent to `calibrate` (`--free-exponent`), with the same train/test metrics as the scalar fit. The published exponent 0.5 stays fixed when the flag is omitted.
 - Added a cross-site transfer table, `outputs/tables/{method}_calibration_transfer.csv`, when two or more configured sites are calibrated. Parameters are fit on one site's training window and scored at the other, with the original and calibrated equations side by side.
 - Added a FAO-56/ASCE radiation-consistency screen. The quality report counts days outside the clear-sky envelope, and `{site}_daily_metrics_radiation_screen.csv` repeats the daily metrics on days inside it. Full-year metric tables stay in place, and `rad_net_mj_m2_d` is not recomputed.
