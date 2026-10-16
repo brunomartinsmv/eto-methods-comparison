@@ -4,7 +4,7 @@ This document records the assumptions used to calculate and compare ET₀. It id
 
 ## Reference treatment: FAO-56 Penman-Monteith
 
-Penman-Monteith FAO-56 is treated as the reference series for method comparison, not as an error-free physical truth. Metrics, bootstrap intervals, monthly errors, rainfall-season summaries, and ETo-bin bias tables are computed as deviations of each alternative method from `et_penman_monteith`.
+Penman-Monteith FAO-56 is treated as the reference series for method comparison, not as an error-free physical truth. The reference is 24-hour FAO-56 with the daily surface resistance, not the ASCE hourly standard (daytime 50 s m⁻¹ / nighttime 200 s m⁻¹; Allen et al., 2006; ASCE-EWRI, 2005). Metrics, bootstrap intervals, monthly errors, rainfall-season summaries, and ETo-bin bias tables are computed as deviations of each alternative method from `et_penman_monteith`.
 
 `quickstart` recalculates the reference from cleaned weather inputs and writes it to `outputs/results/{site}_daily_eto.csv`. Metrics prefer that file when it exists; otherwise, they use the spreadsheet reference retained in the cleaned data. Penman-Monteith is not calibrated. Measurement errors in radiation, humidity, wind, or temperature can affect the reference, but the metrics do not propagate those errors explicitly.
 
@@ -24,7 +24,7 @@ The metrics stage compares the resulting ET₀ series without another wind conve
 
 Relative humidity inputs are standardized as daily mean, maximum, and minimum columns. The reference calculation estimates actual vapor pressure from minimum/maximum temperature and humidity when those columns exist, or from mean temperature and humidity otherwise. Saturation vapor pressure is calculated from mean temperature. These choices are implemented in `scripts/compute_eto.py` and `scripts/derived_meteo.py`.
 
-The daily bootstrap resamples method-reference pairs without perturbing humidity. The separate optional OAT sensitivity command can perturb humidity inputs. Temperature-only methods omit this control on atmospheric demand.
+The daily bootstrap resamples method-reference pairs without perturbing humidity. The default draw treats those pairs as exchangeable days. A moving-block option, described below, keeps short runs of days together. The separate optional OAT sensitivity command can perturb humidity inputs. Temperature-only methods omit this control on atmospheric demand.
 
 ## Missing days and interpolation
 
@@ -48,9 +48,13 @@ This rule applies the same descriptive classification to both sites without pres
 
 ## Bootstrap uncertainty
 
-Bootstrap confidence intervals use paired resampling of daily Penman-Monteith and method values. The implemented intervals cover RMSE, MAE, and MBE. The resampling is reproducible through a fixed random seed.
+Bootstrap confidence intervals use paired resampling of daily Penman-Monteith and method values. The implemented intervals cover RMSE, MAE, and MBE. The resampling is reproducible through a fixed random seed. Each row of the interval table records the scheme in `resampling` and the block length in `block_length`.
 
-The method does not explicitly model temporal autocorrelation, instrument error, uncertainty in physical constants, or uncertainty from calibration. Intervals should be read as descriptive uncertainty for the available paired daily records.
+The default scheme, `iid`, draws paired days independently and records `block_length` 1. Those intervals describe sampling variability under day exchangeability. They do not model temporal autocorrelation.
+
+`analyze-uncertainty --bootstrap moving-block` draws a moving-block bootstrap from the same pairwise-complete series and records the block length that was used. Overlapping blocks of that length are drawn with replacement, concatenated, and trimmed to the paired sample size. Blocks do not wrap around the ends of the series. The configured length is `uncertainty.block_length` in `configs/pipeline.yml` (7 daily steps), a fixed weekly length for the optional scheme. For one year of daily data, 7 is about the cube root of the sample size. The pipeline uses that configured value for the whole run. Blocks follow the order of pairwise-complete days, so a missing day stays outside the block.
+
+Moving-block intervals keep dependence inside each block and treat blocks as exchangeable. Neither scheme propagates instrument error, uncertainty in physical constants, or uncertainty from calibration. Intervals should be read as descriptive uncertainty for the available paired daily records.
 
 ## Bias by ETo range
 
@@ -79,3 +83,8 @@ Manaus represents a humid tropical setting where humidity, cloudiness, and limit
 Piracicaba represents a subtropical/agricultural setting with stronger seasonality and periods where water availability and atmospheric demand may diverge. Locally calibrated methods may perform well there but should not be assumed transferable.
 
 The study uses 2024 data. Single-year results should be interpreted as a reproducible case study rather than a definitive climatological ranking.
+
+## References
+
+- Allen, R. G., Pruitt, W. O., Wright, J. L., Howell, T. A., Ventura, F., Snyder, R., Itenfisu, D., Steduto, P., Berengena, J., Baselga Yrisarry, J., Smith, M., Pereira, L. S., Raes, D., Perrier, A., Alves, I., Walter, I., & Elliott, R. (2006). A recommendation on standardized surface resistance for hourly calculation of reference ETo by the FAO56 Penman-Monteith method. *Agricultural Water Management*, 81(1–2), 1–22. https://doi.org/10.1016/j.agwat.2005.03.007
+- ASCE-EWRI. (2005). *The ASCE standardized reference evapotranspiration equation* (R. G. Allen, I. A. Walter, R. L. Elliott, T. A. Howell, D. Itenfisu, M. E. Jensen, & R. L. Snyder, Eds.). American Society of Civil Engineers. https://doi.org/10.1061/9780784408056

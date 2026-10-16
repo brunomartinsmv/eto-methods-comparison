@@ -310,7 +310,7 @@ $$\mathrm{ETo} = \frac{R_s}{\lambda}\,0{,}025\,(T_{mean} - 3)$$
 Temperatura media e radiacao global.
 
 **Nota de implementacao**
-A implementacao em `scripts/eto_methods.py` nao aplica clamp em \(T_{mean} - T_x\); quando \(T_{mean} < T_x\), o resultado pode ser negativo. Ver [`equations/et0_methods.md`](equations/et0_methods.md).
+A implementacao em `scripts/eto_methods.py` nao aplica clamp em \(T_{mean} - T_x\); quando \(T_{mean} < T_x\), o resultado pode ser negativo. Os valores \(0{,}025\) e \(3\) °C vêm do coeficiente \(C_t\) e do módulo de \(T_x = -3\) °C citados para Jensen–Haise; o produto configurado usa \(T_{mean} - 3\), que difere de \(T + 3\) e de \(0{,}025\,T + 0{,}08\). A chave permanece Jensen-Heise. Ver [`equations/et0_methods.md`](equations/et0_methods.md).
 
 ---
 

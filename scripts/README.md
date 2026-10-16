@@ -38,7 +38,7 @@ Sites are configured in `configs/sites.yml`. Method column mappings and short la
 - `validate-data`: gera relatorios auditaveis de qualidade em `outputs/reports/`.
 - `compute-eto`: calcula ET0 diaria a partir de variaveis meteorologicas limpas e escreve `outputs/results/{site}_daily_eto.csv`.
 - `pca`: roda uma analise PCA opcional e exporta loadings, variancia explicada e biplot em `outputs/tables/` e `outputs/figures/`.
-- `analyze-uncertainty`: gera intervalos bootstrap, erros sazonais e analise de viés por faixa de ETo.
+- `analyze-uncertainty`: gera intervalos bootstrap, erros sazonais e analise de viés por faixa de ETo. O padrão reamostra dias de forma independente (`resampling=iid`, `block_length=1`). `--bootstrap moving-block` usa blocos móveis e grava o comprimento do bloco na mesma tabela.
 - `calibrate`: ajusta coeficientes locais opcionais para `hargreaves_samani`, `turc` e `radiation_temperature`, sempre com separacao temporal treino/teste. Com o input padrao, usa a referencia Penman-Monteith calculada em `outputs/results/{site}_daily_eto.csv` quando ela existe; para inputs customizados, use `--results-input` para apontar o diretorio de resultados calculados correspondente. Quando `--results-input` e informado, `{site}_daily_eto.csv` deve existir nesse diretorio. Escreve `outputs/tables/{site}_{method}_calibration_coefficients.csv` e `outputs/tables/{site}_{method}_calibration_metrics.csv`.
 - `summarize`: resume os melhores metodos por localidade e escala temporal a partir de `outputs/tables/`.
 - `quickstart`: executa o pipeline completo, gera relatorios HTML, exporta o supplement e escreve `outputs/index.html`.

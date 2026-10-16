@@ -124,6 +124,24 @@ def _pipeline_uncertainty_kwargs(args: argparse.Namespace) -> dict[str, int | fl
     random_state = getattr(args, "random_state", None)
     rainfall_column = getattr(args, "rainfall_column", None)
     eto_bins = getattr(args, "eto_bins", None)
+    bootstrap = getattr(args, "bootstrap", None)
+    block_length = getattr(args, "block_length", None)
+    scheme = uncertainty.normalize_bootstrap_scheme(
+        pipeline.uncertainty_bootstrap if bootstrap is None else bootstrap
+    )
+    if scheme == uncertainty.BOOTSTRAP_IID:
+        if block_length is not None and int(block_length) != 1:
+            raise ValueError(
+                "block_length applies to --bootstrap moving-block; "
+                "the day-exchangeable bootstrap records block_length 1"
+            )
+        resolved_block_length = 1
+    else:
+        resolved_block_length = (
+            pipeline.uncertainty_block_length if block_length is None else int(block_length)
+        )
+        if resolved_block_length < 1:
+            raise ValueError("block_length must be at least 1")
     return {
         "bootstrap_samples": (
             pipeline.uncertainty_bootstrap_samples
@@ -138,6 +156,8 @@ def _pipeline_uncertainty_kwargs(args: argparse.Namespace) -> dict[str, int | fl
             else rainfall_column
         ),
         "eto_bins": pipeline.uncertainty_eto_bins if eto_bins is None else eto_bins,
+        "bootstrap": scheme,
+        "block_length": resolved_block_length,
     }
 
 
@@ -552,6 +572,8 @@ def cmd_analyze_uncertainty(args: argparse.Namespace) -> None:
             n_boot=int(uncertainty_kwargs["bootstrap_samples"]),
             confidence=float(uncertainty_kwargs["confidence"]),
             random_state=int(uncertainty_kwargs["random_state"]),
+            scheme=str(uncertainty_kwargs["bootstrap"]),
+            block_length=int(uncertainty_kwargs["block_length"]),
         )
         seasonal = uncertainty.seasonal_error_metrics(
             df,
@@ -1152,6 +1174,25 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=None,
         help="Bootstrap resamples (default: configs/pipeline.yml)",
+    )
+    uncertainty_parser.add_argument(
+        "--bootstrap",
+        choices=["iid", "moving-block"],
+        default=None,
+        help=(
+            "Interval resampling: iid draws exchangeable days (default); "
+            "moving-block keeps contiguous daily blocks. Default: configs/pipeline.yml"
+        ),
+    )
+    uncertainty_parser.add_argument(
+        "--block-length",
+        type=int,
+        default=None,
+        help=(
+            "Block length for moving-block resampling, recorded in the interval table. "
+            "The iid default records 1. Default length when moving-block is selected: "
+            "configs/pipeline.yml"
+        ),
     )
     uncertainty_parser.add_argument(
         "--confidence",

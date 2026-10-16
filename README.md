@@ -43,7 +43,7 @@ Run the pipeline to generate:
 - `summary_rankings.csv`, All methods ranked by site (Manaus, Piracicaba), scale (daily, monthly), and selected ranking rule
 - `{site}_daily_metrics.csv`, RMSE, MAE, MBE, Pearson r, R², Willmott d, confidence c, and performance classification for daily estimates
 - `{site}_monthly_metrics.csv`, Same metrics aggregated monthly
-- `{site}_bootstrap_metric_intervals.csv`, Bootstrap confidence intervals for method metrics
+- `{site}_bootstrap_metric_intervals.csv`, Bootstrap confidence intervals for RMSE, MAE, and MBE. The default draws days independently and records `block_length` 1. `--bootstrap moving-block` keeps contiguous daily blocks and records the length used.
 - `{site}_seasonal_error_metrics.csv`, Seasonal error diagnostics
 - `{site}_bias_by_eto_bin.csv`, Bias summarized by Penman-Monteith ETo range
 - Start with `summary_rankings.csv` to compare methods at each site.
@@ -226,7 +226,8 @@ python -m scripts.cli aggregate  # Create aggregations → outputs/results/
 python -m scripts.cli metrics    # Compute RMSE, r, R², Willmott d, c, etc. → outputs/tables/ (prefers computed ET0 if available)
 python -m scripts.cli plots      # Generate all figures → outputs/figures/
 python -m scripts.cli pca        # Optional PCA on meteorological drivers
-python -m scripts.cli analyze-uncertainty  # Bootstrap, seasonal, and bias-bin diagnostics
+python -m scripts.cli analyze-uncertainty  # Day-exchangeable bootstrap, seasonal, and bias-bin diagnostics
+python -m scripts.cli analyze-uncertainty --bootstrap moving-block --block-length 7  # Optional moving-block intervals
 python -m scripts.cli validate-data  # Audit dates, missing values, interpolation traces
 python -m scripts.cli summarize      # Rank methods with the default composite rule
 python -m scripts.cli summarize --ranking rmse       # Rank by lowest RMSE

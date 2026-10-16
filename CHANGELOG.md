@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added Kling–Gupta efficiency (`kge`) and percent bias (`pbias`) to daily and monthly metric tables, with `summarize --ranking kge`. The Camargo–Sentelhas `c` classification is unchanged. Rankings state that they measure agreement with calculated Penman–Monteith.
+- Added an optional moving-block bootstrap for RMSE, MAE, and MBE intervals (`analyze-uncertainty --bootstrap moving-block`). The default remains day-exchangeable resampling. Interval tables record `resampling` and `block_length`.
 
 ## [2.2.0] - 2026-10-08
 
