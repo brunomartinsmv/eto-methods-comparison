@@ -4,15 +4,16 @@ from pathlib import Path
 
 import pandas as pd
 
-METRIC_COLUMNS = ["rmse", "mae", "mbe", "r", "r2", "willmott_d", "c", "classification"]
+METRIC_COLUMNS = ["rmse", "mae", "mbe", "r", "r2", "willmott_d", "c", "kge", "pbias", "classification"]
 SITE_METADATA_COLUMNS = ["biome", "climate_class", "region", "country", "state"]
-RANKING_RULES = ("rmse", "mae", "c", "willmott_d", "composite")
+RANKING_RULES = ("rmse", "mae", "c", "willmott_d", "kge", "composite")
 DEFAULT_RANKING = "composite"
 SELECTION_RULE_DESCRIPTIONS = {
     "rmse": "lowest RMSE",
     "mae": "lowest MAE",
     "c": "highest confidence coefficient c",
     "willmott_d": "highest Willmott d",
+    "kge": "highest Kling–Gupta efficiency",
     "composite": "highest c, then lowest RMSE, lowest MAE, highest Willmott d, and lowest absolute MBE",
 }
 RANK_COLUMNS = [
@@ -23,6 +24,8 @@ RANK_COLUMNS = [
     "rank_r2",
     "rank_willmott_d",
     "rank_c",
+    "rank_kge",
+    "rank_pbias",
 ]
 RANKING_COLUMNS = [
     "site",
@@ -53,6 +56,10 @@ def _rank_metrics(table: pd.DataFrame) -> pd.DataFrame:
         ranked["rank_willmott_d"] = _rank_series(ranked["willmott_d"], ascending=False)
     if "c" in ranked.columns:
         ranked["rank_c"] = _rank_series(ranked["c"], ascending=False)
+    if "kge" in ranked.columns:
+        ranked["rank_kge"] = _rank_series(ranked["kge"], ascending=False)
+    if "pbias" in ranked.columns:
+        ranked["rank_pbias"] = _rank_series(ranked["pbias"].abs(), ascending=True)
     return ranked
 
 
@@ -65,7 +72,7 @@ def _validate_ranking(ranking: str) -> None:
 def _required_columns_for_ranking(ranking: str) -> list[str]:
     if ranking == "composite":
         return ["c", "rmse", "mae", "willmott_d", "mbe"]
-    if ranking in {"rmse", "mae", "c", "willmott_d"}:
+    if ranking in {"rmse", "mae", "c", "willmott_d", "kge"}:
         return [ranking]
     _validate_ranking(ranking)
     return []
@@ -245,6 +252,8 @@ def write_rankings(
         "r2",
         "willmott_d",
         "c",
+        "kge",
+        "pbias",
         "classification",
     ]
     scale_order = ("monthly", "daily")
@@ -254,7 +263,9 @@ def write_rankings(
         "",
         "Methods are ranked within each site and temporal scale.",
         f"Overall `rank` follows `{rule}` ({rule_description}); per-metric ranks use their own metric criterion",
-        "(MBE ranks by absolute bias; r, R², Willmott d, and confidence c favor higher values).",
+        "(MBE and percent bias rank by absolute value; r, R², Willmott d, confidence c, and Kling–Gupta efficiency favor higher values).",
+        "",
+        "Every rank measures agreement with calculated Penman–Monteith (Martí et al., 2015; López-Urrea et al., 2006).",
         "",
         "Monthly scale is listed before daily.",
         "",

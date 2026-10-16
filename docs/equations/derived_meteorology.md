@@ -150,6 +150,34 @@ $$R_{s,\mathrm{cal\ cm^{-2}\ d^{-1}}} = R_{s,\mathrm{MJ\ m^{-2}\ d^{-1}}} \times
 
 ---
 
+## 9. Substitutos FAO-56 para vento, umidade e radiação ausentes
+
+O comando `limited-data` usa estes substitutos apenas nos cenários em que a variável correspondente é tratada como ausente. A série completa de Penman-Monteith continua a ler `rad_net_mj_m2_d` e a umidade medida.
+
+### Vento
+
+Quando não há vento medido, a FAO-56 admite \(u_2 = 2\ \mathrm{m\ s^{-1}}\) (média de cerca de 2 000 estações), já na altura de 2 m. Se o sítio define `regional_wind_2m_ms`, esse valor regional substitui o padrão. Valores abaixo de \(0{,}5\ \mathrm{m\ s^{-1}}\) são elevados a \(0{,}5\) antes da equação 6.
+
+### Umidade (eq. 48)
+
+Com o ponto de orvalho igual à temperatura mínima:
+
+$$e_a = e_s(T_{min})$$
+
+### Radiação solar a partir da amplitude térmica (eq. 50)
+
+$$R_s = k_{Rs}\sqrt{T_{max} - T_{min}}\,R_a$$
+
+\(k_{Rs} = 0{,}16\) em localidade interior e \(0{,}19\) em localidade costeira. \(R_s\) é limitado à radiação de céu claro:
+
+$$R_{so} = (0{,}75 + 2\times 10^{-5}\,z)\,R_a$$
+
+A radiação líquida correspondente é \(R_n = R_{ns} - R_{nl}\), com \(\alpha = 0{,}23\) e a eq. 39. A razão \(R_s/R_{so}\) entra na eq. 39 limitada a \(\le 1\).
+
+**Implementação:** `scripts/derived_meteo.py` e `scripts/limited_data.py`.
+
+---
+
 ## Referências
 
 - Allen, R. G., Pereira, L. S., Raes, D., & Smith, M. (1998). *Crop Evapotranspiration* (FAO-56). FAO Irrigation and Drainage Paper 56.

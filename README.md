@@ -45,9 +45,10 @@ Run the pipeline to generate:
 - `summary_rankings.csv`, All methods ranked by site (Manaus, Piracicaba), scale (daily, monthly), and selected ranking rule
 - `{site}_daily_metrics.csv`, RMSE, MAE, MBE, Pearson r, R², Willmott d, confidence c, and performance classification for daily estimates
 - `{site}_monthly_metrics.csv`, Same metrics aggregated monthly
-- `{site}_bootstrap_metric_intervals.csv`, Bootstrap confidence intervals for method metrics
+- `{site}_bootstrap_metric_intervals.csv`, Bootstrap confidence intervals for RMSE, MAE, and MBE. The default draws days independently and records `block_length` 1. `--bootstrap moving-block` keeps contiguous daily blocks and records the length used.
 - `{site}_seasonal_error_metrics.csv`, Seasonal error diagnostics
 - `{site}_bias_by_eto_bin.csv`, Bias summarized by Penman-Monteith ETo range
+- `{site}_limited_data_metrics.csv`, Penman-Monteith with FAO-56 substitutes for missing wind, humidity, or radiation, plus Hargreaves-Samani and Turc, scored against the full-data reference on the same days (`limited-data`)
 - Start with `summary_rankings.csv` to compare methods at each site.
 
 **Figures** (`outputs/figures/{site}/`)
@@ -228,10 +229,12 @@ python -m scripts.cli aggregate  # Create aggregations → outputs/results/
 python -m scripts.cli metrics    # Compute RMSE, r, R², Willmott d, c, etc. → outputs/tables/ (prefers computed ET0 if available)
 python -m scripts.cli plots      # Generate all figures → outputs/figures/
 python -m scripts.cli pca        # Optional PCA on meteorological drivers
-python -m scripts.cli analyze-uncertainty  # Bootstrap, seasonal, and bias-bin diagnostics
+python -m scripts.cli analyze-uncertainty  # Day-exchangeable bootstrap, seasonal, and bias-bin diagnostics
+python -m scripts.cli analyze-uncertainty --bootstrap moving-block --block-length 7  # Optional moving-block intervals
 python -m scripts.cli validate-data  # Audit dates, missing values, interpolation traces
 python -m scripts.cli summarize      # Rank methods with the default composite rule
 python -m scripts.cli summarize --ranking rmse       # Rank by lowest RMSE
+python -m scripts.cli summarize --ranking kge        # Rank by highest Kling–Gupta efficiency
 python -m scripts.cli summarize --ranking composite  # Rank by the documented multi-metric rule
 python -m scripts.cli quickstart --year 2024       # Full pipeline + reports + index + supplement
 python -m scripts.cli inspect --site manaus        # Pre-flight method feasibility report
@@ -244,12 +247,14 @@ python -m scripts.cli export-supplement             # Collect supplemental outpu
 ```
 
 `summarize` accepts `--ranking rmse`, `--ranking mae`, `--ranking c`,
-`--ranking willmott_d`, or `--ranking composite`. The default is
+`--ranking willmott_d`, `--ranking kge`, or `--ranking composite`. The default is
 `composite`, which ranks methods within each site and temporal scale by:
 highest confidence coefficient `c`, then lowest `rmse`, lowest `mae`,
-highest `willmott_d`, and lowest absolute `mbe`. The selected rule is written
+highest `willmott_d`, and lowest absolute `mbe`. `--ranking kge` orders by
+highest Kling–Gupta efficiency. The selected rule is written
 to `selection_rule`, and the chosen order is written to `rank` in both
 `outputs/reports/summary.csv` and `outputs/tables/summary_rankings.csv`.
+Every rank measures agreement with calculated Penman–Monteith.
 
 `metrics` remains backward compatible: if `outputs/results/{site}_daily_eto.csv`
 does not exist, it falls back to `data/cleaned/{site}_daily.csv` and uses the

@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added an `inmet_limited` reader for the Petrolina sheet as a temperature-humidity-wind case. The quality report labels the INMET station-status flag (Pane on the versioned sheet). Petrolina stays out of the Penman-Monteith comparison; a fair semiarid comparison still needs a radiation-bearing series.
+- Added `limited-data`, which scores FAO-56 Penman-Monteith after wind, humidity, radiation, or all three are replaced by the FAO-56 substitutes, together with Hargreaves-Samani and Turc, against the full-data pipeline reference. Writes `outputs/tables/{site}_limited_data_metrics.csv`.
+- Added Kling–Gupta efficiency (`kge`) and percent bias (`pbias`) to daily and monthly metric tables, with `summarize --ranking kge`. The Camargo–Sentelhas `c` classification is unchanged. Rankings state that they measure agreement with calculated Penman–Monteith.
+- Added an optional moving-block bootstrap for RMSE, MAE, and MBE intervals (`analyze-uncertainty --bootstrap moving-block`). The default remains day-exchangeable resampling. Interval tables record `resampling` and `block_length`.
 
 ## [2.2.0] - 2026-10-08
 
