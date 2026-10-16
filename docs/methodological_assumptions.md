@@ -14,6 +14,16 @@ Net radiation is read from the cleaned daily data as `rad_net_mj_m2_d` when pres
 
 Priestley-Taylor and Penman-Monteith are especially sensitive to net radiation. Biases in `rad_net_mj_m2_d` can therefore affect both the reference and one of the compared methods in correlated ways.
 
+## Global radiation envelope
+
+Absolute bounds on `rad_global_mj_m2_d` do not show whether a day is consistent with extraterrestrial or clear-sky radiation. The quality report therefore adds a `radiation_envelope` row. \(R_a\) is FAO-56 equation 21 from latitude and day of year. Clear-sky radiation is FAO-56 equation 37, \(R_{so} = (0.75 + 2 \times 10^{-5} z) R_a\), with \(z\) the site altitude in metres. A day is inside the envelope when \(0.25 \le R_s/R_{so} \le 1.0\) and \(R_s \le R_a\) (ASCE-EWRI 2005, equations 18 and 19).
+
+The cleaned column `ra_extraterrestre_mj_m2_d` is not that daily series. At Manaus it is constant, and at Piracicaba it takes a handful of values well below equation 21. The screen uses the column only when latitude is missing.
+
+Days outside the interval are counted. The 0.25 floor is the lower limit ASCE places on the cloudiness ratio in the net-radiation equation, so heavily overcast days can fall outside it without being sensor failures. A series that remains near 1 MJ m⁻² d⁻¹ while \(R_{so}\) is an order of magnitude larger fails the envelope on every day. The count is that audit. `rad_net_mj_m2_d` is not replaced.
+
+`outputs/tables/{site}_daily_metrics_radiation_screen.csv` repeats the daily metrics on days inside the envelope. `{site}_daily_metrics.csv` and `{site}_monthly_metrics.csv` stay on the full cleaned year. The screen does not overwrite `rad_net_mj_m2_d`.
+
 ## Wind
 
 Daily wind inputs are standardized as `wind_mean_ms` and `wind_max_ms`. When calculating Penman-Monteith, the pipeline converts mean wind to 2 m using FAO-56 equation 47 and the site's `wind_height_m`. The default measurement height is 10 m when that metadata is absent; the source height must therefore be checked when adding a site.

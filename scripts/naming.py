@@ -23,6 +23,14 @@ def metrics_filename(site: str, scale: str) -> str:
     return f"{site}_{scale}_metrics.csv"
 
 
+def radiation_screen_filename(site: str) -> str:
+    return f"{site}_radiation_screen.csv"
+
+
+def radiation_screen_metrics_filename(site: str) -> str:
+    return f"{site}_daily_metrics_radiation_screen.csv"
+
+
 def bootstrap_filename(site: str) -> str:
     return f"{site}_bootstrap_metric_intervals.csv"
 

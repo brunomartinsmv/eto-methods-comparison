@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 from .config import METHODS
+from .radiation_screen import envelope_counts, radiation_consistency_frame
 
 METHOD_COLUMNS = set(METHODS.columns.values())
 
@@ -159,6 +160,8 @@ def build_quality_report(
     calculated_df: pd.DataFrame | None = None,
     station_status: str | None = None,
     include_computed_methods: bool = True,
+    elevation_m: float | None = None,
+    latitude_deg: float | None = None,
 ) -> pd.DataFrame:
     interpolated_by_variable = interpolated_by_variable or {}
 
@@ -215,9 +218,28 @@ def build_quality_report(
             )
         )
 
+    if elevation_m is not None:
+        rows.append(
+            _radiation_envelope_row(
+                site=site,
+                cleaned_df=cleaned_df,
+                cleaned_dates=cleaned_dates,
+                expected_dates=expected_dates,
+                elevation_m=float(elevation_m),
+                latitude_deg=latitude_deg,
+            )
+        )
+
     report = pd.DataFrame(rows)
     if station_status:
         report["station_status"] = station_status
+    for column in (
+        "envelope_days_inside",
+        "envelope_days_outside",
+        "envelope_days_unevaluable",
+    ):
+        if column in report.columns:
+            report[column] = pd.to_numeric(report[column], errors="coerce").astype("Int64")
     return report
 
 
@@ -254,6 +276,39 @@ def _computed_method_rows(
         )
 
     return rows
+
+
+def _radiation_envelope_row(
+    *,
+    site: str,
+    cleaned_df: pd.DataFrame,
+    cleaned_dates: pd.Series,
+    expected_dates: pd.DatetimeIndex,
+    elevation_m: float,
+    latitude_deg: float | None,
+) -> dict[str, object]:
+    screen = radiation_consistency_frame(
+        cleaned_df,
+        elevation_m=elevation_m,
+        latitude_deg=None if latitude_deg is None else float(latitude_deg),
+    )
+    counts = envelope_counts(screen)
+    values = cleaned_df["rad_global_mj_m2_d"] if "rad_global_mj_m2_d" in cleaned_df.columns else None
+    evaluated = counts["inside"] + counts["outside"]
+    row = _quality_row(
+        site=site,
+        stage="radiation_envelope",
+        variable="rad_global_mj_m2_d",
+        values=values,
+        dates=cleaned_dates,
+        expected_dates=expected_dates,
+        row_count=len(cleaned_df),
+        status="available" if evaluated else "not_available",
+    )
+    row["envelope_days_inside"] = counts["inside"]
+    row["envelope_days_outside"] = counts["outside"]
+    row["envelope_days_unevaluable"] = counts["unevaluable"]
+    return row
 
 
 def write_quality_report(report: pd.DataFrame, output_dir: Path, site: str) -> Path:

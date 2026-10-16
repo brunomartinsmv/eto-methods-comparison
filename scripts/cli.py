@@ -20,6 +20,7 @@ from . import (
     pca_analysis,
     plots,
     quality,
+    radiation_screen,
     report_builder,
     sensitivity,
     summary,
@@ -56,6 +57,7 @@ from .naming import (
     method_only_filename,
     metrics_filename,
     monthly_totals_filename,
+    radiation_screen_metrics_filename,
     rolling_7d_filename,
     seasonal_filename,
     sensitivity_filename,
@@ -299,6 +301,9 @@ def cmd_validate_data(args: argparse.Namespace) -> None:
         )
         if calculated_df is not None:
             calculated_df = calculated_df.loc[calculated_df["date"].dt.year == args.year]
+        elevation_m = meta.get("alt_m")
+        latitude_deg = meta.get("lat")
+        has_global_radiation = "rad_global_mj_m2_d" in cleaned_df.columns
         report = quality.build_quality_report(
             site=site,
             raw_df=raw_df,
@@ -308,8 +313,34 @@ def cmd_validate_data(args: argparse.Namespace) -> None:
             calculated_df=calculated_df,
             station_status=table.station_status,
             include_computed_methods=full_site,
+            elevation_m=(
+                None
+                if elevation_m is None or not has_global_radiation
+                else float(elevation_m)
+            ),
+            latitude_deg=(
+                None
+                if latitude_deg is None or not has_global_radiation
+                else float(latitude_deg)
+            ),
         )
         quality.write_quality_report(report, output_dir, site)
+        if elevation_m is not None and has_global_radiation:
+            screen = radiation_screen.radiation_consistency_frame(
+                cleaned_df,
+                elevation_m=float(elevation_m),
+                latitude_deg=None if latitude_deg is None else float(latitude_deg),
+            )
+            screen_path = radiation_screen.write_radiation_screen(screen, output_dir, site)
+            counts = radiation_screen.envelope_counts(screen)
+            logger.info(
+                "wrote radiation screen for %s to %s (%d inside, %d outside, %d unevaluable)",
+                site,
+                screen_path,
+                counts["inside"],
+                counts["outside"],
+                counts["unevaluable"],
+            )
         reports.append(report)
 
     if reports:
@@ -336,12 +367,87 @@ def cmd_aggregate(args: argparse.Namespace) -> None:
         logger.info("wrote rolling and monthly aggregates for %s", site)
 
 
+_RADIATION_INPUT_COLUMNS = ("rad_global_mj_m2_d", "ra_extraterrestre_mj_m2_d")
+
+
+def _with_radiation_columns(df: pd.DataFrame, cleaned_dir: Path, site: str) -> pd.DataFrame:
+    """Attach cleaned Rs and Ra without overwriting columns already on ``df``.
+
+    ``rad_net_mj_m2_d`` is intentionally left untouched.
+    """
+    missing = [column for column in _RADIATION_INPUT_COLUMNS if column not in df.columns]
+    if not missing or "date" not in df.columns:
+        return df
+    cleaned_path = cleaned_dir / cleaned_daily_filename(site)
+    if not cleaned_path.exists():
+        return df
+    cleaned = pd.read_csv(cleaned_path, parse_dates=["date"])
+    available = [column for column in missing if column in cleaned.columns]
+    if not available:
+        return df
+    return df.merge(
+        cleaned[["date", *available]],
+        on="date",
+        how="left",
+        validate="one_to_one",
+    )
+
+
+def _write_radiation_screen_metrics(
+    site: str,
+    meta: dict,
+    df: pd.DataFrame,
+    *,
+    input_dir: Path,
+    output_dir: Path,
+    ref_col: str,
+    compared: list[str],
+) -> None:
+    elevation_m = meta.get("alt_m")
+    if elevation_m is None:
+        logger.info("%s: radiation-screen metrics skipped (alt_m is not configured)", site)
+        return
+    latitude_deg = meta.get("lat")
+    screened_input = _with_radiation_columns(df, input_dir, site)
+    has_radiation = any(column in screened_input.columns for column in _RADIATION_INPUT_COLUMNS)
+    if not has_radiation and latitude_deg is None:
+        logger.info(
+            "%s: radiation-screen metrics skipped (global and extraterrestrial radiation are absent)",
+            site,
+        )
+        return
+    screen = radiation_screen.radiation_consistency_frame(
+        screened_input,
+        elevation_m=float(elevation_m),
+        latitude_deg=None if latitude_deg is None else float(latitude_deg),
+    )
+    counts = radiation_screen.envelope_counts(screen)
+    if counts["inside"] + counts["outside"] == 0:
+        logger.info("%s: radiation-screen metrics skipped (no evaluable radiation days)", site)
+        return
+    screened_metrics = metrics.compute_metrics(
+        screened_input.loc[screen["inside_envelope"]],
+        ref_col,
+        compared,
+    )
+    screened_metrics.insert(1, "envelope_days", counts["inside"])
+    output_path = output_dir / radiation_screen_metrics_filename(site)
+    screened_metrics.to_csv(output_path, index=False)
+    logger.info(
+        "wrote radiation-screen daily metrics for %s to %s (%d inside, %d outside)",
+        site,
+        output_path,
+        counts["inside"],
+        counts["outside"],
+    )
+
+
 def cmd_metrics(args: argparse.Namespace) -> None:
     input_dir = Path(args.input)
     output_dir = Path(args.output)
     _ensure_dir(output_dir)
 
-    for site in _selected_sites(args).keys():
+    for site, meta in _selected_sites(args).items():
         df = read_eto_frame(site, cleaned_dir=input_dir)
         method_cols = _method_cols_present(df)
         ref_col = REFERENCE_COLUMN
@@ -349,13 +455,23 @@ def cmd_metrics(args: argparse.Namespace) -> None:
         if ref_col not in df.columns:
             raise ValueError(f"Reference column '{ref_col}' not found for {site}")
 
-        daily_metrics = metrics.compute_metrics(df, ref_col, [c for c in method_cols if c != ref_col])
+        compared = [column for column in method_cols if column != ref_col]
+        daily_metrics = metrics.compute_metrics(df, ref_col, compared)
         daily_metrics.to_csv(output_dir / metrics_filename(site, "daily"), index=False)
 
         monthly_df = aggregate.monthly_sum(df, method_cols)
-        monthly_metrics = metrics.compute_metrics(monthly_df, ref_col, [c for c in method_cols if c != ref_col])
+        monthly_metrics = metrics.compute_metrics(monthly_df, ref_col, compared)
         monthly_metrics.to_csv(output_dir / metrics_filename(site, "monthly"), index=False)
-        logger.info("wrote daily and monthly metrics for %s (%d methods)", site, len(method_cols) - 1)
+        logger.info("wrote daily and monthly metrics for %s (%d methods)", site, len(compared))
+        _write_radiation_screen_metrics(
+            site,
+            meta,
+            df,
+            input_dir=input_dir,
+            output_dir=output_dir,
+            ref_col=ref_col,
+            compared=compared,
+        )
 
 
 def _limited_data_results_dir(input_dir: Path, results_input: str | None) -> Path | None:

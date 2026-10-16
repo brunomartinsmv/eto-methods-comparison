@@ -26,6 +26,12 @@ The report records:
 - `interpolated_values`: values filled by numeric interpolation during cleaning.
 - `physical_limit_violations`: values outside conservative physical plausibility limits.
 
+When the site has an altitude and a global-radiation column, the report also contains one `radiation_envelope` row for `rad_global_mj_m2_d` and a daily file `{site}_radiation_screen.csv`.
+`Ra` in that file is FAO-56 equation 21 from latitude and day of year when latitude is known. `Rso = (0.75 + 2e-5 * altitude_m) * Ra`.
+A day is inside when `0.25 ≤ Rs/Rso ≤ 1.0` and `Rs ≤ Ra`.
+The count columns are `envelope_days_inside`, `envelope_days_outside`, and `envelope_days_unevaluable`.
+The cleaned `ra_extraterrestre_mj_m2_d` column is not used for this count when latitude is available, and `rad_net_mj_m2_d` is not replaced.
+
 `data_quality_summary.csv` concatenates the site-level reports from the `validate-data` run. The default run covers the full-data Penman-Monteith sites. Petrolina is omitted from that run; `python -m scripts.cli validate-data --site petrolina --year 2024` writes `petrolina_data_quality.csv` and labels the station-status flag. That sheet has no radiation columns, and the reader does not create any. A fair semiarid Penman-Monteith comparison still needs a radiation-bearing series.
 
 `summary.csv` and `summary.md` are generated with:

@@ -10,6 +10,8 @@ Consolidated navigation for generated tables, reports, and figures.
 - [Data quality](reports/manaus_data_quality.csv)
 - [Daily metrics](tables/manaus_daily_metrics.csv)
 - [Monthly metrics](tables/manaus_monthly_metrics.csv)
+- [Daily metrics, radiation envelope](tables/manaus_daily_metrics_radiation_screen.csv)
+- [Radiation screen](reports/manaus_radiation_screen.csv)
 - [Figures gallery](figures/manaus/index.html)
 
 ### piracicaba
@@ -18,6 +20,8 @@ Consolidated navigation for generated tables, reports, and figures.
 - [Data quality](reports/piracicaba_data_quality.csv)
 - [Daily metrics](tables/piracicaba_daily_metrics.csv)
 - [Monthly metrics](tables/piracicaba_monthly_metrics.csv)
+- [Daily metrics, radiation envelope](tables/piracicaba_daily_metrics_radiation_screen.csv)
+- [Radiation screen](reports/piracicaba_radiation_screen.csv)
 - [Figures gallery](figures/piracicaba/index.html)
 
 ## Global summaries

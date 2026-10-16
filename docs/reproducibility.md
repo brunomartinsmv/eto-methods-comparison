@@ -110,7 +110,7 @@ After running the pipeline, start with:
 - `outputs/figures/{site}/{site}_daily_taylor.png`, for visual comparison;
 - `outputs/reports/{site}_data_quality.csv`, for data-quality auditing.
 - `python -m scripts.cli validate-data --site petrolina --year 2024` writes the Petrolina quality report, including the station-status flag. Petrolina is a temperature-humidity-wind case and is left out of the Penman-Monteith comparison. A fair semiarid comparison still needs a radiation-bearing series.
-- The quality report separates weather inputs (`input`), spreadsheet ET₀ series (`precomputed_et0`), and calculated ET₀ series (`computed_et0`). Methods configured as `precomputed_only` appear only in the spreadsheet stage. For each configured calculable method, it reports finite values, distinct valid days, calendar coverage, and physical-limit violations. Methods absent from an existing calculated file are marked `not_available`; without a calculated file, the stage is marked `not_run`.
+- The quality report separates weather inputs (`input`), spreadsheet ET₀ series (`precomputed_et0`), and calculated ET₀ series (`computed_et0`). Methods configured as `precomputed_only` appear only in the spreadsheet stage. For each configured calculable method, it reports finite values, distinct valid days, calendar coverage, and physical-limit violations. Methods absent from an existing calculated file are marked `not_available`; without a calculated file, the stage is marked `not_run`. A `radiation_envelope` row counts days whose global radiation falls outside the FAO-56/ASCE clear-sky envelope. `outputs/tables/{site}_daily_metrics_radiation_screen.csv` scores only the days inside that envelope; the full-year metric tables are kept.
 
 ## Checagens de desenvolvimento / Development checks
 ```bash
@@ -126,6 +126,7 @@ O CI executa lint, testes e o pipeline principal quando `data/raw/Evapo.xlsx` es
 - `outputs/results/*_monthly_totals.csv`
 - `outputs/results/*_daily_eto.csv`
 - `outputs/tables/*_daily_metrics.csv`
+- `outputs/tables/*_daily_metrics_radiation_screen.csv`
 - `outputs/tables/*_monthly_metrics.csv`
 - `outputs/tables/*_pca_loadings.csv`
 - `outputs/tables/*_pca_explained_variance.csv`

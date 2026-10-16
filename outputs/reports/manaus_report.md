@@ -19,6 +19,8 @@ Amazonia · Af · AM · Brazil
 
 Coverage and QC flags by input variable.
 
+Clear-sky screen for global radiation: 366 days outside the envelope, 0 inside, 0 unevaluable. A day is inside when 0.25 ≤ Rs/Rso ≤ 1.0 and Rs ≤ Ra. Rso = (0.75 + 2×10⁻⁵ z) Ra (FAO-56 eq. 37; ASCE-EWRI 2005 eq. 18–19). Net radiation is not replaced.
+
 | site | stage | variable | status | source_present | row_count | expected_days | valid_days | valid_fraction | finite_values | non_finite_values | start_date | end_date | missing_dates | duplicate_dates | missing_values | interpolated_values | physical_limit_violations |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | manaus | input | tmed_c | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
@@ -57,6 +59,7 @@ Coverage and QC flags by input variable.
 | manaus | computed_et0 | et_radiation_temperature | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
 | manaus | computed_et0 | et_stephens_stewart | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
 | manaus | computed_et0 | et_turc | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
+| manaus | radiation_envelope | rad_global_mj_m2_d | available | 1 | 366 | 366 | 366 | 1 | 366 | 0 | 2024-01-01 | 2024-12-31 | — | — | 0 | 0 | 0 |
 
 ## Method feasibility
 
@@ -190,6 +193,31 @@ Error and agreement metrics versus Penman–Monteith.
 | Thornthwaite | 4.1902 | 4.1763 | 4.1763 | 0.7883 | 0.6214 | 0.1849 | 0.1458 | -3.2165 | 420.3102 | Very Poor |
 | Mccloud | 7.9368 | 7.7702 | 7.7702 | 0.8859 | 0.7849 | 0.1269 | 0.1124 | -7.3023 | 781.9971 | Very Poor |
 | Thornthwaite Camargo | 4.0750 | 4.0376 | 4.0376 | 0.0000 | 0.0000 | 0.1717 | 0.0000 | -3.3026 | 406.3520 | Very Poor |
+
+## Daily metrics inside the radiation envelope
+
+Same statistics as the full-year daily table, restricted to days with 0.25 ≤ Rs/Rso ≤ 1.0 and Rs ≤ Ra. Ra is FAO-56 equation 21 and Rso is FAO-56 equation 37. The full-year tables are unchanged. Days inside the envelope: 0.
+
+| method | rmse | mae | mbe | r | r2 | willmott_d | c | classification |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Thornthwaite | — | — | — | — | — | — | — | — |
+| Thornthwaite Camargo | — | — | — | — | — | — | — | — |
+| Camargo | — | — | — | — | — | — | — | — |
+| Hargreaves Samani | — | — | — | — | — | — | — | — |
+| Hargreaves Samani Corr | — | — | — | — | — | — | — | — |
+| Priestley Taylor | — | — | — | — | — | — | — | — |
+| Garcia Lopez | — | — | — | — | — | — | — | — |
+| Makkink | — | — | — | — | — | — | — | — |
+| Mccloud | — | — | — | — | — | — | — | — |
+| Turc | — | — | — | — | — | — | — | — |
+| Global Radiation | — | — | — | — | — | — | — | — |
+| Ivanov | — | — | — | — | — | — | — | — |
+| Jensen Heise | — | — | — | — | — | — | — | — |
+| Net Radiation | — | — | — | — | — | — | — | — |
+| Radiation Temperature | — | — | — | — | — | — | — | — |
+| Lungeon | — | — | — | — | — | — | — | — |
+| Stephens Stewart | — | — | — | — | — | — | — | — |
+| Hicks Hess | — | — | — | — | — | — | — | — |
 
 ## Uncertainty and sensitivity
 

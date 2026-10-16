@@ -508,7 +508,16 @@ def build_site_report_markdown(
         ]
     )
     quality = _read_csv_if_exists(reports_dir / f"{site}_data_quality.csv")
-    lines.append(_md_table(quality, max_rows=len(quality) if quality is not None else 40))
+    envelope_note = _radiation_envelope_note(quality)
+    if envelope_note:
+        lines.extend([envelope_note, ""])
+    quality_display = _quality_for_display(quality)
+    lines.append(
+        _md_table(
+            quality_display,
+            max_rows=len(quality_display) if quality_display is not None else 40,
+        )
+    )
 
     lines.extend(
         [
@@ -562,6 +571,21 @@ def build_site_report_markdown(
         if metrics is not None and "c" in metrics.columns:
             metrics = metrics.sort_values("c", ascending=False, na_position="last")
         lines.append(_md_table(metrics, columns=list(_METRIC_COLUMNS)))
+
+    screened_metrics = _read_csv_if_exists(tables_dir / f"{site}_daily_metrics_radiation_screen.csv")
+    if screened_metrics is not None:
+        if "c" in screened_metrics.columns:
+            screened_metrics = screened_metrics.sort_values("c", ascending=False, na_position="last")
+        lines.extend(
+            [
+                "",
+                "## Daily metrics inside the radiation envelope",
+                "",
+                _screened_metrics_note(screened_metrics),
+                "",
+            ]
+        )
+        lines.append(_md_table(screened_metrics, columns=list(_METRIC_COLUMNS)))
 
     uncertainty_path = reports_dir / f"{site}_uncertainty_sensitivity.md"
     if uncertainty_path.exists():
@@ -638,6 +662,62 @@ def _df_to_html_table(df: pd.DataFrame, max_rows: int = 40) -> str:
     )
 
 
+def _quality_for_display(quality: pd.DataFrame | None) -> pd.DataFrame | None:
+    if quality is None:
+        return None
+    hidden = [
+        column
+        for column in (
+            "envelope_days_inside",
+            "envelope_days_outside",
+            "envelope_days_unevaluable",
+        )
+        if column in quality.columns
+    ]
+    if not hidden:
+        return quality
+    return quality.drop(columns=hidden)
+
+
+def _radiation_envelope_note(quality: pd.DataFrame | None) -> str:
+    if quality is None or "stage" not in quality.columns:
+        return ""
+    envelope = quality.loc[quality["stage"] == "radiation_envelope"]
+    if envelope.empty:
+        return ""
+    row = envelope.iloc[0]
+
+    def _count(name: str) -> str:
+        value = row[name] if name in row.index else pd.NA
+        if pd.isna(value):
+            return "—"
+        return str(int(value))
+
+    return (
+        "Clear-sky screen for global radiation: "
+        f"{_count('envelope_days_outside')} days outside the envelope, "
+        f"{_count('envelope_days_inside')} inside, "
+        f"{_count('envelope_days_unevaluable')} unevaluable. "
+        "A day is inside when 0.25 ≤ Rs/Rso ≤ 1.0 and Rs ≤ Ra. "
+        "Rso = (0.75 + 2×10⁻⁵ z) Ra (FAO-56 eq. 37; ASCE-EWRI 2005 eq. 18–19). "
+        "Net radiation is not replaced."
+    )
+
+
+def _screened_metrics_note(metrics: pd.DataFrame | None) -> str:
+    note = (
+        "Same statistics as the full-year daily table, restricted to days with "
+        "0.25 ≤ Rs/Rso ≤ 1.0 and Rs ≤ Ra. Ra is FAO-56 equation 21 and "
+        "Rso is FAO-56 equation 37. The full-year tables are unchanged."
+    )
+    if metrics is None or metrics.empty or "envelope_days" not in metrics.columns:
+        return note
+    days = metrics["envelope_days"].iloc[0]
+    if pd.isna(days):
+        return note
+    return f"{note} Days inside the envelope: {int(days)}."
+
+
 def _metrics_table_html(df: pd.DataFrame | None) -> str:
     if df is None or df.empty:
         return "<p><em>No data available.</em></p>"
@@ -663,6 +743,7 @@ def build_site_report_html(
     feasibility = _read_csv_if_exists(reports_dir / f"{site}_method_feasibility.csv")
     figures = _figure_links(site, figures_dir)
     uncertainty_path = reports_dir / f"{site}_uncertainty_sensitivity.md"
+    screened_metrics = _read_csv_if_exists(tables_dir / f"{site}_daily_metrics_radiation_screen.csv")
 
     parts = [
         "<p class=\"back\"><a href=\"../index.html\">← Back to results index</a></p>",
@@ -678,6 +759,8 @@ def build_site_report_html(
         "<a href=\"#monthly-metrics\">Monthly metrics</a>",
         "<a href=\"#daily-metrics\">Daily metrics</a>",
     ]
+    if screened_metrics is not None:
+        parts.append("<a href=\"#radiation-screen-metrics\">Radiation-screen metrics</a>")
     if uncertainty_path.exists():
         parts.append("<a href=\"#uncertainty\">Uncertainty</a>")
     if figures or (figures_dir / site).exists():
@@ -698,9 +781,22 @@ def build_site_report_html(
     parts.append("</ul></div></div>")
 
     parts.append("<div class=\"section\" id=\"quality\">")
-    parts.append("<div class=\"section-head\"><h2>Data quality</h2><p>Coverage and QC flags by input variable.</p></div>")
+    envelope_note = _radiation_envelope_note(quality)
+    quality_blurb = "Coverage and QC flags by input variable."
+    if envelope_note:
+        quality_blurb = f"{quality_blurb} {envelope_note}"
+    parts.append(
+        "<div class=\"section-head\"><h2>Data quality</h2>"
+        f"<p>{html.escape(quality_blurb)}</p></div>"
+    )
     parts.append("<div class=\"panel\">")
-    parts.append(_df_to_html_table(quality, max_rows=len(quality) if quality is not None else 40))
+    quality_display = _quality_for_display(quality)
+    parts.append(
+        _df_to_html_table(
+            quality_display,
+            max_rows=len(quality_display) if quality_display is not None else 40,
+        )
+    )
     parts.append("</div></div>")
 
     parts.append("<div class=\"section\" id=\"feasibility\">")
@@ -729,6 +825,16 @@ def build_site_report_html(
         )
         parts.append("<div class=\"panel\">")
         parts.append(_metrics_table_html(metrics))
+        parts.append("</div></div>")
+
+    if screened_metrics is not None:
+        parts.append("<div class=\"section\" id=\"radiation-screen-metrics\">")
+        parts.append(
+            "<div class=\"section-head\"><h2>Daily metrics inside the radiation envelope</h2>"
+            f"<p>{html.escape(_screened_metrics_note(screened_metrics))}</p></div>"
+        )
+        parts.append("<div class=\"panel\">")
+        parts.append(_metrics_table_html(screened_metrics))
         parts.append("</div></div>")
 
     if uncertainty_path.exists():
@@ -1074,6 +1180,12 @@ def build_index_markdown(
         lines.append(f"- [Data quality](reports/{site}_data_quality.csv)")
         lines.append(f"- [Daily metrics](tables/{site}_daily_metrics.csv)")
         lines.append(f"- [Monthly metrics](tables/{site}_monthly_metrics.csv)")
+        screened_name = f"{site}_daily_metrics_radiation_screen.csv"
+        if (tables_dir / screened_name).exists():
+            lines.append(f"- [Daily metrics, radiation envelope](tables/{screened_name})")
+        screen_name = f"{site}_radiation_screen.csv"
+        if (reports_dir / screen_name).exists():
+            lines.append(f"- [Radiation screen](reports/{screen_name})")
         if (figures_dir / site).exists():
             lines.append(f"- [Figures gallery](figures/{site}/index.html)")
         lines.append("")
@@ -1121,6 +1233,12 @@ def build_index_html(
             ("Monthly metrics", f"tables/{site}_monthly_metrics.csv", "CSV"),
             ("Daily metrics", f"tables/{site}_daily_metrics.csv", "CSV"),
         ]
+        screened_name = f"{site}_daily_metrics_radiation_screen.csv"
+        if (tables_dir / screened_name).exists():
+            link_items.append(("Daily metrics, radiation envelope", f"tables/{screened_name}", "CSV"))
+        screen_name = f"{site}_radiation_screen.csv"
+        if (reports_dir / screen_name).exists():
+            link_items.append(("Radiation screen", f"reports/{screen_name}", "CSV"))
         if (figures_dir / site).exists():
             link_items.append(("Figures gallery", f"figures/{site}/index.html", "HTML"))
         for label, href, hint in link_items:

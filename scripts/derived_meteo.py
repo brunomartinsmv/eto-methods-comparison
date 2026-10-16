@@ -100,14 +100,26 @@ FAO56_MINIMUM_WIND_2M_MS = 0.5
 
 def clear_sky_radiation_mj_m2_day(
     ra_mj_m2_day: pd.Series | np.ndarray | float,
-    altitude_m: float,
+    altitude_m: float | None = None,
+    *,
+    elevation_m: float | None = None,
 ) -> pd.Series | np.ndarray | float:
     """Clear-sky solar radiation Rso (FAO-56 eq. 37), MJ m-2 day-1.
 
     Rso = (0.75 + 2e-5 * z) * Ra. At sea level this matches eq. 36 with as+bs = 0.75.
+    ``elevation_m`` is the same station elevation as ``altitude_m``.
     """
+    if altitude_m is None and elevation_m is None:
+        raise ValueError("station elevation is required")
+    if (
+        altitude_m is not None
+        and elevation_m is not None
+        and float(altitude_m) != float(elevation_m)
+    ):
+        raise ValueError("altitude_m and elevation_m differ")
+    station_elevation_m = elevation_m if elevation_m is not None else altitude_m
     ra = pd.to_numeric(ra_mj_m2_day, errors="coerce")
-    rso = (0.75 + 2e-5 * float(altitude_m)) * ra
+    rso = (0.75 + 2e-5 * float(station_elevation_m)) * ra
     if isinstance(ra_mj_m2_day, pd.Series):
         return pd.Series(rso, index=ra_mj_m2_day.index, name="rso_mj_m2_d")
     return rso
