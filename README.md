@@ -8,11 +8,11 @@
 [![Results](https://img.shields.io/badge/results-summary_rankings.csv-informational.svg)](outputs/tables/summary_rankings.csv)
 [![Contact](https://img.shields.io/badge/contact-GitHub%20Issues-lightgrey.svg)](https://github.com/brunomartinsmv/eto-methods-comparison/issues)
 
-This repository compares 18 alternative ET₀ methods with FAO-56 Penman-Monteith. It includes the Python pipeline, method rankings, data-quality reports, uncertainty and sensitivity analyses, optional PCA, and instructions for reproducing the outputs.
+This repository compares 20 alternative ET₀ methods with FAO-56 Penman-Monteith. It includes the Python pipeline, method rankings, data-quality reports, uncertainty and sensitivity analyses, optional PCA, and instructions for reproducing the outputs.
 
 ## Demonstration results
 
-This repository now configures **18 alternative ET0 methods plus Penman-Monteith FAO-56 as reference**. The current demonstration workflow runs end to end for two contrasting Brazilian climates:
+This repository now configures **20 alternative ET0 methods plus Penman-Monteith FAO-56 as reference**. FAO-56 PMT and the Valiantzas temperature-radiation equation are calculated and kept out of the default ranking. The current demonstration workflow runs end to end for two contrasting Brazilian climates:
 - **Piracicaba, SP** (Cwa, humid subtropical with dry winter)
 - **Manaus, AM** (Af, tropical rainforest)
 
@@ -527,7 +527,7 @@ The repository also includes [`CITATION.cff`](CITATION.cff), which GitHub can us
 
 ## Methods Overview
 
-The repository configuration targets **18 alternative ET0 estimation methods** plus **Penman-Monteith FAO-56** as the reference. The `compute-eto` command calculates the **15 methods with `status: computed`** from standardized meteorological variables and writes daily calculated series to `outputs/results/{site}_daily_eto.csv`.
+The repository configuration targets **20 alternative ET0 estimation methods** plus **Penman-Monteith FAO-56** as the reference. The `compute-eto` command calculates the **17 methods with `status: computed`** from standardized meteorological variables and writes daily calculated series to `outputs/results/{site}_daily_eto.csv`. FAO-56 PMT (`et_fao56_pmt`) and Valiantzas (`et_valiantzas`) are computed with `default_ranking: false`, so they stay out of the default metrics and rankings.
 
 **Reference standard:**
 - **Penman-Monteith (FAO-56)**, Energy balance + aerodynamic approach, requires full met data

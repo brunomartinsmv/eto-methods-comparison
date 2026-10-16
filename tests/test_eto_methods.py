@@ -26,6 +26,7 @@ PUBLIC_METHODS = [
     "lungeon",
     "stephens_stewart",
     "hicks_hess",
+    "valiantzas",
 ]
 
 SYNTHETIC_WEATHER = {
@@ -160,6 +161,16 @@ METHOD_CASES = {
             "wind_2m_m_s": SYNTHETIC_WEATHER["wind_2m_m_s"],
         },
         np.array([3.3942857143, 5.1884081633, 7.5114285714]),
+    ),
+    "valiantzas": (
+        eto_methods.valiantzas,
+        {
+            "t_mean_c": SYNTHETIC_WEATHER["t_mean_c"],
+            "t_min_c": SYNTHETIC_WEATHER["t_min_c"],
+            "rs_mj_m2_day": SYNTHETIC_WEATHER["rs_mj_m2_day"],
+            "latitude_deg": -22.7,
+        },
+        np.array([3.3369135159, 4.1804917945, 5.0849294621]),
     ),
 }
 

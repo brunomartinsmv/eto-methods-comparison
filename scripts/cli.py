@@ -32,6 +32,7 @@ from .config import (
     DEFAULT_YEAR,
     METHOD_COLUMNS,
     METHOD_SHORT,
+    METHODS,
     OUTPUTS_FIGURES,
     OUTPUTS_REPORTS,
     OUTPUTS_RESULTS,
@@ -80,7 +81,8 @@ def _ensure_dir(path: Path) -> None:
 
 
 def _method_cols_present(df: pd.DataFrame) -> list[str]:
-    return [col for col in METHOD_COLUMNS.values() if col in df.columns]
+    excluded = set(METHODS.excluded_from_default_ranking)
+    return [col for col in METHOD_COLUMNS.values() if col in df.columns and col not in excluded]
 
 
 def _compute_eto_requested(args: argparse.Namespace) -> bool:

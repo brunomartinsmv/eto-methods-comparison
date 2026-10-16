@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -34,6 +34,15 @@ class MethodsConfig:
     short_names: dict[str, str]
     status_by_name: dict[str, str]
     reference_column: str = "et_penman_monteith"
+    default_ranking_by_name: dict[str, bool] = field(default_factory=dict)
+
+    @property
+    def excluded_from_default_ranking(self) -> frozenset[str]:
+        return frozenset(
+            column
+            for name, column in self.columns.items()
+            if not self.default_ranking_by_name.get(name, True)
+        )
 
     @property
     def precomputed_only_columns(self) -> frozenset[str]:
@@ -155,6 +164,7 @@ def load_methods_config(path: Path = METHODS_CONFIG) -> MethodsConfig:
     columns: dict[str, str] = {}
     short_names: dict[str, str] = {}
     status_by_name: dict[str, str] = {}
+    default_ranking_by_name: dict[str, bool] = {}
     reference_column = "et_penman_monteith"
     for method_name, meta in methods.items():
         if not isinstance(meta, dict) or "column" not in meta:
@@ -167,6 +177,13 @@ def load_methods_config(path: Path = METHODS_CONFIG) -> MethodsConfig:
             allowed = ", ".join(sorted(VALID_METHOD_STATUSES))
             raise ValueError(f"Method '{method_name}' in {path} has invalid status '{status}'. Expected: {allowed}")
         status_by_name[name] = status
+        include_in_default_ranking = meta.get("default_ranking", True)
+        if not isinstance(include_in_default_ranking, bool):
+            raise ValueError(
+                f"Method '{method_name}' in {path} has invalid default_ranking "
+                f"'{include_in_default_ranking}'. Expected true or false."
+            )
+        default_ranking_by_name[name] = include_in_default_ranking
         if "short" in meta:
             short_names[column] = str(meta["short"])
         if bool(meta.get("reference")):
@@ -177,6 +194,7 @@ def load_methods_config(path: Path = METHODS_CONFIG) -> MethodsConfig:
         short_names=short_names,
         status_by_name=status_by_name,
         reference_column=reference_column,
+        default_ranking_by_name=default_ranking_by_name,
     )
 
 
