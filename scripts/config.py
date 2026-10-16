@@ -64,6 +64,7 @@ class PipelineConfig:
     sensitivity_perturbation_min_pct: int = -50
     sensitivity_perturbation_max_pct: int = 50
     sensitivity_perturbation_step_pct: int = 10
+    sensitivity_relative_perturbation_pct: float = 1.0
     uncertainty_bootstrap_samples: int = 1000
     uncertainty_confidence: float = 0.95
     uncertainty_eto_bins: int = 4
@@ -123,6 +124,7 @@ def load_pipeline_config(path: Path = PIPELINE_CONFIG) -> PipelineConfig:
         sensitivity_perturbation_min_pct=int(sensitivity.get("perturbation_min_pct", -50)),
         sensitivity_perturbation_max_pct=int(sensitivity.get("perturbation_max_pct", 50)),
         sensitivity_perturbation_step_pct=int(sensitivity.get("perturbation_step_pct", 10)),
+        sensitivity_relative_perturbation_pct=float(sensitivity.get("relative_perturbation_pct", 1)),
         uncertainty_bootstrap_samples=int(uncertainty.get("bootstrap_samples", 1000)),
         uncertainty_confidence=float(uncertainty.get("confidence", 0.95)),
         uncertainty_eto_bins=int(uncertainty.get("eto_bins", 4)),

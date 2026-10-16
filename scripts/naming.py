@@ -39,6 +39,10 @@ def sensitivity_filename(site: str, method: str) -> str:
     return f"{site}_sensitivity_{method}.csv"
 
 
+def relative_sensitivity_filename(site: str, method: str = "penman_monteith") -> str:
+    return f"{site}_sensitivity_{method}_relative.csv"
+
+
 def calibration_coefficients_filename(site: str, method: str) -> str:
     return f"{site}_{method}_calibration_coefficients.csv"
 

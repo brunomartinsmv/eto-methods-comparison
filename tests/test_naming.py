@@ -8,6 +8,7 @@ from scripts.naming import (
     figure_filename,
     metrics_filename,
     monthly_totals_filename,
+    relative_sensitivity_filename,
     rolling_7d_filename,
     seasonal_filename,
     sensitivity_filename,
@@ -49,6 +50,14 @@ def test_bias_bins_filename() -> None:
 
 def test_sensitivity_filename() -> None:
     assert sensitivity_filename("manaus", "penman_monteith") == "manaus_sensitivity_penman_monteith.csv"
+    assert (
+        relative_sensitivity_filename("manaus")
+        == "manaus_sensitivity_penman_monteith_relative.csv"
+    )
+    assert (
+        relative_sensitivity_filename("piracicaba")
+        == "piracicaba_sensitivity_penman_monteith_relative.csv"
+    )
 
 
 def test_calibration_filenames() -> None:

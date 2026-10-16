@@ -26,6 +26,14 @@ Relative humidity inputs are standardized as daily mean, maximum, and minimum co
 
 The daily bootstrap resamples method-reference pairs without perturbing humidity. The separate optional OAT sensitivity command can perturb humidity inputs. Temperature-only methods omit this control on atmospheric demand.
 
+## Relative sensitivity of Penman-Monteith
+
+For Penman-Monteith only, the same command writes monthly and annual nondimensional sensitivity coefficients, S_x = (dET₀/dx) × (x/ET₀). Each daily value is a central difference at ±1% of the driver. The reported month or year is the unweighted mean of finite daily coefficients. Days with non-finite or zero ET₀ are omitted.
+
+Temperature is mean air temperature. The saturation-curve slope is recomputed from the perturbed temperature, and vapor-pressure deficit is held at its baseline value, \(e_s(T_{mean}) - e_a\). That deficit is perturbed on its own. Wind is the 2 m speed already used in the daily equation. Radiation is net radiation (`rad_net_mj_m2_d`), the radiation term this pipeline passes to Penman-Monteith. A percentage step in temperature is a numerical probe of the Celsius value, the same convention as the ±50% sweep, not a physical scenario.
+
+The ±50% sweep still perturbs input columns one at a time, including relative humidity, and still covers Turc and the radiation-temperature equation. Manaus and Piracicaba are written to separate tables. The coefficients describe this daily equation in the analyzed year. They are not a ranking to carry from one climate to the other.
+
 ## Missing days and interpolation
 
 Cleaning produces one daily table per site for the target year. The data-quality reports in `outputs/reports/*_data_quality.csv` document missingness and interpolation counts by variable. The metrics functions use pairwise finite observations for each method-reference comparison, so rows with missing values in either the reference or the method are excluded for that method.

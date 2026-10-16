@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added monthly and annual relative sensitivity coefficients for Penman-Monteith (`outputs/tables/{site}_sensitivity_penman_monteith_relative.csv`). The coefficient is a ±1% central difference for temperature, vapor-pressure deficit, 2 m wind, and net radiation. The ±50% one-at-a-time sweep is unchanged, and each site keeps its own table.
+
 ## [2.2.0] - 2026-10-08
 
 ### Added

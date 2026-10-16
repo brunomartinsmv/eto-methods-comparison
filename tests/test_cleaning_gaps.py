@@ -28,6 +28,9 @@ def test_pipeline_config_loads_defaults() -> None:
     pipeline = load_pipeline_config()
     assert pipeline.calibration_train_fraction == pytest.approx(0.7)
     assert pipeline.sensitivity_perturbation_min_pct == -50
+    assert pipeline.sensitivity_perturbation_max_pct == 50
+    assert pipeline.sensitivity_perturbation_step_pct == 10
+    assert pipeline.sensitivity_relative_perturbation_pct == pytest.approx(1)
     assert pipeline.uncertainty_bootstrap_samples == 1000
     assert pipeline.uncertainty_confidence == pytest.approx(0.95)
     assert pipeline.uncertainty_eto_bins == 4

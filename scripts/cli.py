@@ -52,6 +52,7 @@ from .naming import (
     method_only_filename,
     metrics_filename,
     monthly_totals_filename,
+    relative_sensitivity_filename,
     rolling_7d_filename,
     seasonal_filename,
     sensitivity_filename,
@@ -608,6 +609,13 @@ def cmd_sensitivity(args: argparse.Namespace) -> None:
             title=f"OAT sensitivity - {site} - {args.method}",
         )
         logger.info("wrote sensitivity outputs for %s (%s)", site, args.method)
+        if args.method == "penman_monteith":
+            relative = sensitivity.run_penman_monteith_relative_sensitivity(df, site_meta=meta)
+            sensitivity.write_relative_sensitivity_table(
+                relative,
+                tables_dir / relative_sensitivity_filename(site),
+            )
+            logger.info("wrote relative sensitivity table for %s", site)
 
 
 def cmd_all(args: argparse.Namespace) -> None:
@@ -1181,7 +1189,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     sensitivity_parser = subparsers.add_parser(
         "sensitivity",
-        help="Run optional one-at-a-time meteorological sensitivity analysis",
+        help=(
+            "Run optional one-at-a-time sensitivity analysis. "
+            "Penman-Monteith also writes monthly and annual relative coefficients"
+        ),
     )
     sensitivity_parser.add_argument("--year", type=int, default=DEFAULT_YEAR)
     sensitivity_parser.add_argument("--input", default=str(DATA_CLEANED))
