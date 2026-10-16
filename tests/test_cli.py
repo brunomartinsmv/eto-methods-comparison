@@ -219,6 +219,7 @@ def test_scientific_cli_commands_are_available() -> None:
     assert calibrate.method == "hargreaves_samani"
     assert calibrate.results_input is None
     assert calibrate.train_start == "2024-01-01"
+    assert calibrate.free_exponent is False
 
 
 def test_pipeline_uncertainty_kwargs_honor_pipeline_yml_when_flags_unset(
@@ -570,9 +571,86 @@ def test_calibrate_command_writes_coefficients_and_metrics(tmp_path, monkeypatch
     cmd_calibrate(args)
 
     assert (output_dir / "manaus_hargreaves_samani_calibration_coefficients.csv").exists()
+    assert not (output_dir / "hargreaves_samani_calibration_transfer.csv").exists()
     metrics = pd.read_csv(output_dir / "manaus_hargreaves_samani_calibration_metrics.csv")
     assert set(metrics["period"]) == {"train", "test"}
     assert set(metrics["variant"]) == {"original", "calibrated"}
+
+
+def _calibration_weather(site_coefficient: float) -> pd.DataFrame:
+    dates = pd.date_range("2024-01-01", periods=8, freq="D")
+    tmin = np.linspace(18.0, 21.0, len(dates))
+    tmax = tmin + np.linspace(6.0, 12.0, len(dates))
+    weather = pd.DataFrame(
+        {
+            "date": dates,
+            "tmin_c": tmin,
+            "tmax_c": tmax,
+            "tmed_c": (tmin + tmax) / 2.0,
+            "ra_extraterrestre_mj_m2_d": np.linspace(30.0, 36.0, len(dates)),
+        }
+    )
+    weather["et_penman_monteith"] = site_coefficient * weather["ra_extraterrestre_mj_m2_d"]
+    return weather
+
+
+def test_calibrate_command_writes_transfer_table_across_configured_sites(tmp_path) -> None:
+    input_dir = tmp_path / "cleaned"
+    output_dir = tmp_path / "tables"
+    input_dir.mkdir()
+    _calibration_weather(0.04).to_csv(input_dir / "manaus_daily.csv", index=False)
+    _calibration_weather(0.02).to_csv(input_dir / "piracicaba_daily.csv", index=False)
+
+    args = argparse.Namespace(
+        input=str(input_dir),
+        output=str(output_dir),
+        year=2024,
+        site=None,
+        all_sites=True,
+        method="hargreaves_samani",
+        results_input=None,
+        train_start="2024-01-01",
+        train_end="2024-01-05",
+        test_start="2024-01-06",
+        test_end="2024-01-08",
+        train_fraction=None,
+        free_exponent=True,
+    )
+    cmd_calibrate(args)
+
+    transfer = pd.read_csv(output_dir / "hargreaves_samani_calibration_transfer.csv")
+    assert set(zip(transfer["fit_site"], transfer["score_site"], strict=True)) == {
+        ("manaus", "piracicaba"),
+        ("piracicaba", "manaus"),
+    }
+    assert transfer["exponent_status"].eq("fitted").all()
+    columns = list(transfer.columns)
+    assert columns.index("calibrated_rmse") == columns.index("original_rmse") + 1
+    manaus_coefficients = pd.read_csv(
+        output_dir / "manaus_hargreaves_samani_calibration_coefficients.csv"
+    )
+    manaus_to_piracicaba = transfer.query(
+        "fit_site == 'manaus' and score_site == 'piracicaba'"
+    ).iloc[0]
+    assert manaus_to_piracicaba["coefficient"] == pytest.approx(
+        manaus_coefficients.loc[0, "coefficient"]
+    )
+    assert manaus_to_piracicaba["exponent"] == pytest.approx(manaus_coefficients.loc[0, "exponent"])
+    metrics = pd.read_csv(output_dir / "manaus_hargreaves_samani_calibration_metrics.csv")
+    assert set(metrics["period"]) == {"train", "test"}
+    assert set(metrics["variant"]) == {"original", "calibrated"}
+
+
+def test_calibrate_command_rejects_free_exponent_for_other_methods(tmp_path) -> None:
+    args = argparse.Namespace(
+        input=str(tmp_path),
+        output=str(tmp_path / "tables"),
+        method="turc",
+        free_exponent=True,
+    )
+
+    with pytest.raises(ValueError, match="hargreaves_samani"):
+        cmd_calibrate(args)
 
 
 def test_calibrate_command_ignores_global_computed_daily_eto_for_custom_input(

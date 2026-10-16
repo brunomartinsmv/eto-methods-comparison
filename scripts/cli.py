@@ -577,13 +577,25 @@ def cmd_calibrate(args: argparse.Namespace) -> None:
     input_dir = Path(args.input)
     output_dir = Path(args.output)
     _ensure_dir(output_dir)
+    fit_exponent = bool(getattr(args, "free_exponent", False))
+    if fit_exponent and args.method != "hargreaves_samani":
+        raise ValueError(
+            "A free temperature-range exponent is available only for hargreaves_samani"
+        )
+    train_fraction = (
+        getattr(args, "train_fraction", None)
+        if getattr(args, "train_fraction", None) is not None
+        else PIPELINE.calibration_train_fraction
+    )
 
+    frames: dict[str, pd.DataFrame] = {}
     for site in _selected_sites(args).keys():
         df = _read_calibration_input(
             input_dir,
             site,
             results_input=getattr(args, "results_input", None),
         )
+        frames[site] = df
         result = calibration.calibrate_method(
             df,
             method=args.method,
@@ -591,11 +603,8 @@ def cmd_calibrate(args: argparse.Namespace) -> None:
             train_end=args.train_end,
             test_start=args.test_start,
             test_end=args.test_end,
-            train_fraction=(
-                getattr(args, "train_fraction", None)
-                if getattr(args, "train_fraction", None) is not None
-                else PIPELINE.calibration_train_fraction
-            ),
+            train_fraction=train_fraction,
+            fit_exponent=fit_exponent,
         )
         calibration.write_calibration_outputs(
             result,
@@ -604,6 +613,25 @@ def cmd_calibrate(args: argparse.Namespace) -> None:
             method=args.method,
         )
         logger.info("wrote calibration outputs for %s (%s)", site, args.method)
+
+    if len(frames) < 2:
+        return
+    transfer = calibration.cross_site_transfer(
+        frames,
+        method=args.method,
+        train_start=args.train_start,
+        train_end=args.train_end,
+        test_start=args.test_start,
+        test_end=args.test_end,
+        train_fraction=train_fraction,
+        fit_exponent=fit_exponent,
+    )
+    transfer_path = calibration.write_transfer_table(
+        transfer,
+        output_dir=output_dir,
+        method=args.method,
+    )
+    logger.info("wrote calibration transfer table to %s", transfer_path)
 
 
 def cmd_plots(args: argparse.Namespace) -> None:
@@ -1358,6 +1386,15 @@ def build_parser() -> argparse.ArgumentParser:
         type=float,
         default=None,
         help="Default train fraction when split dates are omitted (default: configs/pipeline.yml)",
+    )
+    calibrate_parser.add_argument(
+        "--free-exponent",
+        action="store_true",
+        help=(
+            "For hargreaves_samani, estimate the temperature-range exponent on the "
+            "training period together with the leading coefficient. The published "
+            "exponent 0.5 is used when this flag is omitted."
+        ),
     )
     _add_site_selection(calibrate_parser)
     calibrate_parser.set_defaults(func=cmd_calibrate)

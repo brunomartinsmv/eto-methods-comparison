@@ -63,11 +63,17 @@ O comando `calibrate` ajusta coeficientes locais sem substituir silenciosamente 
 
 Metodos calibraveis nesta etapa:
 
-- `hargreaves_samani`: coeficiente escalar da equacao Hargreaves-Samani;
+- `hargreaves_samani`: coeficiente escalar da equacao Hargreaves-Samani; o expoente da amplitude termica permanece 0,5, salvo com `--free-exponent`;
 - `turc`: coeficiente escalar da equacao Turc, mantendo a correcao de umidade quando disponivel;
 - `radiation_temperature`: coeficiente escalar da forma radiacao-temperatura.
 
 A funcao objetivo e `minimize_train_rmse`: o coeficiente e estimado no periodo de treino por minimos quadrados ordinarios para minimizar RMSE contra `et_penman_monteith`. A calibracao usa as variaveis meteorologicas do cleaned input selecionado; quando o input padrao `data/cleaned/{site}_daily.csv` e usado, a referencia `et_penman_monteith` de `outputs/results/{site}_daily_eto.csv` substitui a referencia pre-computada dos dados limpos quando esse arquivo calculado existe, mantendo consistencia com o comando `metrics`. Para cleaned inputs customizados, informe o diretorio de resultados calculados correspondente com `--results-input`; nesse modo, `{site}_daily_eto.csv` deve existir no diretorio informado. Sem `--results-input`, a referencia vem do proprio cleaned input customizado. A avaliacao e reportada separadamente para treino e teste, com metricas antes/depois (`variant = original` e `variant = calibrated`). Nao se deve interpretar a metrica de treino como desempenho independente.
+
+Com `--free-exponent`, restrito a `hargreaves_samani`, o expoente da amplitude termica tambem e estimado no treino. Para cada expoente candidato o coeficiente continua sendo a solucao de minimos quadrados, e o par escolhido e o de menor RMSE de treino. Empates dentro de uma tolerancia desprezivel mantem o expoente publicado 0,5. O intervalo de busca e um limite numerico; o comando nao insere um expoente regional publicado nem coeficientes de outra regiao. A serie original permanece com coeficiente 0,0023 e expoente 0,5. Treino e teste continuam nas mesmas colunas de periodo e variante.
+
+Quando a execucao inclui duas ou mais localidades configuradas, o comando escreve `outputs/tables/{method}_calibration_transfer.csv`. Cada linha ajusta os parametros no treino de uma localidade e avalia, na outra, a equacao original e a calibrada lado a lado (`original_*` e `calibrated_*`), em todos os dias finitos (`score_days = all_finite_days`). O ajuste nao usa observacoes da localidade avaliada. As datas de treino e teste do ajuste ficam nas colunas `fit_train_*` e `fit_test_*`; o RMSE de teste local continua no CSV de metricas da localidade de ajuste.
+
+Um RMSE de teste menor contra o Penman-Monteith calculado nao e uma validacao com lisimetro. O alvo e a serie calculada `et_penman_monteith`.
 
 Uso recomendado:
 
@@ -76,14 +82,17 @@ python -m scripts.cli calibrate --site manaus --method hargreaves_samani \
   --results-input outputs/results \
   --train-start 2024-01-01 --train-end 2024-06-30 \
   --test-start 2024-07-01 --test-end 2024-12-31
+
+python -m scripts.cli calibrate --all-sites --method hargreaves_samani --free-exponent
 ```
 
 Se as quatro datas nao forem informadas, o comando usa um split temporal deterministico 70/30 com os primeiros 70% dos dias para treino e os dias restantes para teste. Se qualquer data for informada, todas as quatro devem ser fornecidas, e `train-end` deve ser anterior a `test-start`.
 
 Artefatos:
 
-- `outputs/tables/{site}_{method}_calibration_coefficients.csv`: metodo calibrado, metodo base, nome e valor do coeficiente, periodo de treino, periodo de teste, referencia, objetivo e contagens de observacoes;
-- `outputs/tables/{site}_{method}_calibration_metrics.csv`: impacto nas metricas em treino e teste, antes e depois da calibracao.
+- `outputs/tables/{site}_{method}_calibration_coefficients.csv`: metodo calibrado, metodo base, nome e valor do coeficiente, expoente e `exponent_status` (`fixed`, `fitted` ou `not_applicable`), periodo de treino, periodo de teste, referencia, objetivo e contagens de observacoes;
+- `outputs/tables/{site}_{method}_calibration_metrics.csv`: impacto nas metricas em treino e teste, antes e depois da calibracao;
+- `outputs/tables/{method}_calibration_transfer.csv`, somente com duas ou mais localidades: transferencia entre localidades, com a equacao original e a calibrada lado a lado.
 
 Esses coeficientes sao locais e nao devem ser transferidos para outras localidades ou periodos sem nova validacao independente.
 

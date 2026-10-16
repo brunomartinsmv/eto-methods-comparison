@@ -59,6 +59,10 @@ def calibration_metrics_filename(site: str, method: str) -> str:
     return f"{site}_{method}_calibration_metrics.csv"
 
 
+def calibration_transfer_filename(method: str) -> str:
+    return f"{method}_calibration_transfer.csv"
+
+
 def figure_filename(site: str, product: str) -> str:
     return f"{site}_{product}.png"
 

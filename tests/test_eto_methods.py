@@ -230,6 +230,44 @@ def test_hargreaves_samani_is_zero_when_temperature_range_is_zero() -> None:
     assert np.allclose(result, np.array([0.0]), rtol=0.0, atol=1e-12)
 
 
+def test_hargreaves_samani_default_exponent_matches_square_root() -> None:
+    kwargs = {
+        "t_min_c": np.array([20.0, 21.0]),
+        "t_max_c": np.array([30.0, 33.0]),
+        "t_mean_c": np.array([25.0, 27.0]),
+        "ra_mj_m2_day": np.array([34.0, 36.0]),
+    }
+
+    default = np.asarray(eto_methods.hargreaves_samani(**kwargs), dtype=float)
+    explicit = np.asarray(eto_methods.hargreaves_samani(**kwargs, exponent=0.5), dtype=float)
+
+    assert explicit == pytest.approx(default, rel=0.0, abs=0.0)
+
+
+def test_hargreaves_samani_exponent_changes_temperature_range_power() -> None:
+    result = eto_methods.hargreaves_samani(
+        t_min_c=20.0,
+        t_max_c=30.0,
+        t_mean_c=25.0,
+        ra_mj_m2_day=24.5,
+        coefficient=0.0023,
+        exponent=1.0,
+    )
+    # Ra_mm = 24.5 / 2.45 = 10; range = 10; (Tmean + 17.8) = 42.8
+    assert result == pytest.approx(0.0023 * 10.0 * 10.0 * 42.8)
+
+
+def test_hargreaves_samani_rejects_non_positive_exponent() -> None:
+    with pytest.raises(ValueError, match="greater than 0"):
+        eto_methods.hargreaves_samani(
+            t_min_c=20.0,
+            t_max_c=30.0,
+            t_mean_c=25.0,
+            ra_mj_m2_day=30.0,
+            exponent=0.0,
+        )
+
+
 def test_penman_monteith_fao56_matches_reference_scalar_calculation() -> None:
     result = penman_monteith_fao56(
         t_mean_c=25.0,

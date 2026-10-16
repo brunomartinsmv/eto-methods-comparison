@@ -63,6 +63,14 @@ The corrected Hargreaves-Samani column is treated as a precomputed calibrated me
 
 The corrected series retains the calibration used to produce the spreadsheet column. Its coefficients may not transfer to another site, year, or climate regime without recalibration and validation on independent data.
 
+## Local calibration and cross-site transfer
+
+`calibrate` estimates one leading coefficient on a temporal train/test split by minimising training RMSE against calculated Penman-Monteith. For Hargreaves-Samani, `--free-exponent` also estimates the power on daily temperature range. Without that flag the published power 0.5 is held fixed. The search interval is a numerical bound. The command does not insert a regional exponent or a regional leading coefficient taken from another climate.
+
+When two or more configured sites are selected, the command writes `outputs/tables/{method}_calibration_transfer.csv`. Parameters are fit on one site's training window and scored at each other configured site. The original equation and the calibrated equation are placed side by side and evaluated on every finite day at the score site. That score is not a second temporal split; train and test metrics for the fit site remain in `{site}_{method}_calibration_metrics.csv`.
+
+A lower test RMSE against calculated Penman-Monteith is not a lysimeter validation. The scores measure agreement with the calculated series `et_penman_monteith`.
+
 ## Monthly and rainfall-season analysis
 
 Monthly totals sum finite daily estimates and preserve missing months as missing values. Each method has accompanying `_valid_days` and `_valid_fraction` columns. Partial totals are not rescaled to a full month; monthly comparisons can therefore involve unequal coverage, which must be checked before interpreting the ranking.

@@ -25,6 +25,14 @@ Metric columns include RMSE, MAE, MBE, Pearson r, R², Willmott d, confidence c,
 Kling–Gupta efficiency (`kge`), percent bias (`pbias`), and the c-based
 performance classification.
 
+`calibrate` writes `<site>_<method>_calibration_coefficients.csv` and
+`<site>_<method>_calibration_metrics.csv`. With two or more configured sites it
+also writes `<method>_calibration_transfer.csv`: fit on one site's training
+window, score at the other, original and calibrated metrics side by side.
+`--free-exponent` estimates the Hargreaves-Samani temperature-range exponent;
+otherwise that exponent stays at the published value 0.5. A lower test RMSE
+against calculated Penman-Monteith is not a lysimeter validation.
+
 ## Como reproduzir / How to reproduce
 ```bash
 python -m scripts.cli metrics --input data/cleaned --output outputs/tables

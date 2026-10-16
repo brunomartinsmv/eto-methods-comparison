@@ -47,14 +47,16 @@ def hargreaves_samani(
     t_mean_c: ArrayLike,
     ra_mj_m2_day: ArrayLike,
     coefficient: float = 0.0023,
+    exponent: float = 0.5,
 ) -> float | np.ndarray | pd.Series:
-    """Hargreaves-Samani ET0 = c * Ra_mm * sqrt(Tmax - Tmin) * (Tmean + 17.8).
+    """Hargreaves-Samani ET0 = c * Ra_mm * (Tmax - Tmin)**exponent * (Tmean + 17.8).
 
     Parameters
     ----------
     t_min_c, t_max_c, t_mean_c: daily minimum, maximum, and mean air temperature, degrees C.
     ra_mj_m2_day: extraterrestrial radiation, MJ m-2 day-1, converted to mm day-1.
-    coefficient: empirical coefficient.
+    coefficient: empirical coefficient. Published default is 0.0023.
+    exponent: power on daily temperature range. Published default is 0.5.
 
     Units
     -----
@@ -64,10 +66,26 @@ def hargreaves_samani(
     -------
     float, numpy.ndarray, or pandas.Series.
     """
+    if not np.isfinite(exponent) or exponent <= 0.0:
+        raise ValueError("Hargreaves-Samani exponent must be finite and greater than 0")
     temp_range = np.maximum(as_array(t_max_c) - as_array(t_min_c), 0)
     ra_mm = as_array(mj_m2_day_to_mm_day(ra_mj_m2_day))
-    result = coefficient * ra_mm * np.sqrt(temp_range) * (as_array(t_mean_c) + 17.8)
+    powered = _temperature_range_power(temp_range, exponent)
+    result = coefficient * ra_mm * powered * (as_array(t_mean_c) + 17.8)
     return restore_from_inputs(result, t_min_c, t_max_c, t_mean_c, ra_mj_m2_day)
+
+
+def _temperature_range_power(temp_range: np.ndarray, exponent: float) -> np.ndarray:
+    if exponent == 0.5:
+        return np.sqrt(temp_range)
+    range_values = np.asarray(temp_range, dtype=float)
+    if range_values.ndim == 0:
+        value = float(range_values)
+        return np.asarray(value**exponent if value > 0.0 else 0.0)
+    powered = np.zeros(range_values.shape, dtype=float)
+    positive = range_values > 0.0
+    powered[positive] = np.power(range_values[positive], exponent)
+    return powered
 
 
 def makkink(

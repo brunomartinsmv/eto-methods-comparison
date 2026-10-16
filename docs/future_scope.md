@@ -67,5 +67,5 @@ This project accepts ERA5-derived CSVs through the generic reader configuration.
 
 1. Implement Thornthwaite-family methods with cited equations and regression fixtures.
 2. Resolve or document the Garcia-Lopez unit/scale mismatch with the legacy spreadsheet.
-3. Add optional cross-validation for calibration beyond temporal train/test splits.
+3. Add repeated temporal cross-validation for calibration beyond the single train/test split. Cross-site transfer of a fitted coefficient, including an optional Hargreaves-Samani exponent, is available through `calibrate`.
 4. Publish a Zenodo release when preprint-linked outputs stabilize.
