@@ -1,14 +1,24 @@
 """Print the result tables and generated figures for each configured site."""
 
+from __future__ import annotations
+
+import argparse
+import sys
+from collections.abc import Sequence
+
 import pandas as pd
 
-from scripts.config import OUTPUTS_FIGURES, OUTPUTS_REPORTS, OUTPUTS_TABLES, SITES
+from .config import OUTPUTS_FIGURES, OUTPUTS_REPORTS, OUTPUTS_TABLES, SITES
+
+__all__ = ["main", "show_results_overview"]
 
 
-def main() -> None:
+def show_results_overview(sites: Sequence[str] | None = None) -> None:
+    """Print daily/monthly metric rankings, data quality flags, and figure paths."""
+    target_sites = list(sites) if sites else list(SITES)
     required_paths = [
         path
-        for site in SITES
+        for site in target_sites
         for path in (
             OUTPUTS_TABLES / f"{site}_daily_metrics.csv",
             OUTPUTS_TABLES / f"{site}_monthly_metrics.csv",
@@ -25,7 +35,7 @@ def main() -> None:
             + ", ".join(str(path) for path in missing)
         )
 
-    for site in SITES:
+    for site in target_sites:
         print(f"\n{site.upper()} daily metrics")
         daily = pd.read_csv(OUTPUTS_TABLES / f"{site}_daily_metrics.csv")
         print(daily.sort_values("rmse").to_string(index=False))
@@ -47,6 +57,22 @@ def main() -> None:
 
         for figure in (f"{site}_monthly_totals.png", f"{site}_daily_taylor.png"):
             print(f"{site.upper()} figure: {OUTPUTS_FIGURES / site / figure}")
+
+
+def main(argv: Sequence[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(
+        prog="python -m scripts.results_overview",
+        description="Print result tables and generated figures for configured sites.",
+    )
+    parser.add_argument(
+        "--site",
+        choices=sorted(SITES),
+        default=None,
+        help="Show overview for a single configured site (default: all sites)",
+    )
+    args = parser.parse_args(sys.argv[1:] if argv is None else argv)
+    sites = [args.site] if args.site else None
+    show_results_overview(sites=sites)
 
 
 if __name__ == "__main__":
