@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrected the daily Ivanov ET₀ coefficient to `0.00006` and documented its daily scale.
+- Corrected the daily McCloud equation to use a base of `1.07` and a temperature exponent of `1.8`.
 - Pointed the README DOI badge at the current Zenodo version DOI (`10.5281/zenodo.21341983`) via shields.io so GitHub renders it reliably.
 
 ## [2.1.0] - 2026-07-13

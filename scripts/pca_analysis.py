@@ -13,6 +13,8 @@ import pandas as pd
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+from .figure_style import PALETTE, apply_figure_style
+
 PCA_CANDIDATE_COLUMNS: tuple[str, ...] = (
     "tmed_c",
     "tmax_c",
@@ -136,25 +138,27 @@ def plot_pca_biplot(result: PCAResult, output_path: Path) -> None:
     explained = result.explained_variance
     scale = _arrow_scale(scores, loadings)
 
+    apply_figure_style(font_size=10)
     fig, ax = plt.subplots(figsize=(8, 6))
-    ax.scatter(scores[:, 0], scores[:, 1], s=18, alpha=0.55, color="#2a6f97")
-    ax.axhline(0, color="0.7", linewidth=0.8)
-    ax.axvline(0, color="0.7", linewidth=0.8)
+    ax.scatter(scores[:, 0], scores[:, 1], s=20, alpha=0.45, color=PALETTE["blue"], linewidths=0)
+    ax.axhline(0, color=PALETTE["gray_light"], linewidth=0.8)
+    ax.axvline(0, color=PALETTE["gray_light"], linewidth=0.8)
 
     for row in loadings.itertuples(index=False):
         x = float(row.PC1) * scale
         y = float(row.PC2) * scale
-        ax.arrow(0, 0, x, y, color="#bc4749", alpha=0.85, width=0.0, head_width=0.04, length_includes_head=True)
-        ax.text(x * 1.08, y * 1.08, row.variable, color="#8b1e3f", fontsize=9, ha="center", va="center")
+        ax.annotate("", xy=(x, y), xytext=(0, 0), arrowprops={"arrowstyle": "-|>", "color": PALETTE["red"], "lw": 1.25, "alpha": 0.85})
+        ax.text(x * 1.08, y * 1.08, row.variable.replace("_", " "), color=PALETTE["red"], fontsize=9, ha="center", va="center")
 
     pc1_ratio = explained.loc[explained["component"] == "PC1", "explained_variance_ratio"].iloc[0]
     pc2_ratio = explained.loc[explained["component"] == "PC2", "explained_variance_ratio"].iloc[0]
     ax.set_xlabel(f"PC1 ({pc1_ratio:.1%} of variance)")
     ax.set_ylabel(f"PC2 ({pc2_ratio:.1%} of variance)")
-    ax.set_title(f"PCA biplot - {result.label}")
-    ax.grid(True, alpha=0.25)
-    plt.tight_layout()
-    plt.savefig(output_path, dpi=200)
+    ax.set_title(f"PCA biplot · {result.label}")
+    ax.set_axisbelow(True)
+    ax.grid(color=PALETTE["gray_light"], linewidth=0.6, alpha=0.55)
+    fig.tight_layout(pad=1.2)
+    fig.savefig(output_path, dpi=300, bbox_inches="tight")
     plt.close(fig)
 
 

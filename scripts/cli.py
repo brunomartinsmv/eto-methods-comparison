@@ -438,6 +438,15 @@ def cmd_plots(args: argparse.Namespace) -> None:
         )
         logger.info("wrote figures for %s (%d alternative methods)", site, len(method_cols) - 1)
 
+    tables_dir = figures_dir.parent / "tables"
+    metrics_by_site = {
+        site: pd.read_csv(tables_dir / metrics_filename(site, "daily"))
+        for site in ("piracicaba", "manaus")
+        if (tables_dir / metrics_filename(site, "daily")).exists()
+    }
+    if metrics_by_site:
+        plots.plot_readme_overview(metrics_by_site, figures_dir / "methods_rmse_overview.png")
+
 
 def _site_group_label(meta: dict) -> str | None:
     for key in ("group", "biome", "bioma"):

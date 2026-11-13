@@ -11,6 +11,7 @@ import pandas as pd
 from . import compute_eto
 from .config import METHODS, PIPELINE
 from .feasibility import METHOD_REQUIRED_COLUMNS
+from .figure_style import PALETTE, apply_figure_style, style_axis
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -174,19 +175,21 @@ def plot_sensitivity(sensitivity: pd.DataFrame, output_path: Path, *, title: str
     if ok.empty:
         raise ValueError("Cannot plot sensitivity without valid perturbation rows.")
 
-    plt.figure(figsize=(10, 6))
-    for variable, group in ok.groupby("variable", sort=False):
+    apply_figure_style(font_size=9.5)
+    fig, ax = plt.subplots(figsize=(9.5, 5.4))
+    groups = list(ok.groupby("variable", sort=False))
+    colors = plt.cm.tab10(np.linspace(0, 1, max(len(groups), 1)))
+    for index, (variable, group) in enumerate(groups):
         group = group.sort_values("perturbation_pct")
-        plt.plot(group["perturbation_pct"], group["delta_mean_eto_mm_d"], marker="o", label=variable)
-    plt.axhline(0, color="black", linewidth=1, alpha=0.7)
-    plt.xlabel("Perturbation (%)")
-    plt.ylabel("Mean ET0 change (mm/d)")
-    plt.title(title)
-    plt.legend(ncol=2, fontsize=8)
-    plt.grid(True, alpha=0.3)
-    plt.tight_layout()
-    plt.savefig(output_path, dpi=120)
-    plt.close()
+        ax.plot(group["perturbation_pct"], group["delta_mean_eto_mm_d"], marker="o", markersize=3.5, linewidth=1.5, color=colors[index], label=variable.replace("_", " ").title())
+    ax.axhline(0, color=PALETTE["ink"], linewidth=0.9, alpha=0.7)
+    ax.set(xlabel="Input perturbation (%)", ylabel="Change in mean ET₀ (mm d⁻¹)", title=title)
+    ax.legend(ncol=2, loc="upper center", bbox_to_anchor=(0.5, -0.16), fontsize=8.5)
+    style_axis(ax)
+    ax.grid(axis="x", visible=False)
+    fig.tight_layout(pad=1.2)
+    fig.savefig(output_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
 
 
 def _require_method_inputs(df: pd.DataFrame, method: str) -> None:

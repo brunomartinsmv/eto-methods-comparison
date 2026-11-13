@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 
@@ -24,5 +25,15 @@ def monthly_sum(df: pd.DataFrame, value_cols: list[str]) -> pd.DataFrame:
     if "month" not in df.columns:
         raise ValueError("No 'month' column available for aggregation")
 
-    agg = df.groupby("month")[value_cols].sum().reset_index()
-    return agg
+    values = df[value_cols].apply(pd.to_numeric, errors="coerce")
+    values = values.where(np.isfinite(values))
+    grouped = values.groupby(df["month"])
+    monthly = grouped.sum(min_count=1)
+    valid_days = grouped.count()
+    days_in_month = monthly.index.days_in_month
+
+    for column in value_cols:
+        monthly[f"{column}_valid_days"] = valid_days[column]
+        monthly[f"{column}_valid_fraction"] = valid_days[column] / days_in_month
+
+    return monthly.reset_index()
